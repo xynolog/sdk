@@ -17,8 +17,10 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
+import xynolog.ClientTiming
 import xynolog.KeptWrites
 import xynolog.Timings
+import xynolog.TransportTiming
 import xynolog.XynologClient
 import xynolog.channels.BRIDGED_CHANNELS
 import xynolog.errors.SessionError
@@ -276,7 +278,8 @@ private fun gatewayOf(kb: KbTarget): String {
  * the session says so once (`session.keep-failed`); it goes on, its token held
  * and its person signed in. The gateway and the issuer are asked with `http`.
  * What it builds runs on `context`, keeps `clock`, and draws its jitter from
- * `random`.
+ * `random`. Its client keeps `clientTiming`, and its transport
+ * `transportTiming`.
  */
 internal suspend fun sessionStarted(
     kb: KbTarget,
@@ -288,6 +291,8 @@ internal suspend fun sessionStarted(
     context: CoroutineContext,
     clock: TimeSource,
     random: Random,
+    clientTiming: ClientTiming,
+    transportTiming: TransportTiming,
 ): OpenedSession {
     val baseUrl = gatewayOf(kb)
     val token = MutableStateFlow<String?>(null)
@@ -303,6 +308,7 @@ internal suspend fun sessionStarted(
         baseUrl,
         token,
         BRIDGED_CHANNELS,
+        timing = transportTiming,
         refresher = object : TokenRefresher {
             override suspend fun refresh(refused: String?): String? = made.await().refresh(refused)
         },
@@ -313,7 +319,7 @@ internal suspend fun sessionStarted(
         random = random,
     )
     val content = HttpContentTransport(transport)
-    val client = XynologClient(transport, content, transport, persistence = atStart?.persistence, context = context, clock = clock)
+    val client = XynologClient(transport, content, transport, clientTiming, atStart?.persistence, context, clock)
     // The client's caches write through `named`, which makes each write in its turn, and keeps one the storage refused
     // until it is made: the client's closing flush makes it, and the session's errors end once the writes begun have landed.
     client.writes = named
@@ -400,6 +406,7 @@ internal suspend fun sessionStarted(
  * said before the errors end. The gateway and the issuer are asked with
  * `http`. The session, its client, its renewals and its writes of what it
  * keeps run on `context`, keep `clock`, and draw their jitter from `random`.
+ * Its client keeps `clientTiming`, and its transport `transportTiming`.
  * Throws what reading `kept` threw, when it cannot be read as the session
  * starts, and `SessionError` (`session.construct-failed`), before anything is
  * asked, for a knowledge base that is not reached over HTTP or whose host is
@@ -415,8 +422,10 @@ public suspend fun sessionFromKept(
     context: CoroutineContext = Dispatchers.Default,
     clock: TimeSource = TimeSource.Monotonic,
     random: Random = Random.Default,
+    clientTiming: ClientTiming = ClientTiming(),
+    transportTiming: TransportTiming = TransportTiming(),
 ): OpenedSession {
-    val opened = sessionStarted(kb, kept, validate, storage, onAuthFailed, http, context, clock, random)
+    val opened = sessionStarted(kb, kept, validate, storage, onAuthFailed, http, context, clock, random, clientTiming, transportTiming)
     try {
         opened.session.ready()
     } catch (failure: Throwable) {
@@ -438,8 +447,10 @@ public fun sessionFromKeptFuture(
     context: CoroutineContext = Dispatchers.Default,
     clock: TimeSource = TimeSource.Monotonic,
     random: Random = Random.Default,
+    clientTiming: ClientTiming = ClientTiming(),
+    transportTiming: TransportTiming = TransportTiming(),
 ): CompletableFuture<OpenedSession> = CoroutineScope(context).futureOf {
-    sessionFromKept(kb, kept, validate, storage, onAuthFailed?.let { told -> { told.accept(it) } }, http, context, clock, random)
+    sessionFromKept(kb, kept, validate, storage, onAuthFailed?.let { told -> { told.accept(it) } }, http, context, clock, random, clientTiming, transportTiming)
 }
 
 // ── A registry's sessions, over HTTP ───────────────────────────────────
@@ -453,13 +464,16 @@ public fun sessionFromKeptFuture(
  * base's old session and its new one, during a sign-in, are closed in turn.
  * Every gateway and issuer is asked with `http`. Its sessions run on
  * `context`, keep `clock`, and draw their jitter from `random`, and so do its
- * futures.
+ * futures. Each session's client keeps `clientTiming`, and its transport
+ * `transportTiming`.
  */
 public class HttpSessionFactory @JvmOverloads constructor(
     private val http: HttpClient = ownHttp,
     private val context: CoroutineContext = Dispatchers.Default,
     private val clock: TimeSource = TimeSource.Monotonic,
     private val random: Random = Random.Default,
+    private val clientTiming: ClientTiming = ClientTiming(),
+    private val transportTiming: TransportTiming = TransportTiming(),
 ) : SessionFactory {
     override suspend fun session(options: SessionFactoryOptions): OpenedSession {
         val kb = options.kb
@@ -473,6 +487,8 @@ public class HttpSessionFactory @JvmOverloads constructor(
             context,
             clock,
             random,
+            clientTiming,
+            transportTiming,
         )
     }
 

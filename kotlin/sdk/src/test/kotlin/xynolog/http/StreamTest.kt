@@ -9,12 +9,13 @@ import kotlinx.serialization.json.JsonPrimitive
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Test
+import xynolog.TransportTiming
 import xynolog.channels.TRACE_FIELD
 import xynolog.errors.TransportError
 import xynolog.errors.TransportErrorCode
 import xynolog.frame
 
-private val QUICK = Timing(reconnectMs = 10, lazyRemoveMs = 10, lingerMs = 10)
+private val QUICK = TransportTiming(reconnectMs = 10, lazyRemoveMs = 10, lingerMs = 10)
 
 /** The stream against a stand-in gateway: what it does with a line that is not a frame. */
 class StreamTest {

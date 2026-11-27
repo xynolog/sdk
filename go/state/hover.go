@@ -5,9 +5,9 @@ package state
 //
 // A pointer crossing the page hovers nothing on its way. say is told each
 // change: the annotation hovered, or nil for none. Beckon.Hover is what it is
-// usually given, and Timing.HoverDelay the delay, unless the viewer was told
-// another. Closing it forgets a rest that has not run its time, and it says
-// nothing more.
+// usually given, and hoverDelayMs of protocol/specs/src/client/timing.json the
+// delay, unless the viewer was told another. Closing it forgets a rest that has
+// not run its time, and it says nothing more.
 
 import (
 	"sync"
@@ -15,7 +15,12 @@ import (
 
 	xynolog "github.com/xynolog/sdk/go"
 	"github.com/xynolog/sdk/go/api"
+	"github.com/xynolog/sdk/go/internal/timing"
 )
+
+// HoverDelay is how long a pointer rests before what it is on is hovered,
+// unless a caller says otherwise (hoverDelayMs of protocol/specs/src/client/timing.json).
+const HoverDelay = timing.HoverDelay
 
 // HoverDwell is a pointer's dwell: see the file's documentation.
 type HoverDwell struct {

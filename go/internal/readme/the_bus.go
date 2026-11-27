@@ -13,14 +13,13 @@ import (
 
 // Read asks for a resource on the bus, then hears what is added to it.
 func Read(ctx context.Context, origin, token string, resource api.ResourceId) error {
-	timing := xynolog.DefaultTiming()
 	transport := xynolog.NewHTTPTransport(xynolog.HTTPTransportConfig{
-		BaseURL: origin, Token: xynolog.NewVariable(token), Channels: bus.BridgedChannels, HTTP: http.DefaultClient, Timing: timing,
+		BaseURL: origin, Token: xynolog.NewVariable(token), Channels: bus.BridgedChannels, HTTP: http.DefaultClient, Timing: xynolog.DefaultTransportTiming(),
 	})
 	defer transport.Close()
 	wire := xynolog.NewWire(transport)
 
-	reply, err := xynolog.Request(ctx, wire, bus.BrowseResourceRequested, api.BrowseResourceRequest{ResourceId: resource}, timing.BusRequestTimeout)
+	reply, err := xynolog.Request(ctx, wire, bus.BrowseResourceRequested, api.BrowseResourceRequest{ResourceId: resource}, xynolog.DefaultClientTiming().BusRequestTimeout)
 	var refused *xynolog.BusRequestError
 	if errors.As(err, &refused) {
 		fmt.Println(refused.Code) // "bus.not-found", "bus.timeout", …: a closed vocabulary

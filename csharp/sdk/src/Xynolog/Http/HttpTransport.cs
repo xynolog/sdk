@@ -19,7 +19,7 @@ public sealed partial class HttpTransport : IDisposable
     private readonly object gate = new();
     private readonly HttpClient? client;
     private readonly HttpMessageInvoker? owned;
-    private readonly Timing timing;
+    private readonly TransportTiming timing;
     private readonly TimeProvider clock;
     private readonly Random random;
     private readonly Func<string?, CancellationToken, Task<string?>>? refresher;
@@ -56,14 +56,14 @@ public sealed partial class HttpTransport : IDisposable
     /// <summary>Starts opening the bus stream to the gateway at <paramref name="baseUrl"/>, subscribed to
     /// <paramref name="channels"/>, sending <paramref name="token"/> and renewing a refused one with
     /// <paramref name="refresher"/>.</summary>
-    public HttpTransport(string baseUrl, string? token, IEnumerable<string> channels, Timing? timing = null,
+    public HttpTransport(string baseUrl, string? token, IEnumerable<string> channels, TransportTiming? timing = null,
         Func<string?, CancellationToken, Task<string?>>? refresher = null, HttpClient? httpClient = null,
         TimeProvider? timeProvider = null, Random? random = null)
     {
         BaseUrl = baseUrl.TrimEnd('/');
         this.token = token;
         this.channels = channels.Distinct(StringComparer.Ordinal).ToArray();
-        this.timing = timing ?? new Timing();
+        this.timing = timing ?? new TransportTiming();
         clock = timeProvider ?? TimeProvider.System;
         this.random = random ?? Random.Shared;
         this.refresher = refresher;
@@ -78,7 +78,6 @@ public sealed partial class HttpTransport : IDisposable
     }
 
     internal TimeProvider Clock => clock;
-    internal Timing Settings => timing;
     internal CancellationToken Closed => lifetime.Token;
 
     /// <summary>The gateway's address, without a trailing slash.</summary>
@@ -246,7 +245,7 @@ public sealed partial class HttpTransport : IDisposable
             using var request = Request(GatewayRoute.EmitOnBus.Method, GatewayRoute.EmitOnBus.Path, sent);
             request.Headers.Add(GatewayHeader.IdempotencyKey, key);
             request.Content = JsonContent.Create(body);
-            using var deadline = new CancellationTokenSource(TimeSpan.FromMilliseconds(timing.EmitTimeoutMs), clock);
+            using var deadline = new CancellationTokenSource(TimeSpan.FromMilliseconds(Timings.EmitTimeoutMs), clock);
             using var linked = CancellationTokenSource.CreateLinkedTokenSource(cancellation, lifetime.Token, deadline.Token);
             HttpResponseMessage response;
             try { response = await SendAsync(request, linked.Token).ConfigureAwait(Spawning.Captures); }
@@ -281,19 +280,20 @@ public sealed partial class HttpTransport : IDisposable
     }
 
     /// <summary>Sends a request for <paramref name="operation"/> on the bus and returns its reply's response, if it has
-    /// one; a failure reply throws.</summary>
+    /// one; a failure reply throws. It has <paramref name="timeoutMs"/> to be answered, the protocol's
+    /// busRequestTimeoutMs when null.</summary>
     public async Task<JsonElement?> RequestAsync(string operation, JsonElement payload, int? timeoutMs = null, CancellationToken cancellation = default)
     {
-        var frame = await RequestFrameAsync(operation, payload, timeoutMs, cancellation).ConfigureAwait(Spawning.Captures);
+        var frame = await RequestFrameAsync(operation, payload, timeoutMs ?? Timings.BusRequestTimeoutMs, cancellation).ConfigureAwait(Spawning.Captures);
         return frame.Frame.Payload.TryGetProperty("response", out var value) ? value.Clone() : null;
     }
 
-    internal async Task<ReceivedBusFrame> RequestFrameAsync(string operation, JsonElement payload, int? timeoutMs, CancellationToken cancellation)
+    internal async Task<ReceivedBusFrame> RequestFrameAsync(string operation, JsonElement payload, int timeoutMs, CancellationToken cancellation)
     {
         var replies = BusRegistry.Operation(operation);
         foreach (var channel in BusRegistry.ReplyChannelsFor(operation))
             if (!IsSubscribed(channel)) throw BusRegistry.Unsubscribed(channel);
-        using var deadline = new CancellationTokenSource(TimeSpan.FromMilliseconds(timeoutMs ?? timing.BusRequestTimeoutMs), clock);
+        using var deadline = new CancellationTokenSource(TimeSpan.FromMilliseconds(timeoutMs), clock);
         using var linked = CancellationTokenSource.CreateLinkedTokenSource(deadline.Token, lifetime.Token, cancellation);
         var correlation = Guid.NewGuid().ToString();
         var reply = new Pending(replies.Result, replies.Failure);

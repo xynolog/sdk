@@ -30,16 +30,14 @@ type t = {
   http : Http_wire.t;
   client_id : string;
   correlation_id : unit -> string;
-  silence_ms : int;
-  poll_ms : int;
+  timing : Client_timing.client;
   listeners : (int, listener) Hashtbl.t;
   mutable closed : bool;
   mutable next : int;
 }
 
-let make ?(silence_ms = Client_timing.job_silence_ms)
-    ?(poll_ms = Client_timing.job_status_poll_ms) ~sw ~clock ~subscription ~http
-    ~client_id ~correlation_id () =
+let make ?(timing = Client_timing.client_defaults) ~sw ~clock ~subscription
+    ~http ~client_id ~correlation_id () =
   {
     sw;
     clock;
@@ -47,8 +45,7 @@ let make ?(silence_ms = Client_timing.job_silence_ms)
     http;
     client_id;
     correlation_id;
-    silence_ms;
-    poll_ms;
+    timing;
     listeners = Hashtbl.create 4;
     closed = false;
     next = 0;
@@ -96,7 +93,10 @@ let request t operation payload =
   let correlation_id = t.correlation_id () in
   let send () = send t ~correlation_id (B.request operation) payload in
   try
-    match S.request t.subscription ~correlation_id operation ~send with
+    match
+      S.request t.subscription ~timeout_ms:t.timing.bus_request_timeout_ms
+        ~correlation_id operation ~send
+    with
     | Ok (S.Result value) ->
         Ok (Yojson.Safe.from_string (B.encode value) |> field "response")
     | Ok (S.Failure value) -> Error (H.Bus (H.bus_failure value))
@@ -207,7 +207,8 @@ let start_open t ~verb ?resource ?stall_ms ~params ~on_report ~on_failure
                 safe (Records.Job_status_request.to_json { job_id = id })
               in
               let poll_delay () =
-                if !retrying || !polling then t.poll_ms else t.silence_ms
+                if !retrying || !polling then t.timing.job_status_poll_ms
+                else t.timing.job_silence_ms
               in
               let rec monitor () =
                 if not !finished then (

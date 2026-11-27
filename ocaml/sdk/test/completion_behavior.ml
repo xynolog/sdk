@@ -448,12 +448,8 @@ let real_delivery () =
   in
   let client =
     Client.connect ~sw ~clock ~session ~client_id:"test" ~persister
-      ~timing:
-        {
-          Subscription.default_timing with
-          reconnect_ms = 1;
-          max_reconnect_ms = 1;
-        }
+      ~transport_timing:
+        { Client_timing.transport_defaults with reconnect_ms = 1 }
       ~key:(fun () ->
         incr serial;
         string_of_int !serial)

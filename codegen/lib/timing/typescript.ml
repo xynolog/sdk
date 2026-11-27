@@ -1,5 +1,6 @@
 (* The timing as the TypeScript SDK reads it (typescript/core/src): a constant
-   per entry under its name in upper case. *)
+   per entry under its name in upper case, and for each record of what a
+   caller may set its interface and the table's values of it. *)
 
 module T = Typescript_syntax
 
@@ -23,6 +24,35 @@ let constant (e : Table.entry) =
                ];
            })
 
+let record (t : Table.t) record =
+  let record_name = Table.record_name record in
+  let members = Table.members record t in
+  let member (e : Table.entry) =
+    T.member ~about:[ T.Doc e.docs ] (T.Ident e.name)
+      (T.T_name
+         (match e.value with
+         | Duration _ | Count _ -> "number"
+         | Budget _ -> "RetryBudget"))
+  in
+  [
+    T.Interface
+      {
+        about = [ T.Doc (Table.record_docs record) ];
+        export = true;
+        name = record_name;
+        members = List.map member members;
+      };
+    T.const
+      ~about:[ T.Doc ("The table's values of " ^ record_name ^ ".") ]
+      ~annotation:(T.T_name record_name)
+      ("DEFAULT_" ^ Text.upper_snake record_name)
+      (T.rows
+         (List.map
+            (fun (e : Table.entry) ->
+              T.entry (T.Ident e.name) (T.Name (name e)))
+            members));
+  ]
+
 let text (t : Table.t) =
   T.text
     {
@@ -32,7 +62,7 @@ let text (t : Table.t) =
           __FILE__;
       body =
         T.import ~type_only:true [ "RetryBudget" ] "./retry"
-        :: List.map constant t;
+        :: (List.map constant t @ List.concat_map (record t) Table.records);
     }
 
 let file t = { Output.path; text = text t }

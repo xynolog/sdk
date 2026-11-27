@@ -9,10 +9,10 @@ import Data.Text (Text)
 import Xynolog.Cache qualified as Cache
 import Xynolog.Internal.Coupled qualified as Coupled
 import Xynolog.Internal.Generated.CachePersistence (KeptQuery)
+import Xynolog.Internal.Generated.TimingSettings qualified as Timing
 import Xynolog.Internal.Kept (cacheKey)
 import Xynolog.SessionStorage qualified as Storage
 import Xynolog.StoragePersister qualified as Stored
-import Xynolog.Timing.Settings qualified as Timing
 
 -- | What a client keeps for one person on one knowledge base, under the
 -- keys session/stored.json gives the knowledge base's id and the person's key.

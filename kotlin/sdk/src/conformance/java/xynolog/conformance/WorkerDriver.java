@@ -30,7 +30,6 @@ import xynolog.XynologClient;
 import xynolog.errors.XynologError;
 import xynolog.http.HttpContentTransport;
 import xynolog.http.HttpTransport;
-import xynolog.http.Timing;
 import xynolog.identifiers.ResourceId;
 import xynolog.jobs.Claims;
 import xynolog.jobs.HeldJob;
@@ -245,25 +244,21 @@ public final class WorkerDriver {
         synchronized (this) {
             if (client != null) throw new Misuse("a transport is already open");
         }
-        Timing known = new Timing();
-        long reconnectMs = known.getReconnectMs();
-        long lazyRemoveMs = known.getLazyRemoveMs();
-        long lingerMs = known.getLingerMs();
+        // The claim's waits are held for its options, which `claim` makes; every other row is the client's or the transport's.
+        Map<String, JsonElement> others = new LinkedHashMap<>();
         if (args.containsKey("timing")) {
             JsonObject stated = object(args, "timing");
             for (String name : stated.keySet()) {
                 switch (name) {
-                    case "reconnectMs" -> reconnectMs = count(stated, name);
-                    case "lazyRemoveMs" -> lazyRemoveMs = count(stated, name);
-                    case "lingerMs" -> lingerMs = count(stated, name);
                     case "jobClaimTimeoutMs" -> jobClaimTimeoutMs = count(stated, name);
                     case "heldJobStallMs" -> heldJobStallMs = count(stated, name);
                     case "heldJobStallCheckMs" -> heldJobStallCheckMs = count(stated, name);
                     case "markCommitTimeoutMs" -> markCommitTimeoutMs = count(stated, name);
-                    default -> throw new Misuse("this driver cannot override " + name);
+                    default -> others.put(name, stated.get(name));
                 }
             }
         }
+        ClientAndTransportTiming timing = Stated.timings(new JsonObject(others));
         boolean commits = false;
         if (args.containsKey("commits")) {
             if (!(args.get("commits") instanceof JsonPrimitive stated) || stated.isString() || !Set.of("true", "false").contains(stated.getContent())) {
@@ -274,14 +269,14 @@ public final class WorkerDriver {
         // What a worker's stream names for its claims, and for its commits when it will make any, and no more.
         List<String> channels = new ArrayList<>(WorkerChannelsKt.getJOB_CLAIM_CHANNELS());
         if (commits) channels.addAll(WorkerChannelsKt.getJOB_COMMIT_CHANNELS());
-        HttpTransport made = new HttpTransport(text(args, "baseUrl"), StateFlowKt.MutableStateFlow(text(args, "token")), channels, new Timing(reconnectMs, lazyRemoveMs, lingerMs));
+        HttpTransport made = new HttpTransport(text(args, "baseUrl"), StateFlowKt.MutableStateFlow(text(args, "token")), channels, timing.getTransport());
         // Taken at once, so every failure from the first request on is heard.
         reading(made.failures().asPublisher(), (XynologError error) -> say("error", ProtocolKt.failure(error)));
         reading(made.getState().asPublisher(), (Optional<ConnectionState> state) -> state.ifPresent(this::report));
         synchronized (this) {
             transport = made;
             content = new HttpContentTransport(made);
-            client = new XynologClient(made, content, made);
+            client = new XynologClient(made, content, made, timing.getClient());
         }
         return JsonNull.INSTANCE;
     }

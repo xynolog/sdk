@@ -1,9 +1,9 @@
 open Eio.Std
 include Client_record
 
-let connect ?timing ?http_timing ?telemetry ?delegation_silence_ms
-    ?delegation_poll_ms ?invalidation_window_ms ?restore ?save ?persister ~sw
-    ~clock ~session ~client_id ~key ~call ~global ~on_event () =
+let connect ?(client_timing = Client_timing.client_defaults) ?transport_timing
+    ?telemetry ?restore ?save ?persister ~sw ~clock ~session ~client_id ~key
+    ~call ~global ~on_event () =
   let restore, save =
     match (persister, restore, save) with
     | Some store, None, None -> (Some (Storage_persister.restore store), None)
@@ -15,7 +15,7 @@ let connect ?timing ?http_timing ?telemetry ?delegation_silence_ms
     Kept_for_first_reader.say said (Transport_failure failure)
   in
   let http =
-    Http_wire.make ?timing:http_timing ?telemetry ~clock ~session ~key
+    Http_wire.make ?timing:transport_timing ?telemetry ~clock ~session ~key
       ~on_error:report ~call ()
   in
   let follower = ref None in
@@ -55,14 +55,13 @@ let connect ?timing ?http_timing ?telemetry ?delegation_silence_ms
     deliver frame
   in
   let bus =
-    Subscription.start ?timing ?telemetry
+    Subscription.start ?timing:transport_timing ?telemetry
       ?positions:(Option.map Storage_persister.positions persister)
       ~sw ~clock ~client_id ~global ~scopes:[] ~connect ~on_event ()
   in
   let delegation =
-    Delegation.make ?silence_ms:delegation_silence_ms
-      ?poll_ms:delegation_poll_ms ~sw ~clock ~subscription:bus ~http ~client_id
-      ~correlation_id:key ()
+    Delegation.make ~timing:client_timing ~sw ~clock ~subscription:bus ~http
+      ~client_id ~correlation_id:key ()
   in
   follower := Some delegation;
   let save, flush_cache =
@@ -120,8 +119,8 @@ let connect ?timing ?http_timing ?telemetry ?delegation_silence_ms
             pending := [] )
   in
   let cache =
-    Client_query.make ?window_ms:invalidation_window_ms ?restore ?save ~sw
-      ~clock ~bus ~http ~client_id ~key ()
+    Client_query.make ~timing:client_timing ?restore ?save ~sw ~clock ~bus ~http
+      ~client_id ~key ()
   in
   live := Some cache;
   Fiber.fork_daemon ~sw (fun () ->
@@ -143,6 +142,7 @@ let connect ?timing ?http_timing ?telemetry ?delegation_silence_ms
   {
     sw;
     clock;
+    timing = client_timing;
     cache;
     flush_cache;
     session;
@@ -169,12 +169,13 @@ let emit t ?scope ?correlation_id channel payload =
   Http_wire.emit t.http ~client_id:t.client_id ?scope ?correlation_id channel
     payload
 
-let request t ?timeout_ms ?normalize_refusals operation payload =
+let request t ?(timeout_ms = t.timing.bus_request_timeout_ms)
+    ?normalize_refusals operation payload =
   let correlation_id = t.key () in
   let send () =
     ignore (emit t ~correlation_id (Bus_registry.request operation) payload)
   in
-  Subscription.request t.bus ?timeout_ms ?normalize_refusals ~correlation_id
+  Subscription.request t.bus ~timeout_ms ?normalize_refusals ~correlation_id
     operation ~send
 
 let errors t = Kept_for_first_reader.read t.said

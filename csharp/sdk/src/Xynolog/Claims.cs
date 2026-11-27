@@ -5,6 +5,7 @@ using Xynolog.Errors;
 using Xynolog.Http;
 using Xynolog.Identifiers;
 using Xynolog.Jobs;
+using Xynolog.Protocol;
 using Xynolog.Types;
 
 namespace Xynolog;
@@ -49,11 +50,10 @@ public sealed class Claims
         this.transport = transport;
         this.wire = wire;
         clock = transport.Clock;
-        var timing = transport.Settings;
-        claimTimeoutMs = checked((int)(options.JobClaimTimeoutMs ?? timing.JobClaimTimeoutMs));
-        stallMs = checked((int)(options.HeldJobStallMs ?? timing.HeldJobStallMs));
-        stallCheckMs = checked((int)(options.HeldJobStallCheckMs ?? timing.HeldJobStallCheckMs));
-        CommitTimeoutMs = checked((int)(options.MarkCommitTimeoutMs ?? timing.MarkCommitTimeoutMs));
+        claimTimeoutMs = checked((int)(options.JobClaimTimeoutMs ?? Timings.JobClaimTimeoutMs));
+        stallMs = checked((int)(options.HeldJobStallMs ?? Timings.HeldJobStallMs));
+        stallCheckMs = checked((int)(options.HeldJobStallCheckMs ?? Timings.HeldJobStallCheckMs));
+        CommitTimeoutMs = checked((int)(options.MarkCommitTimeoutMs ?? Timings.MarkCommitTimeoutMs));
         accepts = options.Accepts;
         command = JsonSerializer.SerializeToElement(new JobClaimCommand { Accepts = options.Accepts });
         filters = options.Accepts.Select(filter => JsonSerializer.SerializeToElement(filter)).ToArray();

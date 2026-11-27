@@ -59,33 +59,6 @@ func retryAfterMs(_ header: String?) -> Int? {
   return seconds * 1000
 }
 
-public struct TransportTiming: Sendable {
-  public var reconnectMs: Int
-  public var lazyRemoveMs: Int
-  public var lingerMs: Int
-  public var seenEventIdsCount: Int
-  public var httpRequestMs: Int
-  public var streamOpenMs: Int
-  public var emitAttempts: Int
-  public var emitInitialDelayMs: Int
-  public var emitMaxDelayMs: Int
-  public init(
-    reconnectMs: Int? = nil, lazyRemoveMs: Int? = nil, lingerMs: Int? = nil,
-    seenEventIdsCount: Int? = nil, httpRequestMs: Int? = nil, streamOpenMs: Int? = nil,
-    emitAttempts: Int? = nil, emitInitialDelayMs: Int? = nil, emitMaxDelayMs: Int? = nil
-  ) {
-    self.reconnectMs = reconnectMs ?? Timings.reconnectMs
-    self.lazyRemoveMs = lazyRemoveMs ?? Timings.lazyRemoveMs
-    self.lingerMs = lingerMs ?? Timings.lingerMs
-    self.seenEventIdsCount = seenEventIdsCount ?? Timings.seenEventIdsCount
-    self.httpRequestMs = httpRequestMs ?? Timings.httpRequestTimeoutMs
-    self.streamOpenMs = streamOpenMs ?? Timings.streamOpenTimeoutMs
-    self.emitAttempts = emitAttempts ?? Timings.emitRetry.attempts
-    self.emitInitialDelayMs = emitInitialDelayMs ?? Timings.emitRetry.initialDelayMs
-    self.emitMaxDelayMs = emitMaxDelayMs ?? Timings.emitRetry.maxDelayMs
-  }
-}
-
 /// The code a refusal of `status` fails with: a gateway's refusal of a limit
 /// whose status and `LimitRefusal` code are one of
 /// `limitRefusalTransportCodes` is that transport code (a refused credential

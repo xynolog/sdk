@@ -67,7 +67,7 @@ describe('HttpTransport retry — what the caller receives', () => {
     const transport = new HttpTransport({
       baseUrl: testBaseUrl,
       channels: BRIDGED_CHANNELS,
-      timeout: 10_000,
+      timing: { httpRequestTimeoutMs: 10_000 },
       tokenRefresher: async () => 'fresh-token',
     });
 
@@ -93,7 +93,7 @@ describe('HttpTransport retry — what the caller receives', () => {
     const transport = new HttpTransport({
       baseUrl: testBaseUrl,
       channels: BRIDGED_CHANNELS,
-      timeout: 10_000,
+      timing: { httpRequestTimeoutMs: 10_000 },
       tokenRefresher: async () => 'fresh-token',
     });
 
@@ -111,7 +111,7 @@ describe('HttpTransport retry — what the caller receives', () => {
     const transport = new HttpTransport({
       baseUrl: testBaseUrl,
       channels: BRIDGED_CHANNELS,
-      timeout: 10_000,
+      timing: { httpRequestTimeoutMs: 10_000 },
       tokenRefresher: async () => 'fresh-token',
     });
 
@@ -138,7 +138,7 @@ describe('HttpTransport retry — what the caller receives', () => {
     const transport = new HttpTransport({
       baseUrl: testBaseUrl,
       channels: BRIDGED_CHANNELS,
-      timeout: 10_000,
+      timing: { httpRequestTimeoutMs: 10_000 },
       tokenRefresher: async () => null,
     });
 
@@ -160,7 +160,7 @@ describe('HttpTransport retry — what the caller receives', () => {
     const transport = new HttpTransport({
       baseUrl: testBaseUrl,
       channels: BRIDGED_CHANNELS,
-      timeout: 10_000,
+      timing: { httpRequestTimeoutMs: 10_000 },
     });
 
     await expect(
@@ -180,7 +180,7 @@ describe('HttpTransport retry — what the caller receives', () => {
       const transport = new HttpTransport({
         baseUrl: testBaseUrl,
         channels: BRIDGED_CHANNELS,
-        timeout: 10_000,
+        timing: { httpRequestTimeoutMs: 10_000 },
       });
 
       const thrown = transport.getCurrentUser().then(
@@ -231,7 +231,7 @@ describe('HttpTransport — a refused credential', () => {
     const transport = new HttpTransport({
       baseUrl: testBaseUrl,
       channels: BRIDGED_CHANNELS,
-      timeout: 10_000,
+      timing: { httpRequestTimeoutMs: 10_000 },
       tokenRefresher: async () => 'fresh-token',
     });
     const reported: unknown[] = [];
@@ -257,7 +257,7 @@ describe('HttpTransport — a refused credential', () => {
     const transport = new HttpTransport({
       baseUrl: testBaseUrl,
       channels: BRIDGED_CHANNELS,
-      timeout: 10_000,
+      timing: { httpRequestTimeoutMs: 10_000 },
       tokenRefresher: refresher,
     });
     const reported: unknown[] = [];
@@ -287,7 +287,7 @@ describe('HttpTransport — a refused credential', () => {
     const transport = new HttpTransport({
       baseUrl: testBaseUrl,
       channels: BRIDGED_CHANNELS,
-      timeout: 10_000,
+      timing: { httpRequestTimeoutMs: 10_000 },
     });
 
     const thrown = await transport.getCurrentUser().then(
@@ -311,7 +311,7 @@ describe('HttpTransport — a refused credential', () => {
     const transport = new HttpTransport({
       baseUrl: testBaseUrl,
       channels: BRIDGED_CHANNELS,
-      timeout: 10_000,
+      timing: { httpRequestTimeoutMs: 10_000 },
       tokenRefresher: refresher,
     });
 
@@ -356,7 +356,7 @@ describe('HttpTransport — what a refusal says', () => {
     const transport = new HttpTransport({
       baseUrl: testBaseUrl,
       channels: BRIDGED_CHANNELS,
-      timeout: 10_000,
+      timing: { httpRequestTimeoutMs: 10_000 },
     });
     const reported: unknown[] = [];
     transport.errors$.subscribe((error) => reported.push(error));
@@ -389,7 +389,7 @@ describe('HttpTransport — what a refusal says', () => {
     const transport = new HttpTransport({
       baseUrl: testBaseUrl,
       channels: BRIDGED_CHANNELS,
-      timeout: 10_000,
+      timing: { httpRequestTimeoutMs: 10_000 },
     });
 
     const thrown = await transport.getCurrentUser().then(

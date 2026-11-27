@@ -14,7 +14,7 @@ from spec import JsonObject
 from xynolog.cache import Ready
 from xynolog.channels import BRIDGED_CHANNELS
 from xynolog.client import CachePersistence, XynologClient
-from xynolog.http import HttpTransport, Timing
+from xynolog.http import HttpTransport, TransportTiming
 from xynolog.identifiers import ResourceId
 from xynolog.resume import CoupledBookmarks
 from xynolog.storage import MemoryStorage, SessionStorage
@@ -27,7 +27,7 @@ PERSON = person_key("did:web:example.org:users:alice")
 KEY = last_event_id_key("kb-a", PERSON)
 CACHE = cache_key("kb-a", PERSON, "resource")
 ANNOTATIONS = cache_key("kb-a", PERSON, "annotations")
-QUICK = Timing(reconnect_ms=10, lazy_remove_ms=10, linger_ms=10)
+QUICK = TransportTiming(reconnect_ms=10, lazy_remove_ms=10, linger_ms=10)
 
 
 def test_a_place_is_written_with_the_next_write_of_a_cache_and_not_before() -> None:

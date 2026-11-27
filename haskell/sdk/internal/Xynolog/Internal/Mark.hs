@@ -6,10 +6,10 @@ import Xynolog.Bus qualified as Bus
 import Xynolog.Channels hiding (MarkCreateRequest)
 import Xynolog.Internal.DelegatedVerbs qualified as Verb
 import Xynolog.Internal.Delegation qualified as Delegation
+import Xynolog.Internal.Generated.TimingSettings qualified as Timing
 import Xynolog.Internal.Local qualified as Local
 import Xynolog.Internal.Running qualified as Running
 import Xynolog.Internal.Transport qualified as LocalBus
-import Xynolog.Timing.Settings qualified as Timing
 import Xynolog.Types
 
 data MarkNamespace = MarkNamespace Bus.Bus LocalBus.EventBus Timing.Settings Delegation.Follower

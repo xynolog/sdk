@@ -26,7 +26,8 @@ import Xynolog.ErrorCodes qualified as Code
 import Xynolog.Errors (BusRequestError (..), TransportError (..))
 import Xynolog.Mark qualified as Mark
 import Xynolog.Running qualified as Running
-import Xynolog.Timing.Settings qualified as Timing
+import Xynolog.Timing qualified as Timing
+import Xynolog.Timing.Settings qualified as Settings
 import Xynolog.Transport qualified as Transport
 import Xynolog.Types
 import Xynolog.Yield qualified as Yield
@@ -112,7 +113,7 @@ newRig samples clock = do
   atomically (putTMVar sourceCell source)
   Transport.setState source Transport.ConnectionStateConnecting
   Transport.setState source Transport.ConnectionStateOpen
-  owned <- Client.newClient carrier content Nothing options Timing.protocolSettings Nothing
+  owned <- Client.newClient carrier content Nothing options Settings.protocolClientTiming Nothing
   pure (Rig owned source clock calls createHeld statusHeld current identity resource samples count)
 
 withRig :: Map.Map Text Value -> (Rig -> IO result) -> IO result
@@ -197,7 +198,7 @@ retryCases samples = withRig samples $ \rig -> do
   void (nextRequest rig (Channel.channelName Channel.JobCreate))
   atomically (readTQueue notices) >>= \notice -> require "creation was not the first report" (case notice of Report.Created _ -> True; _ -> False)
   atomically (writeTVar (holdStatus rig) True)
-  Time.advance (time rig) (Timing.jobSilenceMs Timing.protocolSettings * 1000000)
+  Time.advance (time rig) (Timing.jobSilenceMs * 1000000)
   oldAsk <- nextRequest rig (Channel.channelName Channel.JobStatusRequested)
   failure <- fixture samples "JobFailCommand"
   Transport.receive
@@ -219,7 +220,7 @@ retryCases samples = withRig samples $ \rig -> do
         (payload Channel.JobStatusResult (JobStatusResult failed))
         Nothing
     )
-  Time.advance (time rig) (Timing.jobSilenceMs Timing.protocolSettings * 1000000)
+  Time.advance (time rig) (Timing.jobSilenceMs * 1000000)
   atomically (isEmptyTQueue (requests rig)) >>= require "a failed attempt continued polling before another progress report"
   progress rig
   atomically (readTQueue notices) >>= \notice -> require "progress after a retry was lost" (case notice of Report.Progress _ -> True; _ -> False)
@@ -234,7 +235,7 @@ statusCases samples = do
     operation <- markRun rig
     worker <- async (try (Running.await operation) :: IO (Either Report.JobError MarkJobCompleteCommand))
     void (nextRequest rig (Channel.channelName Channel.JobCreate))
-    Time.advance (time rig) (Timing.jobSilenceMs Timing.protocolSettings * 1000000)
+    Time.advance (time rig) (Timing.jobSilenceMs * 1000000)
     outcome <- wait worker
     case ending of
       Nothing -> require "a status completion lost its unreported result" (either (const False) ((== Nothing) . markJobCompleteCommandResult) outcome)
@@ -261,7 +262,7 @@ statusCases samples = do
     operation <- markRun rig
     worker <- async (try (Running.await operation) :: IO (Either TransportError MarkJobCompleteCommand))
     void (nextRequest rig (Channel.channelName Channel.JobCreate))
-    Time.advance (time rig) (Timing.jobSilenceMs Timing.protocolSettings * 1000000)
+    Time.advance (time rig) (Timing.jobSilenceMs * 1000000)
     wait worker >>= require "another verb's status became this job's completion" . either ((== Code.TransportError) . transportErrorCode) (const False)
 
 stallCases :: Map.Map Text Value -> IO ()
@@ -293,9 +294,8 @@ stallCases samples = forM_ [False, True] $ \beforeCreation -> withRig samples $ 
 defaultStallCase :: Map.Map Text Value -> IO ()
 defaultStallCase samples = withRig samples $ \rig -> do
   params <- fixture samples "GenerationJobParams"
-  let settings = Timing.protocolSettings
-      floorMs = Timing.generationStallFloorMs settings
-  require "the floor case no longer has a sub-floor token budget" (floorMs > Timing.generationStallPerTokenMs settings)
+  let floorMs = Timing.generationStallFloorMs
+  require "the floor case no longer has a sub-floor token budget" (floorMs > Timing.generationStallPerTokenMs)
   operation <- Yield.delegate (Client.yield (client rig)) params {generationJobParamsMaxTokens = Just 1} Nothing
   worker <- async (try (Running.await operation) :: IO (Either Report.JobError YieldJobCompleteCommand))
   void (nextRequest rig (Channel.channelName Channel.JobCreate))

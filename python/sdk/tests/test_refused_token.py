@@ -19,13 +19,15 @@ from spec import JsonObject
 from xynolog.channels import BRIDGED_CHANNELS
 from xynolog.errors import SignInError, TransportError, XynologError
 from xynolog.events import Events
-from xynolog.http import HttpTransport, Timing
+from xynolog.http import HttpTransport, TransportTiming
 from xynolog.identifiers import ResourceId
 from xynolog.transport import UploadProgress
 from xynolog.types import PutBinaryRequest, RetryBudget, UploadProgressFinished, UploadProgressProgress, UploadProgressStarted
 from xynolog.watched import Variable, reached
 
-QUICK = Timing(reconnect_ms=20, lazy_remove_ms=10, linger_ms=10, emit_retry=RetryBudget(attempts=2, initial_delay_ms=1, max_delay_ms=1))
+QUICK = TransportTiming(
+    reconnect_ms=20, lazy_remove_ms=10, linger_ms=10, emit_retry=RetryBudget(attempts=2, initial_delay_ms=1, max_delay_ms=1)
+)
 REFUSED = Answer(status=401, body=b'{"error":"The token is not one this gateway admits"}')
 # Its `Retry-After` is longer than any test here waits: a client that waited it out would fail.
 LIMITED = Answer(
@@ -92,7 +94,7 @@ def test_a_stream_refused_asks_its_refresher_and_opens_at_once_with_what_it_is_g
         async with GatewayServer() as gateway:
             gateway.scripted[("POST", "/bus/subscribe")] = [REFUSED]
             # A reconnect that waited out its backoff would not have opened by the time this test ends.
-            slow = Timing(reconnect_ms=60_000)
+            slow = TransportTiming(reconnect_ms=60_000)
             async with HttpTransport(
                 gateway.origin, token=source.token, refresher=source.refresh, channels=BRIDGED_CHANNELS, timing=slow
             ) as transport:

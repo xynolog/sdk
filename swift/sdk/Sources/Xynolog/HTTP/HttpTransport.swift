@@ -212,8 +212,8 @@ public actor HttpTransport: Transport, GatewayOperations {
     let id = UUID()
     let http = self.http
     let base = baseUrl
-    let deadline = timing.streamOpenMs
-    let bodyDeadline = timing.httpRequestMs
+    let deadline = timing.streamOpenTimeoutMs
+    let bodyDeadline = timing.httpRequestTimeoutMs
     let clock = self.clock
     let life = lifetime
     let task = spawn { [weak self] in

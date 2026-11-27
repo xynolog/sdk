@@ -357,8 +357,8 @@ impl ContentTransport for HttpContentTransport {
                 None,
             );
             // The Archivist may hold this read while the Smelter settles the
-            // content, and the gateway passes that wait through: the
-            // deadline (`Timing::http_request`) must outlast it.
+            // content, and the gateway passes that wait through: the deadline
+            // (`TransportTiming::http_request_timeout`) must outlast it.
             xynolog_telemetry::content_get_anchored_text(
                 resource_id,
                 self.shared.answer(

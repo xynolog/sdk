@@ -1068,7 +1068,7 @@ impl CachePersister<String, String> for Kept {
 }
 
 fn persisted(service: &Service, kept: &Arc<Kept>) -> Cache<String, String> {
-    Cache::persisted(service.fetching(), kept.clone(), SAVE_DEBOUNCE)
+    Cache::persisted(service.fetching(), kept.clone())
 }
 
 #[tokio::test(start_paused = true)]

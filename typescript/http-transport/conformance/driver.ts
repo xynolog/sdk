@@ -13,6 +13,7 @@ import { createInterface } from 'node:readline';
 import { BehaviorSubject } from 'rxjs';
 import {
   Bus,
+  DEFAULT_TRANSPORT_TIMING,
   FrameRefusal,
   XynologError,
   accessToken,
@@ -26,6 +27,7 @@ import {
   type EventMap,
   type PutBinaryRequest,
   type RetryBudget,
+  type TransportTiming,
 } from '@xynolog/core';
 import { HttpContentTransport, HttpTransport } from '@xynolog/http-transport';
 import {
@@ -147,14 +149,17 @@ function uploadOf(args: Arguments): PutBinaryRequest {
   };
 }
 
-function budget(timing: Arguments): RetryBudget {
-  const stated = object(timing, 'emitRetry');
+function budget(args: Arguments, name: string): RetryBudget {
+  const stated = object(args, name);
   return {
     attempts: count(stated, 'attempts'),
     initialDelayMs: count(stated, 'initialDelayMs'),
     maxDelayMs: count(stated, 'maxDelayMs'),
   };
 }
+
+const isTransportTiming = (name: string): name is keyof TransportTiming =>
+  Object.hasOwn(DEFAULT_TRANSPORT_TIMING, name);
 
 const operations: Record<
   string,
@@ -163,17 +168,12 @@ const operations: Record<
   open(args) {
     if (transport) throw new Misuse('a transport is already open');
     const timing = args['timing'] === undefined ? {} : object(args, 'timing');
+    const transportTiming: Partial<TransportTiming> = {};
     for (const name of Object.keys(timing)) {
-      if (
-        ![
-          'reconnectMs',
-          'lazyRemoveMs',
-          'lingerMs',
-          'emitRetry',
-          'seenEventIdsCount',
-        ].includes(name)
-      )
+      if (!isTransportTiming(name))
         throw new Misuse(`this driver cannot override ${name}`);
+      if (name === 'emitRetry') transportTiming[name] = budget(timing, name);
+      else transportTiming[name] = count(timing, name);
     }
     const source = new BehaviorSubject<AccessToken | null>(
       accessToken(text(args, 'token')),
@@ -198,21 +198,7 @@ const operations: Record<
       token$: source,
       channels: texts(args, 'channels') as (keyof EventMap)[],
       ...(tokenRefresher === undefined ? {} : { tokenRefresher }),
-      ...(timing['reconnectMs'] === undefined
-        ? {}
-        : { reconnectMs: count(timing, 'reconnectMs') }),
-      ...(timing['lazyRemoveMs'] === undefined
-        ? {}
-        : { lazyRemoveMs: count(timing, 'lazyRemoveMs') }),
-      ...(timing['lingerMs'] === undefined
-        ? {}
-        : { lingerMs: count(timing, 'lingerMs') }),
-      ...(timing['emitRetry'] === undefined
-        ? {}
-        : { emitRetry: budget(timing) }),
-      ...(timing['seenEventIdsCount'] === undefined
-        ? {}
-        : { seenEventIdsCount: count(timing, 'seenEventIdsCount') }),
+      timing: transportTiming,
     });
     transport.state$.subscribe((state) => say({ state }));
     transport.errors$.subscribe((error) => say({ error: failure(error) }));

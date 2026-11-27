@@ -15,10 +15,11 @@ use std::time::Duration;
 use tokio::io::AsyncBufReadExt;
 use tokio::task::{AbortHandle, JoinHandle, JoinSet};
 use xynolog::errors::{JobError, TransportError, XynologError};
+use xynolog::timing::{ClientTiming, TransportTiming};
 use xynolog::types::{
     ConformanceDriverLine, ConformanceDriverLineAbandoned, ConformanceDriverLineFailed,
     ConformanceDriverLineMisuse, ConformanceDriverLineOk, ConformanceDriverLineReady,
-    ConformanceDriverLineUnsupported, ConformanceFailure, InvalidIdentifier,
+    ConformanceDriverLineUnsupported, ConformanceFailure, InvalidIdentifier, RetryBudget,
 };
 use xynolog_observability::telemetry;
 
@@ -151,6 +152,89 @@ pub fn texts(args: &Arguments, name: &str) -> Result<Vec<String>, Ended> {
                 .collect()
         })
         .ok_or_else(|| Ended::Misuse(format!("{name} must be a list of strings")))
+}
+
+fn milliseconds(args: &Arguments, name: &str) -> Result<Duration, Ended> {
+    count(args, name).map(Duration::from_millis)
+}
+
+/// Read a case's `timing`, when it states one, row by row of
+/// protocol/specs/src/client/timing.json: `holds` reads a row into whichever
+/// of the driver's records holds it, and says whether one does. A row none
+/// holds is a misuse.
+pub fn read_timing(
+    args: &Arguments,
+    mut holds: impl FnMut(&Arguments, &str) -> Result<bool, Ended>,
+) -> Result<(), Ended> {
+    if !args.contains_key("timing") {
+        return Ok(());
+    }
+    let stated = object(args, "timing")?;
+    for row in stated.keys() {
+        if !holds(stated, row)? {
+            return Err(Ended::Misuse(format!("this driver cannot override {row}")));
+        }
+    }
+    Ok(())
+}
+
+/// Read the row `row` of a case's `timing` into `timing`, when it is one
+/// `ClientTiming` holds.
+pub fn client_row(timing: &mut ClientTiming, stated: &Arguments, row: &str) -> Result<bool, Ended> {
+    let ClientTiming {
+        bus_request_timeout,
+        invalidation_window,
+        job_silence,
+        job_status_poll,
+    } = timing;
+    let member = match row {
+        "busRequestTimeoutMs" => bus_request_timeout,
+        "invalidationWindowMs" => invalidation_window,
+        "jobSilenceMs" => job_silence,
+        "jobStatusPollMs" => job_status_poll,
+        _ => return Ok(false),
+    };
+    *member = milliseconds(stated, row)?;
+    Ok(true)
+}
+
+/// Read the row `row` of a case's `timing` into `timing`, when it is one
+/// `TransportTiming` holds.
+pub fn transport_row(
+    timing: &mut TransportTiming,
+    stated: &Arguments,
+    row: &str,
+) -> Result<bool, Ended> {
+    let TransportTiming {
+        emit_retry,
+        http_request_timeout,
+        stream_open_timeout,
+        reconnect,
+        linger,
+        seen_event_ids_count,
+        lazy_remove,
+    } = timing;
+    match row {
+        "emitRetry" => {
+            let budget = object(stated, row)?;
+            *emit_retry = RetryBudget {
+                attempts: count(budget, "attempts")?,
+                initial_delay_ms: count(budget, "initialDelayMs")?,
+                max_delay_ms: count(budget, "maxDelayMs")?,
+            };
+        }
+        "httpRequestTimeoutMs" => *http_request_timeout = milliseconds(stated, row)?,
+        "streamOpenTimeoutMs" => *stream_open_timeout = milliseconds(stated, row)?,
+        "reconnectMs" => *reconnect = milliseconds(stated, row)?,
+        "lingerMs" => *linger = milliseconds(stated, row)?,
+        "seenEventIdsCount" => {
+            *seen_event_ids_count = usize::try_from(count(stated, row)?)
+                .map_err(|_| Ended::Misuse(format!("{row} is too large")))?;
+        }
+        "lazyRemoveMs" => *lazy_remove = milliseconds(stated, row)?,
+        _ => return Ok(false),
+    }
+    Ok(true)
 }
 
 /// The operations still running, each by the id the suite gave it: what a

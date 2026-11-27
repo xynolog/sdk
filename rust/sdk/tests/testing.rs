@@ -83,7 +83,7 @@ async fn a_test_client_is_built_over_what_the_test_gives_it() {
     let gateway = StubGateway::new();
     let content = InMemoryContent::new();
     let timing = ClientTiming {
-        bus_request: Duration::from_secs(3),
+        bus_request_timeout: Duration::from_secs(3),
         ..ClientTiming::default()
     };
 

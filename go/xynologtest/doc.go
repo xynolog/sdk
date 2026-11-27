@@ -9,7 +9,7 @@
 // (InMemoryContent), and a gateway that answers only what it was told to
 // (StubGateway). A test scripts the doubles and observes through the client:
 //
-//	made := xynologtest.NewTestClient(xynologtest.TestClientConfig{Timing: xynolog.DefaultTiming()})
+//	made := xynologtest.NewTestClient(xynologtest.TestClientConfig{Timing: xynolog.DefaultClientTiming()})
 //	made.Transport.QueueReply(bus.BrowseResourceRequested.Request().Channel(), json.RawMessage(`{"resource":{…},"lastSequence":1}`))
 //	described, err := made.Client.Browse.Resource(resourceID).Fresh(ctx)
 //	// made.Transport.RequestLog()[0].Payload is what was sent
@@ -35,7 +35,7 @@
 //
 //	xynologtest.AssertStateUnitAxioms(t, xynologtest.AxiomSubject[*state.BeckonStateUnit]{
 //		Setup: func(t *testing.T) xynologtest.Fresh[*state.BeckonStateUnit] {
-//			made := xynologtest.NewTestClient(xynologtest.TestClientConfig{Timing: xynolog.DefaultTiming()})
+//			made := xynologtest.NewTestClient(xynologtest.TestClientConfig{Timing: xynolog.DefaultClientTiming()})
 //			t.Cleanup(func() { made.Client.Close(); made.Transport.Close() })
 //			unit := state.NewBeckonStateUnit(made.Client, resourceID)
 //			return xynologtest.Fresh[*state.BeckonStateUnit]{Unit: unit}.With(xynologtest.TheClient(made.Client))

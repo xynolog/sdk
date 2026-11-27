@@ -22,13 +22,13 @@ import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import xynolog.ClientTiming
 import xynolog.Timings
+import xynolog.TransportTiming
 import xynolog.XynologClient
 import xynolog.cache.CACHE_REFRESH_CHANNELS
 import xynolog.channels.RESOURCE_SCOPED_CHANNELS
 import xynolog.frame
 import xynolog.http.HttpTransport
 import xynolog.http.StreamGateway
-import xynolog.http.Timing
 import xynolog.http.firstOf
 import xynolog.identifiers.ResourceId
 import xynolog.live.KbContent
@@ -44,7 +44,7 @@ private val CACHE = cacheKey("kb-a", PERSON, "resource")
 private val ANNOTATIONS = cacheKey("kb-a", PERSON, "annotations")
 private val RESOURCE = ResourceId("res-1")
 private val OTHER = ResourceId("res-2")
-private val QUICK = Timing(reconnectMs = 10, lazyRemoveMs = 10, lingerMs = 10)
+private val QUICK = TransportTiming(reconnectMs = 10, lazyRemoveMs = 10, lingerMs = 10)
 
 /** A stream's place in each scope, kept with what the caches keep: never ahead of them. */
 class BookmarksTest {

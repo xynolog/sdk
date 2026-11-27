@@ -80,6 +80,10 @@ then ends the session, so what those saves meet is said before the
 session's errors end. An application's `XynologBrowser` does the same for
 the sessions it holds.
 
+`SessionFromKept` and `HttpSessionFactory::new` take the timing of what they
+build: a `ClientTiming` for the client and a `TransportTiming` for its
+transport. The default of each is the timing every Xynolog SDK keeps.
+
 In the examples:
 
 - `http` is the application's `reqwest::Client`.
@@ -124,6 +128,8 @@ let opened = session_from_kept(SessionFromKept {
     storage: None,
     on_auth_failed: None,
     http,
+    client_timing: ClientTiming::default(),
+    transport_timing: TransportTiming::default(),
     random: None,
 })
 .await?;
@@ -163,6 +169,8 @@ let opened = session_from_kept(SessionFromKept {
     storage: None,
     on_auth_failed: None,
     http,
+    client_timing: ClientTiming::default(),
+    transport_timing: TransportTiming::default(),
     random: None,
 })
 .await?;
@@ -200,7 +208,7 @@ let client = client(
         refresher: Some(agent.clone()),
         channels: BRIDGED_CHANNELS.iter().map(ToString::to_string).collect(),
         http,
-        timing: Timing::default(),
+        timing: TransportTiming::default(),
         random: None,
     },
     ClientOptions::default(),
@@ -224,7 +232,7 @@ while let Some(event) = completed.next().await {
 | `refresher` | Asked for a new token when the gateway refuses the one a request carries: a 401, or a 429 whose `code` is `refusal-rate`. It is told the token refused. With none, such a refusal is final. |
 | `channels` | The global channels the stream names. A transport assumes none of its own: a full client names `BRIDGED_CHANNELS`, every channel a client hears. A process that awaits only some operations names their reply channels, and is not sent every other client's replies. |
 | `http` | The application's `reqwest::Client`. |
-| `timing` | The deadlines. `Timing::default()` is the ones every Xynolog SDK keeps. |
+| `timing` | The deadlines, retry budget and counts a caller may set, a `TransportTiming`. `TransportTiming::default()` is the ones every Xynolog SDK keeps. |
 | `random` | What the jitter of the stream's reconnects and of each emit's retries is drawn from. With none, the system's source. |
 
 **A worker** is a daemon whose agent claims jobs from the knowledge base's
@@ -274,7 +282,7 @@ let client = client(
         refresher: Some(agent.clone()),
         channels,
         http,
-        timing: Timing::default(),
+        timing: TransportTiming::default(),
         random: None,
     },
     ClientOptions::default(),
@@ -385,7 +393,12 @@ to this machine. `open` shows the person the URL.
 // The registry an application holds, with its sessions over HTTP.
 let browser = XynologBrowser::new(XynologBrowserConfig {
     storage,
-    session_factory: Arc::new(HttpSessionFactory::new(http.clone(), None)),
+    session_factory: Arc::new(HttpSessionFactory::new(
+        http.clone(),
+        ClientTiming::default(),
+        TransportTiming::default(),
+        None,
+    )),
 })?;
 
 // A person signs in at the issuer the knowledge base trusts, in their
@@ -434,10 +447,11 @@ its `auth` and `system` namespaces are there.
   missed between them.
 - **A dropped stream is reopened** from where each resource's events had got
   to, with the replies still awaited. Each event is delivered once.
-- **Opening the stream has a deadline** (`Timing::stream_open`) on the
-  gateway's answer. Unanswered by then, the open has failed, and the stream
-  is opened again as after a drop. An open stream may stay quiet for as
-  long as nothing happens.
+- **Opening the stream has a deadline**
+  (`TransportTiming::stream_open_timeout`) on the gateway's answer.
+  Unanswered by then, the open has failed, and the stream is opened again as
+  after a drop. An open stream may stay quiet for as long as nothing
+  happens.
 - **A refused token closes the stream** until a new one arrives. The
   `refresher` is asked once per outage.
 - **A refused token is renewed, never retried.** An emit or a request the
@@ -448,8 +462,9 @@ its `auth` and `system` namespaces are there.
 - **The `refresher` is told the token refused.** A session or an agent that
   holds another by then, renewed for an earlier refusal, gives it and renews
   nothing.
-- **A request has a deadline** (`Timing::http_request`). Unanswered by then,
-  it fails as one that got no answer, and is not made again.
+- **A request has a deadline** (`TransportTiming::http_request_timeout`).
+  Unanswered by then, it fails as one that got no answer, and is not made
+  again.
 - **Content.** An upload reports its progress and can be cancelled. It has
   no deadline, since how long it takes is how large the resource is. A
   download's deadline is on the bytes beginning to arrive. A read of a
@@ -479,7 +494,7 @@ credential goes by (`token`, `password`, `apiKey` and the rest of the list in
 | Module | What it holds |
 |---|---|
 | `client` | `client(config, options)`: a `XynologClient` over this transport |
-| `transport` | `HttpTransport`, `HttpTransportConfig`, `Timing` |
+| `transport` | `HttpTransport`, `HttpTransportConfig`, `TransportTiming` |
 | `content` | `HttpContentTransport` |
 | `service_account`, `agent` | A service's sign-in: `Credential` (`SecretCredential` or `KeyCredential`), `private_key_from_pem`, `ServiceToken`, `AgentToken` |
 | `client_assertion` | The assertion a key's grant carries: the key's thumbprint, the header and claims, signed RS256 |

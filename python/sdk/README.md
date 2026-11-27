@@ -216,6 +216,10 @@ async def as_me(kb: KbTarget, home: str) -> None:
   ([Telemetry](#telemetry)). Everything else it needs, it is given: an
   application reads its own environment (`HOME`, a secret, an address) and
   says what it found.
+- **Its timing is the protocol's unless it is given another.**
+  `session_from_kept` and `HttpSessionFactory` take `client_timing`, a
+  `ClientTiming` for the client they build, and `transport_timing`, a
+  `TransportTiming` for its transport.
 - **Its HTTP client can be the application's.** Everything that makes a
   request over HTTP takes `http=`, an `httpx.AsyncClient` the application
   builds: `HttpTransport`, `ServiceToken`, `AgentToken`, `session_from_kept`,

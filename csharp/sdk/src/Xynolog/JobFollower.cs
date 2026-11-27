@@ -1,12 +1,11 @@
 using Xynolog.Errors;
 using Xynolog.Identifiers;
-using Xynolog.Http;
 using Xynolog.Namespaces;
 using Xynolog.Types;
 
 namespace Xynolog;
 
-internal sealed class JobFollower(Bus wire, EventBus bus, JobNamespace jobs, TimeProvider clock, CancellationToken closed, Timing timing)
+internal sealed class JobFollower(Bus wire, EventBus bus, JobNamespace jobs, TimeProvider clock, CancellationToken closed, ClientTiming timing)
 {
     private static readonly string[] LifecycleChannels =
         [BusChannels.JobReportProgress.Name, BusChannels.JobFail.Name, BusChannels.JobComplete.Name];

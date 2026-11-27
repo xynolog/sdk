@@ -128,7 +128,7 @@ async fn all<'a, T>(futures: Vec<BoxFuture<'a, T>>) -> Vec<T> {
 async fn limits_reported(links: &Links, operation: &Operation) -> Vec<EngineLimits> {
     let Ok(Some(response)) = links
         .wire
-        .request_of(operation, Map::new(), links.timing.bus_request)
+        .request_of(operation, Map::new(), links.timing.bus_request_timeout)
         .await
     else {
         return Vec::new();

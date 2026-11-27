@@ -57,7 +57,7 @@ import Xynolog.Channels (globalChannels)
 import qualified Xynolog.Client as Client
 import qualified Xynolog.Http as Http
 import Xynolog.Retry (RetryOptions (..))
-import Xynolog.Timing.Settings (protocolSettings)
+import Xynolog.Timing.Settings (protocolClientTiming, protocolTransportTiming)
 import Xynolog.Types (KbDescription (..))
 
 main :: IO ()
@@ -71,13 +71,13 @@ main = do
             Http.httpToken = pure (Just token),
             Http.httpRenewToken = const (pure Nothing),
             Http.httpTime = RetryOptions now waitUntil (randomRIO (0, 1)),
-            Http.httpTiming = protocolSettings,
+            Http.httpTiming = protocolTransportTiming,
             Http.httpNewId = UUID.nextRandom,
             Http.httpGlobalChannels = Set.fromList globalChannels,
             Http.httpLoadPositions = pure mempty,
             Http.httpSavePosition = \_ _ -> pure ()
           }
-  described <- bracket (Client.fromHttp options Nothing) Client.dispose (Browse.kb . Client.browse)
+  described <- bracket (Client.fromHttp options protocolClientTiming Nothing) Client.dispose (Browse.kb . Client.browse)
   Text.putStrLn (kbDescriptionName described)
 
 now :: IO Integer
@@ -138,12 +138,13 @@ module DeviceSignIn where
 import Control.Exception (bracket)
 import qualified Xynolog.Http as Http
 import qualified Xynolog.Session as Session
+import Xynolog.Timing.Settings (ClientTiming)
 import Xynolog.Types (DeviceCode)
 
-withDeviceSession :: Http.HttpOptions -> Session.SessionOptions
+withDeviceSession :: Http.HttpOptions -> ClientTiming -> Session.SessionOptions
   -> (DeviceCode -> IO ()) -> (Session.Session -> IO result) -> IO result
-withDeviceSession http options showCode use =
-  bracket (Session.signInDevice http Nothing options showCode)
+withDeviceSession http timing options showCode use =
+  bracket (Session.signInDevice http timing Nothing options showCode)
     Session.closeOpenedSession (use . Session.openedSession)
 ```
 
@@ -182,7 +183,7 @@ withAccount options authority clientId pem wallNow use = do
     Service.dispose use
 ```
 
-`Session.signInAgent http options service` opens a session for that
+`Session.signInAgent http timing options service` opens a session for that
 account and keeps the DID the gateway actually returned; it keeps no caches. It
 signs in once: a failure is thrown as it came, and starting the sign-in again
 is the service's, on its own backoff. The service token
@@ -208,16 +209,17 @@ import Control.Exception (bracket)
 import qualified Xynolog.Http as Http
 import qualified Xynolog.Session as Session
 import qualified Xynolog.SignInStore as Store
+import Xynolog.Timing.Settings (ClientTiming)
 import Xynolog.Types (kbTargetId)
 
-withKeptSession :: Http.HttpOptions -> Session.SessionOptions
+withKeptSession :: Http.HttpOptions -> ClientTiming -> Session.SessionOptions
   -> Store.SignInStoreOptions -> FilePath
   -> (Session.Session -> IO result) -> IO result
-withKeptSession http options storeOptions filename use = do
+withKeptSession http timing options storeOptions filename use = do
   store <- Store.newSignInStore storeOptions filename
   let actual = options { Session.sessionKept =
         Store.entry store (kbTargetId (Session.sessionKb options)) }
-  bracket (Session.fromKeptSession http Nothing actual)
+  bracket (Session.fromKeptSession http timing Nothing actual)
     Session.closeOpenedSession (use . Session.openedSession)
 ```
 
@@ -233,9 +235,13 @@ caller's pool. Its active requests and response scopes end on disposal.
 
 Supply the pool through `HttpOptions`, together with the base URL, token reader,
 refused-token renewal action, fresh UUID action, global channel profile, monotonic
-clock/wait/jitter actions, timing settings, and replay-position load/save actions.
-`Xynolog.Timing.Settings.protocolSettings` supplies the protocol timings;
-`withOverrides` validates explicitly supplied timing overrides. Use
+clock/wait/jitter actions, the transport's timing, and replay-position load/save
+actions. `Client.fromHttp` also takes the client's timing.
+`Xynolog.Timing.Settings` holds the two records of what you may set,
+`ClientTiming` and `TransportTiming`, with the protocol's values of them
+(`protocolClientTiming`, `protocolTransportTiming`); its `withOverrides` applies
+a JSON object to one record and refuses a name the record does not hold. Every
+other timing is a constant of `Xynolog.Timing`. Use
 `Xynolog.Channels.globalChannels` for a full client. All these choices are
 explicit. `Client.fromHttp` builds the bus, content and gateway adapters with
 the same clock and ID source. Keep the client scoped:
@@ -246,9 +252,10 @@ module HttpConnection (withConnection) where
 import Control.Exception (bracket)
 import Xynolog.Client (Client, fromHttp, dispose)
 import Xynolog.Http (HttpOptions)
+import Xynolog.Timing.Settings (ClientTiming)
 
-withConnection :: HttpOptions -> (Client -> IO result) -> IO result
-withConnection options = bracket (fromHttp options Nothing) dispose
+withConnection :: HttpOptions -> ClientTiming -> (Client -> IO result) -> IO result
+withConnection options timing = bracket (fromHttp options timing Nothing) dispose
 ```
 
 `Client.newClient` also accepts independently supplied bus/content adapters and
@@ -331,14 +338,12 @@ module CachedReads (nameCache, readName) where
 
 import Data.Text (Text)
 import qualified Xynolog.Cache as Cache
-import qualified Xynolog.Timing.Settings as Timing
 
 nameCache :: (Text -> IO Text) -> IO Integer -> (Integer -> IO ())
           -> IO (Cache.Cache Text Text)
 nameCache reader monotonic waitUntil = Cache.newCache reader Cache.CacheOptions
   { Cache.cacheNow = monotonic
   , Cache.cacheWaitUntil = waitUntil
-  , Cache.cacheSaveDebounceMs = Timing.saveDebounceMs Timing.protocolSettings
   , Cache.cachePersister = Nothing
   , Cache.cacheScope = const (pure (pure ()))
   }
@@ -398,8 +403,8 @@ ends its observations without disposing the borrowed client. See
 [State units](https://github.com/xynolog/docs/blob/main/builder/STATE-UNITS.md).
 
 Mark and hover take the caller's `RetryOptions`; search takes it with an
-explicit debounce and initial query. Mark uses the supplied `Timing.Settings`
-for silence notices. No state unit reads an ambient timer. Job creation is
+explicit debounce and initial query. Mark says a job quiet after
+`delegateSilenceMs` (`Xynolog.Timing`). No state unit reads an ambient timer. Job creation is
 queued in invocation order within a unit; once a creation is answered, the next
 can start while the earlier job remains followed.
 
@@ -413,7 +418,7 @@ import qualified Xynolog.Client as Client
 import qualified Xynolog.Match as Match
 import Xynolog.Retry (RetryOptions)
 import qualified Xynolog.State.Search as Search
-import qualified Xynolog.Timing.Settings as Timing
+import qualified Xynolog.Timing as Timing
 import Xynolog.Types (ResourceDescriptor, matchResourcesResponseResources)
 import qualified Streaming.Prelude as Stream
 
@@ -421,7 +426,7 @@ withResourceSearch :: Client.Client -> RetryOptions
   -> (Search.SearchPipeline ResourceDescriptor -> IO result) -> IO result
 withResourceSearch client clock = bracket
   (Search.newSearchPipeline clock
-    (Timing.searchDebounceMs Timing.protocolSettings) "" source)
+    Timing.searchDebounceMs "" source)
   Search.dispose
   where
     source text publish = Cache.watch
@@ -549,8 +554,9 @@ runWorker client options mark yield =
 ```
 
 `ClaimOptions`, the type Protocol states, supplies a nonempty list of
-generated filters and any of the held-job timings to override; the claims
-take their clock and the rest of their timing from the client. The transport
+generated filters and any of the claims' waits to set; each it leaves out is
+the constant of `Xynolog.Timing` of that name. The claims take their clock from
+the client. The transport
 must subscribe to `jobClaimChannels`, plus `jobCommitChannels` when the worker
 commits annotations.
 
@@ -615,8 +621,8 @@ sign in to any of its knowledge bases.
 
 `Xynolog.Registry.newXynologBrowser` manages registered knowledge bases,
 selection, sign-in, per-KB tabs and the last viewed resource. Give it a
-`XynologBrowserConfig` with storage, a `SessionFactory`, HTTP options and an
-epoch-seconds wall reader. `newHttpSessionFactory` opens real HTTP sessions
+`XynologBrowserConfig` with storage, a `SessionFactory`, HTTP options, the
+timing of the clients it makes and an epoch-seconds wall reader. `newHttpSessionFactory` opens real HTTP sessions
 and opts their queries into per-KB durable storage. The browser closes the
 previous client before opening the next, joins stale activations, and raises
 identity-conflict notices when the address answers as a different KB. A
@@ -634,12 +640,13 @@ import Data.Scientific (Scientific)
 import qualified Xynolog.Http as Http
 import qualified Xynolog.Registry as Registry
 import qualified Xynolog.SessionStorage as Storage
+import Xynolog.Timing.Settings (ClientTiming)
 
-withKnowledgeBases :: Storage.SessionStorage -> Http.HttpOptions -> IO Scientific
-  -> (Registry.XynologBrowser -> IO result) -> IO result
-withKnowledgeBases storage http wall = bracket
+withKnowledgeBases :: Storage.SessionStorage -> Http.HttpOptions -> ClientTiming
+  -> IO Scientific -> (Registry.XynologBrowser -> IO result) -> IO result
+withKnowledgeBases storage http timing wall = bracket
   (Registry.newXynologBrowser (Registry.XynologBrowserConfig storage
-    (Registry.newHttpSessionFactory http wall) http wall))
+    (Registry.newHttpSessionFactory http timing wall) http timing wall))
   Registry.dispose
 ```
 

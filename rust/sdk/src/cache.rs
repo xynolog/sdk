@@ -44,6 +44,7 @@ use crate::locked;
 use crate::session::CACHE_DOCUMENT_VERSION;
 use crate::state_unit::StateUnit;
 use crate::storage::SessionStorage;
+use crate::timing::SAVE_DEBOUNCE;
 use crate::transport::BoxFuture;
 use serde::Serialize;
 use serde::de::DeserializeOwned;
@@ -54,7 +55,7 @@ use std::hash::Hash;
 use std::marker::PhantomData;
 use std::sync::{Arc, Mutex, MutexGuard, Weak};
 use std::task::{Context, Waker};
-use std::time::{Duration, SystemTime, UNIX_EPOCH};
+use std::time::{SystemTime, UNIX_EPOCH};
 use tokio::sync::watch;
 use tokio::task::{AbortHandle, JoinHandle};
 use tokio_stream::wrappers::WatchStream;
@@ -246,7 +247,6 @@ where
     V: CacheValue,
 {
     fetch: Box<Fetch<K, V>>,
-    save_debounce: Duration,
     state: Mutex<State<K, V>>,
     /// Held while a save is written, so disposal's save waits for one under
     /// way.
@@ -309,10 +309,9 @@ where
             waiting.abort();
         }
         let cache = Arc::downgrade(self);
-        let wait = self.save_debounce;
         state.saving = Some(Saving::Waiting(
             tokio::spawn(async move {
-                tokio::time::sleep(wait).await;
+                tokio::time::sleep(SAVE_DEBOUNCE).await;
                 if let Some(cache) = Weak::upgrade(&cache) {
                     cache.save_owed().await;
                 }
@@ -545,29 +544,21 @@ where
         F: Fn(K) -> Fut + Send + Sync + 'static,
         Fut: Future<Output = Result<V, Box<dyn std::error::Error + Send + Sync>>> + Send + 'static,
     {
-        Cache::build(fetch, None, crate::timing::SAVE_DEBOUNCE)
+        Cache::build(fetch, None)
     }
 
     /// A cache that begins with what `persister` kept, and saves its values
-    /// there `save_debounce` after they last changed. A save the persister
-    /// refuses is logged as a warning.
-    pub fn persisted<F, Fut>(
-        fetch: F,
-        persister: Arc<dyn CachePersister<K, V>>,
-        save_debounce: Duration,
-    ) -> Cache<K, V>
+    /// there `crate::timing::SAVE_DEBOUNCE` after they last changed. A save
+    /// the persister refuses is logged as a warning.
+    pub fn persisted<F, Fut>(fetch: F, persister: Arc<dyn CachePersister<K, V>>) -> Cache<K, V>
     where
         F: Fn(K) -> Fut + Send + Sync + 'static,
         Fut: Future<Output = Result<V, Box<dyn std::error::Error + Send + Sync>>> + Send + 'static,
     {
-        Cache::build(fetch, Some(persister), save_debounce)
+        Cache::build(fetch, Some(persister))
     }
 
-    fn build<F, Fut>(
-        fetch: F,
-        persister: Option<Arc<dyn CachePersister<K, V>>>,
-        save_debounce: Duration,
-    ) -> Cache<K, V>
+    fn build<F, Fut>(fetch: F, persister: Option<Arc<dyn CachePersister<K, V>>>) -> Cache<K, V>
     where
         F: Fn(K) -> Fut + Send + Sync + 'static,
         Fut: Future<Output = Result<V, Box<dyn std::error::Error + Send + Sync>>> + Send + 'static,
@@ -578,7 +569,6 @@ where
                     let fetching = fetch(key);
                     Box::pin(async move { fetching.await.map_err(Arc::from) })
                 }),
-                save_debounce,
                 state: Mutex::new(State {
                     disposed: false,
                     keys: HashMap::new(),

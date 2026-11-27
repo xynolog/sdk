@@ -13,10 +13,12 @@ namespace Xynolog.Testing;
 /// <param name="Kb">The knowledge base the session is to; a local test one when null.</param>
 /// <param name="Kept">Where the sign-in is kept; in memory when null.</param>
 /// <param name="TimeProvider">The clock the session keeps; the system's when null.</param>
-/// <param name="Timing">The timing the transport keeps; the protocol's when null.</param>
+/// <param name="ClientTiming">The timing the client keeps; the protocol's when null.</param>
+/// <param name="TransportTiming">The timing the transport keeps; the protocol's when null.</param>
 /// <param name="Random">What the session's jitter is drawn from; the shared generator when null.</param>
 public sealed record TestSessionOptions(FaultyTransport? Transport = null, KbTarget? Kb = null,
-    ISignInKept? Kept = null, TimeProvider? TimeProvider = null, Timing? Timing = null, Random? Random = null);
+    ISignInKept? Kept = null, TimeProvider? TimeProvider = null, ClientTiming? ClientTiming = null,
+    TransportTiming? TransportTiming = null, Random? Random = null);
 
 /// <summary>An offline session over a real SDK client, which keeps nothing. Disposal closes the client, then the session.</summary>
 public sealed class TestSession : IDisposable
@@ -91,8 +93,8 @@ public static class TestSessions
             await credentials.ReadyAsync(cancellation).ConfigureAwait(Spawning.Captures);
             var bus = new HttpTransport(origin, credentials.State.Token,
                 BusRegistry.BridgedChannels,
-                timing: options.Timing, refresher: credentials.RefreshAsync, httpClient: http, timeProvider: clock, random: random);
-            client = new XynologClient(bus);
+                timing: options.TransportTiming, refresher: credentials.RefreshAsync, httpClient: http, timeProvider: clock, random: random);
+            client = new XynologClient(bus, timing: options.ClientTiming);
             return new TestSession(new XynologSession(kb, client, credentials), transport, kept, credentials, http);
         }
         catch

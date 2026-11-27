@@ -785,7 +785,7 @@ type startedSessions struct {
 }
 
 func (f *startedSessions) Session(ctx context.Context, options registry.SessionFactoryOptions) (*xynolog.Session, func(), error) {
-	made := xynologtest.NewTestClient(xynologtest.TestClientConfig{Timing: xynolog.DefaultTiming()})
+	made := xynologtest.NewTestClient(xynologtest.TestClientConfig{Timing: xynolog.DefaultClientTiming()})
 	f.mu.Lock()
 	f.transports = append(f.transports, made.Transport)
 	f.mu.Unlock()
@@ -807,7 +807,7 @@ func (f *startedSessions) Session(ctx context.Context, options registry.SessionF
 			return *f.who, nil
 		},
 		OnAuthFailed: options.Signals.NotifySessionEnded,
-		Timing:       xynolog.DefaultTiming(),
+		Timing:       xynolog.DefaultTransportTiming(),
 	})
 	if err != nil {
 		made.Client.Close()

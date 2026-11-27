@@ -21,7 +21,7 @@ func TitleOf(ctx context.Context, client *xynolog.Client, resource api.ResourceI
 
 // ATitleIsItsResourcesNameInCapitals is the test of it.
 func ATitleIsItsResourcesNameInCapitals(t *testing.T) {
-	made := xynologtest.NewTestClient(xynologtest.TestClientConfig{Timing: xynolog.DefaultTiming()})
+	made := xynologtest.NewTestClient(xynologtest.TestClientConfig{Timing: xynolog.DefaultClientTiming()})
 	defer made.Transport.Close()
 	defer made.Client.Close()
 	asked := bus.BrowseResourceRequested.Request().Channel()

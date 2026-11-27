@@ -128,7 +128,7 @@ httpCases root fixtures = do
               (readTVarIO supplied)
               (\refused -> modifyIORef' renewals (++ [refused]) >> pure (Just "renewed"))
               time
-              Settings.protocolSettings
+              Settings.protocolTransportTiming
               fresh
               (Set.fromList globalChannels)
               (pure Map.empty)
@@ -141,7 +141,7 @@ httpCases root fixtures = do
             }
       http <- Http.newHttpTransport (options pool)
       let busOptions = Bus.BusOptions (Retry.retryNow time) (Retry.retryWaitUntil time) (UUID.toText <$> fresh)
-      client <- Client.newClient (Http.transport http) (Http.content http) (Just (Http.gateway http)) busOptions Settings.protocolSettings Nothing
+      client <- Client.newClient (Http.transport http) (Http.content http) (Just (Http.gateway http)) busOptions Settings.protocolClientTiming Nothing
       let contents = Client.content client
           fromFixture name = case Map.lookup name fixtures of
             Nothing -> error ("test fixture missing: " ++ Text.unpack name)
@@ -155,7 +155,7 @@ httpCases root fixtures = do
               Just port -> pure (HttpEndpoint {httpEndpointHost = (Text.pack (uriRegName address)), httpEndpointKind = HttpEndpointKindHttp, httpEndpointPort = port, httpEndpointProtocol = HttpEndpointProtocolHttp})
               Nothing -> ioError (userError "HTTP peer named no port")
             Nothing -> ioError (userError "HTTP peer named no origin")
-          proven <- Identity.describeConnection (options pool) target "proof-credential-not-for-log"
+          proven <- Identity.describeConnection (options pool) Settings.protocolClientTiming target "proof-credential-not-for-log"
           let expectedDescription = fromFixture "KbDescription"
           expectedDid <- either (ioError . userError) pure (Principal.kbDid (kbDescriptionDomain expectedDescription))
           require "connection proof invented a knowledge-base identity" (connectionIdentityDescription proven == expectedDescription && connectionIdentityDid proven == expectedDid)
@@ -174,10 +174,10 @@ httpCases root fixtures = do
                 (values "requests" proofRequests)
             )
           postControl peer "/test/config" (object ["refusedOperations" .= [String (channelName BrowseKbRequested)]])
-          notReported <- try (Identity.describeConnection (options pool) target "proof-credential-not-for-log") :: IO (Either Identity.IdentityUnverifiableError ConnectionIdentity)
+          notReported <- try (Identity.describeConnection (options pool) Settings.protocolClientTiming target "proof-credential-not-for-log") :: IO (Either Identity.IdentityUnverifiableError ConnectionIdentity)
           require "a KB which refused to describe itself was reported as unreachable" (case notReported of Left failure -> Identity.identityUnverifiableReason failure == Code.KbIdentityNotReported; _ -> False)
           postControl peer "/test/config" (object ["refusedOperations" .= ([] :: [Text]), "emitStatuses" .= ([403] :: [Int])])
-          unreachable <- try (Identity.describeConnection (options pool) target "proof-credential-not-for-log") :: IO (Either Identity.IdentityUnverifiableError ConnectionIdentity)
+          unreachable <- try (Identity.describeConnection (options pool) Settings.protocolClientTiming target "proof-credential-not-for-log") :: IO (Either Identity.IdentityUnverifiableError ConnectionIdentity)
           require "an unreachable KB was reported as having refused its identity" (case unreachable of Left failure -> Identity.identityUnverifiableReason failure == Code.KbIdentityUnreachable; _ -> False)
           void $ Frame.addEntityType (Client.frame client) "Entity"
           void $ Frame.addEntityTypes (Client.frame client) ["One", "Two"]
@@ -471,7 +471,7 @@ credentialCases peer options supplied renewals clock waits = do
   atomically (writeTVar supplied (Just "refused") >> writeTVar waits Set.empty)
   writeIORef renewals []
   postControl peer "/test/config" (object ["gateSubscribe" .= True, "subscribeFailures" .= ([401, 401] :: [Int])])
-  bracket (Client.fromHttp options Nothing) Client.dispose $ \client -> do
+  bracket (Client.fromHttp options Settings.protocolClientTiming Nothing) Client.dispose $ \client -> do
     began <- readTVarIO clock
     Transport.errors (Client.transport client) $ \errors -> do
       postControl peer "/test/config" (object ["gateSubscribe" .= False])
@@ -507,7 +507,7 @@ recoveryCases peer options clock waits = do
   atomically (writeTVar waits Set.empty)
   let seconds = (Timing.degradedThresholdMs * 2 + 999) `div` 1000
   postControl peer "/test/config" (object ["gateSubscribe" .= True, "subscribeFailures" .= ([503] :: [Int]), "subscribeRetryAfter" .= show seconds])
-  bracket (Client.fromHttp options Nothing) Client.dispose $ \client -> do
+  bracket (Client.fromHttp options Settings.protocolClientTiming Nothing) Client.dispose $ \client -> do
     began <- readTVarIO clock
     Transport.errors (Client.transport client) $ \errors -> do
       postControl peer "/test/config" (object ["gateSubscribe" .= False])

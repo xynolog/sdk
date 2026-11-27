@@ -753,7 +753,7 @@ def test_a_client_told_other_waits_keeps_them() -> None:
         transport.queue_reply("job:create", [{"jobId": "job-1"}])
         transport.queue_reply("job:status-requested", [status("complete")])
         client = XynologClient(transport, InMemoryContent(), StubGateway(), timing=ClientTiming(job_silence_ms=50, job_status_poll_ms=20))
-        assert (client.timing.job_silence_ms, client.timing.bus_request_ms) == (50, 30_000)
+        assert (client.timing.job_silence_ms, client.timing.bus_request_timeout_ms) == (50, 30_000)
         # No clock is moved: a twentieth of a second is waited out.
         done = await soon(highlighting(client))
         assert (done.job_id, done.result) == ("job-1", None)

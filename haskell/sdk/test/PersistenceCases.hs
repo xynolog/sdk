@@ -30,7 +30,7 @@ import Xynolog.Internal.Coupled qualified as Coupled
 import Xynolog.Internal.Kept qualified as Kept
 import Xynolog.SessionStorage qualified as Storage
 import Xynolog.StoragePersister qualified as Stored
-import Xynolog.Timing.Settings qualified as Timing
+import Xynolog.Timing.Settings qualified as Settings
 import Xynolog.Transport qualified as Transport
 import Xynolog.Types
 
@@ -86,7 +86,6 @@ savedCases = do
         Cache.CacheOptions
           (pure 0)
           (const (pure ()))
-          0
           (Just (Cache.CachePersister (pure []) (\_ -> pure ()) follow))
           (const (pure (pure ())))
   bracket (Cache.newCache (pure :: Int -> IO Int) options) Cache.dispose $ \cache -> do
@@ -197,7 +196,7 @@ clientCases fixtures = do
         atomically (putTMVar inputCell input)
         Transport.setState input Transport.ConnectionStateConnecting
         Transport.setState input Transport.ConnectionStateOpen
-        Client.newClient carrier contents Nothing options Timing.protocolSettings persistence
+        Client.newClient carrier contents Nothing options Settings.protocolClientTiming persistence
       load namespace = do
         _ <- Cache.fresh (Browse.resource namespace resource)
         _ <- Cache.fresh (Browse.annotations namespace resource)

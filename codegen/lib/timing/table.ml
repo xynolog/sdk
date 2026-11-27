@@ -9,8 +9,36 @@ type value =
   | Budget of { attempts : int; initial_delay_ms : int; max_delay_ms : int }
   | Count of int
 
-type entry = { name : string; docs : string; value : value }
+(** A record of what a caller may set, as a row's [override] names it. A row
+    overridden elsewhere, at a member of a client type or a maker's parameter,
+    is in neither. *)
+type record = Client | Transport
+
+type entry = {
+  name : string;
+  docs : string;
+  value : value;
+  record : record option;
+}
+
 type t = entry list
+
+let records = [ Client; Transport ]
+
+let record_name = function
+  | Client -> "ClientTiming"
+  | Transport -> "TransportTiming"
+
+let record_docs record =
+  Printf.sprintf
+    "What a caller may set of the timing a %s keeps: each member is the entry \
+     of protocol/specs/src/%s that its name says, and has the table's value \
+     unless the caller states another."
+    (match record with Client -> "client" | Transport -> "transport")
+    file
+
+let members record (t : t) = List.filter (fun e -> e.record = Some record) t
+
 type kind = Of_duration | Of_budget | Of_count
 
 (* The kind a name says: camel case, ending in Ms, Retry or Count. A name
@@ -107,8 +135,14 @@ let derive (table : Tables.Client_timing.t) =
                    n);
               None
         in
+        let record =
+          match item.override with
+          | Some "client" -> Some Client
+          | Some "transport" -> Some Transport
+          | Some _ | None -> None
+        in
         Option.map
-          (fun value -> { name = item.name; docs = item.docs; value })
+          (fun value -> { name = item.name; docs = item.docs; value; record })
           value)
       table.timing
   in

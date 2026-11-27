@@ -1,12 +1,7 @@
 import { Observable, Subject, share } from 'rxjs';
-import {
-  Bus,
-  FrameRefusal,
-  JOB_SILENCE_MS,
-  JOB_STATUS_POLL_MS,
-  XynologError,
-} from '@xynolog/core';
+import { Bus, FrameRefusal, XynologError } from '@xynolog/core';
 import type {
+  ClientTiming,
   EventBus,
   EventMap,
   ITransport,
@@ -54,12 +49,6 @@ export class JobCancelledError extends XynologError {
   }
 }
 
-/** `jobSilenceMs` and `jobStatusPollMs` of protocol/specs/src/client/timing.json, for a caller that must not wait them out. */
-export interface JobFollowTiming {
-  jobSilenceMs?: number;
-  jobStatusPollMs?: number;
-}
-
 /**
  * How a job's follower learns what it was not sent. A job's progress and its
  * end reach the client as passing frames: a dropped stream loses them and
@@ -75,8 +64,6 @@ export class JobStatusPoll {
   private silence: ReturnType<typeof setTimeout> | null = null;
   private polling: ReturnType<typeof setInterval> | null = null;
   private asking = false;
-  private readonly silenceMs: number;
-  private readonly pollMs: number;
 
   private readonly wire: Bus;
 
@@ -84,11 +71,9 @@ export class JobStatusPoll {
     transport: ITransport,
     private readonly onStatus: (status: JobStatusResponse) => void,
     private readonly onFailure: (error: unknown) => void,
-    timing: JobFollowTiming = {},
+    private readonly timing: ClientTiming,
   ) {
     this.wire = new Bus(transport);
-    this.silenceMs = timing.jobSilenceMs ?? JOB_SILENCE_MS;
-    this.pollMs = timing.jobStatusPollMs ?? JOB_STATUS_POLL_MS;
   }
 
   /** The job said something, or was just created: the silence starts again. */
@@ -96,8 +81,11 @@ export class JobStatusPoll {
     this.stop();
     this.silence = setTimeout(() => {
       this.ask(jobId);
-      this.polling = setInterval(() => this.ask(jobId), this.pollMs);
-    }, this.silenceMs);
+      this.polling = setInterval(
+        () => this.ask(jobId),
+        this.timing.jobStatusPollMs,
+      );
+    }, this.timing.jobSilenceMs);
   }
 
   stop(): void {

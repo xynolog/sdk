@@ -54,6 +54,7 @@ import Xynolog.Internal.CacheDocument (Whole (..))
 import Xynolog.Internal.Coupled qualified as Coupled
 import Xynolog.Internal.Generated.CachePersistence qualified as Persisted
 import Xynolog.Internal.Generated.CacheRefresh qualified as Fact
+import Xynolog.Internal.Generated.TimingSettings qualified as Timing
 import Xynolog.Internal.Lifetime qualified as Lifetime
 import Xynolog.Internal.Local qualified as Local
 import Xynolog.Internal.Persistence qualified as Persistence
@@ -61,7 +62,6 @@ import Xynolog.Internal.Queries (cacheOptions)
 import Xynolog.Internal.Refresh qualified as Refresh
 import Xynolog.Internal.Transport qualified as LocalBus
 import Xynolog.Resources qualified as Resources
-import Xynolog.Timing.Settings qualified as Timing
 import Xynolog.Transport qualified as Transport
 import Xynolog.Types
 
@@ -90,8 +90,8 @@ data BrowseNamespace = BrowseNamespace
 newBrowse :: Bus.Bus -> LocalBus.EventBus -> Transport.Transport -> Content.ContentTransport -> Bus.BusOptions -> Timing.Settings -> IO BrowseNamespace
 newBrowse bus signals carrier contents clock settings = do
   let ask operation input = Bus.request bus operation input (Timing.busRequestTimeoutMs settings)
-      unscoped = cacheOptions clock settings (const (pure (pure ())))
-      scoped = cacheOptions clock settings (Transport.subscribeToResource carrier)
+      unscoped = cacheOptions clock (const (pure (pure ())))
+      scoped = cacheOptions clock (Transport.subscribeToResource carrier)
   descriptors <-
     Cache.newCache
       (\identity -> browseResourceResultResponseResource . browseResourceResultResponse <$> ask BrowseResourceRequestedOperation (BrowseResourceRequest identity))
@@ -101,7 +101,7 @@ newBrowse bus signals carrier contents clock settings = do
   details <-
     Cache.newCache
       (\(AnnotationKey identity mark) -> getAnnotationResponseAnnotation . browseAnnotationResultResponse <$> ask BrowseAnnotationRequestedOperation (BrowseAnnotationRequest {browseAnnotationRequestAnnotationId = mark, browseAnnotationRequestResourceId = identity}))
-      (cacheOptions clock settings (\(AnnotationKey identity _) -> Transport.subscribeToResource carrier identity))
+      (cacheOptions clock (\(AnnotationKey identity _) -> Transport.subscribeToResource carrier identity))
   vocabulary <- Cache.newCache (\_ -> getEntityTypesResponseEntityTypes . browseEntityTypesResultResponse <$> ask BrowseEntityTypesRequestedOperation (BrowseEntityTypesRequest mempty)) unscoped
   schemas <- Cache.newCache (\_ -> getTagSchemasResponseTagSchemas . browseTagSchemasResultResponse <$> ask BrowseTagSchemasRequestedOperation (BrowseTagSchemasRequest mempty)) unscoped
   models <- Cache.newCache (\() -> browseEnginesResultResponseEngines . browseEnginesResultResponse <$> ask BrowseEnginesRequestedOperation (BrowseEnginesRequest mempty)) unscoped

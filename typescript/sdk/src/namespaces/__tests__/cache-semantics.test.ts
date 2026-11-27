@@ -27,6 +27,7 @@ import type {
   UserId,
   ResourceId,
   EventMap,
+  ClientTiming,
 } from '@xynolog/core';
 import type { ConnectionState } from '@xynolog/core';
 import { BrowseNamespace } from '../browse';
@@ -215,8 +216,8 @@ interface HarnessOptions {
   state$?: BehaviorSubject<ConnectionState>;
   /** Channels the harness never answers — for timeout-path tests. */
   silentChannels?: string[];
-  /** Threaded to BrowseNamespace so timeout tests run on short real time. */
-  busTimeoutMs?: number;
+  /** Threaded to BrowseNamespace, or to the client: timeout tests state a short deadline, to run on short real time. */
+  timing?: Partial<ClientTiming>;
 }
 
 /** The harness's wire: its transport, whose replies the options parameterize, and its content transport. */
@@ -361,9 +362,7 @@ function createHarness(opts: HarnessOptions = {}) {
     createWire(opts);
   const eventBus = new EventBus();
   const browse = new BrowseNamespace(transport, eventBus, content, {
-    ...(opts.busTimeoutMs !== undefined
-      ? { busTimeoutMs: opts.busTimeoutMs }
-      : {}),
+    timing: opts.timing,
   });
 
   return { browse, eventBus, emitSpy, getAnnotations, state };
@@ -1173,9 +1172,7 @@ describe('Cache semantics — behaviors B1–B16, B19 and B20 against BrowseName
           kbId: 'kb-1',
           personKey: PERSON,
         },
-        ...(options.busTimeoutMs !== undefined
-          ? { busTimeoutMs: options.busTimeoutMs }
-          : {}),
+        timing: options.timing,
       });
       places.coupleTo(client);
       return {
@@ -1523,7 +1520,7 @@ describe('Cache semantics — behaviors B1–B16, B19 and B20 against BrowseName
     it('a silent key holder does not hold the engines, and leaves only its engines without limits', async () => {
       const { browse } = createHarness({
         silentChannels: ['job:limits-requested'],
-        busTimeoutMs: 60_000,
+        timing: { busRequestTimeoutMs: 60_000 },
       });
 
       const first = await firstDefined(browse.engines());
@@ -1562,13 +1559,13 @@ describe('Cache semantics — behaviors B1–B16, B19 and B20 against BrowseName
       }
     });
 
-    it('threads busTimeoutMs: an unanswered engines request rejects bus.timeout at the configured deadline', async () => {
+    it('threads busRequestTimeoutMs: an unanswered engines request rejects bus.timeout at the configured deadline', async () => {
       // Silence the B14 breadcrumbs this deliberately-failing chain emits.
       const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
       try {
         const { browse } = createHarness({
           silentChannels: ['browse:engines-requested'],
-          busTimeoutMs: 60,
+          timing: { busRequestTimeoutMs: 60 },
         });
         await expect(browse.engines().fresh()).rejects.toMatchObject({
           code: 'bus.timeout',

@@ -15,7 +15,7 @@
 //! bounded budget: a refused grant is final, because trying again only
 //! delays a sign-in the person has to perform anyway.
 
-use crate::transport::{HttpTransport, HttpTransportConfig, Timing, why_unanswered};
+use crate::transport::{HttpTransport, HttpTransportConfig, TransportTiming, why_unanswered};
 use base64::Engine;
 use base64::engine::general_purpose::URL_SAFE_NO_PAD;
 use rand_core::Rng;
@@ -72,7 +72,7 @@ pub async fn discover_issuer(
         refresher: None,
         channels: Vec::new(),
         http: http.clone(),
-        timing: Timing::default(),
+        timing: TransportTiming::default(),
         random: None,
     });
     let metadata = transport.get_protected_resource_metadata().await;

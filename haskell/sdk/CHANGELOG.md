@@ -8,6 +8,10 @@ the coming release's, and gathers its changes as they land.
 
 ### Added
 
+- `Xynolog.Timing.Settings` exports `ClientTiming` and `TransportTiming`, the
+  records of what a caller may set of the timing a client and a transport keep,
+  with the protocol's values of them, `protocolClientTiming` and
+  `protocolTransportTiming`.
 - A type for ten of Protocol's tables that no service keeps, each typed by
   the table's own schema: `ClientDiscoveryAbsent`, `ClientRefresh`,
   `ClientTesting`, `ControlCli`, `ErrorsCodes`, `IdentifiersKinds`,
@@ -106,8 +110,9 @@ the coming release's, and gathers its changes as they land.
   in place of `FaultReason` (`FrameRefusalReasonLacks`,
   `FrameRefusalReasonMalformed`).
 - `Job.claim` and `Worker.newClaims` take `ClaimOptions`, the type Protocol
-  states, in place of `WorkerOptions`; the claims' clock and timing are the
-  client's. A filter list that is empty, a stall check that is not positive,
+  states, in place of `WorkerOptions`; the claims' clock is the client's, and
+  `newClaims` takes no timing: each wait the options leave out is the
+  protocol's. A filter list that is empty, a stall check that is not positive,
   or a claim, stall or commit timeout that is negative, is
   `InvalidClaimOptions`, in place of `InvalidWorkerTiming`.
 - `Job.pollUntilComplete` takes `JobPollOptions`, the type Protocol states, in
@@ -190,13 +195,37 @@ the coming release's, and gathers its changes as they land.
   an upload states its total only when its source states its length
   (protocol#121), where an unsized source reported a total of 0.
 
+- Only what the protocol lets a caller override can be set, and by the record
+  of its home. `Client.newClient`, `Frame.newFrame`, `Bind.newBind` and
+  `Job.newJob` take a `ClientTiming`; `HttpOptions`' `httpTiming`,
+  `IssuerOptions`' `issuerTiming`, `Http.Discovery.httpDiscovery`,
+  `Session.newSession` and `TestSessionOptions`' `testSessionOptionsTiming` take
+  a `TransportTiming`.
+- What makes a client over HTTP takes the client's `ClientTiming` after its
+  `HttpOptions`: `Client.fromHttp`, `Session.fromHttp`,
+  `Session.fromIssuedSession`, `Session.fromKeptSession`,
+  `Session.signInDevice`, `Session.signInAgent`,
+  `Registry.newHttpSessionFactory` and
+  `Registry.Identity.describeConnection`. `XynologBrowserConfig` states it as
+  `registryClientTiming`, and `Testing.Sessions.newScriptedSessions` takes both
+  records.
+- `Xynolog.Timing.Settings.withOverrides` applies a JSON object to the record it
+  is given, and refuses a name that record does not hold.
+- `Tokens.renewalDelay`, `Tokens.refreshDelay`,
+  `Delegation.deriveStallDeadlineMs` and `State.Mark.newMarkStateUnit` take no
+  timing: what they read is fixed.
+
 ### Removed
 
+- `Xynolog.Timing.Settings` no longer exports `Settings` or `protocolSettings`.
+  A fixed timing is read from `Xynolog.Timing`, and cannot be set.
+- `CacheOptions` has no `cacheSaveDebounceMs`: a cache waits the protocol's
+  `saveDebounceMs` before it saves.
 - `Session.signInAgent` takes no `RetryBudget`, and signs the agent in once,
   as every SDK does: a failure is thrown as it came, and starting the sign-in
   again is the service's, on its own backoff (Protocol's WORKER-SERVICE R3).
   It was `signInAgent http options budget service`; it is
-  `signInAgent http options service`.
+  `signInAgent http timing options service`.
 - `Xynolog.Types.Presence` is removed. No member of Protocol is both optional
   and nullable, so a model's optional field is a `Maybe`.
 - `Xynolog.Discovery.Reasons` is removed, and `Xynolog.Discovery` no longer

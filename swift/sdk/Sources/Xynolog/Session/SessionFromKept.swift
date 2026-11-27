@@ -30,11 +30,14 @@ actor SessionGate {
 /// `session.keep-failed`. Each write the storage refuses is said there once, as
 /// `session.save-refused`, and stays owed. Over the sign-in a registry keeps there
 /// (``keptIn(_:kbId:)``), forgetting the saved sign-in deletes what was kept of its person, and
-/// nothing the client was writing lands after the session's own forgetting of it.
+/// nothing the client was writing lands after the session's own forgetting of it. Its client keeps
+/// `clientTiming`, and its transport `transportTiming`.
 public func sessionFromKept(
   kb: KbTarget, kept: any SignInKept, httpClient: HTTPClient, validate: Bool = true,
   onAuthFailed: (@Sendable (SessionEndReason) -> Void)? = nil,
-  storage: (any SessionStorage)? = nil, clock: any Clock<Duration> = ContinuousClock(),
+  storage: (any SessionStorage)? = nil, clientTiming: ClientTiming = ClientTiming(),
+  transportTiming: TransportTiming = TransportTiming(),
+  clock: any Clock<Duration> = ContinuousClock(),
   random: any RandomNumberGenerator & Sendable = SystemRandomNumberGenerator()
 ) async throws -> OpenedSession {
   try Task.checkCancellation()
@@ -50,7 +53,7 @@ public func sessionFromKept(
     baseUrl: base, httpClient: httpClient,
     token: found.flatMap {
       isTokenExpired($0.access, now: Date().timeIntervalSince1970) ? nil : $0.access
-    }, channels: bridgedChannels, clock: clock, random: draws,
+    }, channels: bridgedChannels, timing: transportTiming, clock: clock, random: draws,
     refresher: { try await gate.refresh($0) })
   let writer = WritesWhileNamed(
     kept: kept, report: { code, what in await gate.failed(SessionError(code, what, kbId: kb.id)) })
@@ -60,7 +63,8 @@ public func sessionFromKept(
   let client: XynologClient
   do {
     client = try await XynologClient(
-      transport: transport, gateway: transport, persistence: persistence, clock: clock)
+      transport: transport, gateway: transport, timing: clientTiming, persistence: persistence,
+      clock: clock)
   } catch {
     transport.dispose()
     throw error

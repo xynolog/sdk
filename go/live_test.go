@@ -17,6 +17,7 @@ import (
 	"slices"
 	"sync"
 	"testing"
+	"testing/synctest"
 	"time"
 
 	xynolog "github.com/xynolog/sdk/go"
@@ -142,9 +143,6 @@ func (c *annotatedContent) GetAnnotations(ctx context.Context, _ api.ResourceId)
 type liveSetup struct {
 	// window is the B19 window.
 	window time.Duration
-	// saveWait is how long a kept cache waits, after its values last changed,
-	// before it saves them.
-	saveWait time.Duration
 	// persistence is where the client keeps its queries; nil for a client
 	// that keeps nothing.
 	persistence *xynolog.CachePersistence
@@ -183,9 +181,8 @@ func newLiveWorld(t *testing.T, setup liveSetup) *liveWorld {
 		transport.SetState(api.ConnectionStateInitial)
 	}
 	content := &annotatedContent{InMemoryContent: xynologtest.NewInMemoryContent(), silent: setup.silent}
-	timing := xynolog.DefaultTiming()
+	timing := xynolog.DefaultClientTiming()
 	timing.InvalidationWindow = setup.window
-	timing.SaveDebounce = setup.saveWait
 	client := xynolog.NewClient(xynolog.ClientConfig{Transport: transport, Content: content, Gateway: &xynologtest.StubGateway{}, Timing: timing, Persistence: setup.persistence})
 	w := &liveWorld{transport: transport, content: content, client: client, refused: map[bus.Channel]bool{}}
 	transport.RefuseWhen(func(operation bus.Channel, _ json.RawMessage) json.RawMessage {
@@ -843,89 +840,91 @@ func keptOf(t *testing.T, storage xynolog.SessionStorage, query xynolog.CacheQue
 	return document.Entries[0][0], document.Entries[0][1]
 }
 
+// On the test's own clock, which stands still until the test waits: every read
+// below is made before the first save is.
 func TestAClientKeepsItsSmallQueriesAndTheNextClientShowsThemAtOnceAndAsksForThemAnew(t *testing.T) {
-	storage := xynolog.NewMemoryStorage()
-	persistence := &xynolog.CachePersistence{Storage: storage, KbID: "kb", PersonKey: keptForAlice}
-	// Long enough that every read below is made before the first save is.
-	const saveWait = 300 * time.Millisecond
-	first := newLiveWorld(t, liveSetup{saveWait: saveWait, persistence: persistence})
-	c := first.client
-	if !c.PersistenceSettled() {
-		t.Fatal("a client that has done nothing is not settled")
-	}
-	for query, each := range eachQuery(t, c) {
-		if err := each.read(context.Background()); err != nil {
-			t.Fatalf("the read of %s failed: %v", query, err)
+	synctest.Test(t, func(t *testing.T) {
+		storage := xynolog.NewMemoryStorage()
+		persistence := &xynolog.CachePersistence{Storage: storage, KbID: "kb", PersonKey: keptForAlice}
+		first := newLiveWorld(t, liveSetup{persistence: persistence})
+		c := first.client
+		if !c.PersistenceSettled() {
+			t.Fatal("a client that has done nothing is not settled")
 		}
-	}
-	// What it knows is owed to storage until it has stopped changing.
-	if c.PersistenceSettled() {
-		t.Fatal("a client that owes a save is settled")
-	}
-	if _, ok := storage.Get(xynolog.CacheKey("kb", keptForAlice, xynolog.CacheQueryResource)); ok {
-		t.Fatal("a save was made before the values stopped changing")
-	}
-	waitUntil(t, "the client settled", 2*time.Second, c.PersistenceSettled)
-
-	// An event about an annotation nobody holds changes nothing the client keeps: nothing is owed.
-	first.transport.Deliver(eventOf(t, xynolog.CacheRefreshMarkDeleteOk, "", "res-1", "ann-nobody-holds"))
-	time.Sleep(settling)
-	if !c.PersistenceSettled() {
-		t.Fatal("an event about an annotation nobody holds owes a save")
-	}
-	c.Close()
-
-	// Each query the refresh table persists, a document under its own key for the person; no other query is kept.
-	for _, query := range xynolog.CacheQueries {
-		_, kept := storage.Get(xynolog.CacheKey("kb", keptForAlice, query))
-		if persisted := slices.Contains(xynolog.PersistedCacheQueries, query); kept != persisted {
-			t.Fatalf("%s is kept: %v; the refresh table persists it: %v", query, kept, persisted)
+		for query, each := range eachQuery(t, c) {
+			if err := each.read(context.Background()); err != nil {
+				t.Fatalf("the read of %s failed: %v", query, err)
+			}
 		}
-		if kept {
-			keptOf(t, storage, query)
+		// What it knows is owed to storage until it has stopped changing.
+		if c.PersistenceSettled() {
+			t.Fatal("a client that owes a save is settled")
 		}
-	}
-	// As the wire had it: by the wire's names, and without what the knowledge base never said.
-	if key, value := keptOf(t, storage, xynolog.CacheQueryResource); !sameJSON(t, key, []byte(`"res-1"`)) || !sameJSON(t, value, []byte(describing("res-1", "A resource"))) {
-		t.Fatalf("the resource is kept as %s: %s", key, value)
-	}
-	listed := `{"annotations":[` + annotating("ann-1", "res-1", "") + `],"total":1}`
-	if key, value := keptOf(t, storage, xynolog.CacheQueryAnnotations); !sameJSON(t, key, []byte(`"res-1"`)) || !sameJSON(t, value, []byte(listed)) {
-		t.Fatalf("the annotations are kept as %s: %s", key, value)
-	}
-	wholeKey := wholeKeyOf(t)
-	if key, _ := keptOf(t, storage, xynolog.CacheQueryEntityTypes); !sameJSON(t, key, wholeKey) {
-		t.Fatalf("the entity types are kept under %s; the table's key is %s", key, wholeKey)
-	}
+		if _, ok := storage.Get(xynolog.CacheKey("kb", keptForAlice, xynolog.CacheQueryResource)); ok {
+			t.Fatal("a save was made before the values stopped changing")
+		}
+		waitUntil(t, "the client settled", 2*time.Second, c.PersistenceSettled)
 
-	// The next client of the same knowledge base, over the same storage.
-	again := newLiveWorld(t, liveSetup{saveWait: saveWait, persistence: persistence})
-	res1 := resourceOf(t, "res-1")
-	// Shown at once: no pending before it. And asked for anew, once.
-	live := watch(t, again.client.Browse.Resource(res1))
-	if shown := valueIn[api.ResourceDescriptor](t, live.now(t)); shown.Name != "A resource" {
-		t.Fatalf("the kept resource is shown as %q", shown.Name)
-	}
-	resource, entityTypes, annotation := asks[xynolog.CacheQueryResource][0], asks[xynolog.CacheQueryEntityTypes][0], asks[xynolog.CacheQueryAnnotation][0]
-	again.asksCome(t, askedMark{}, map[string]int{resource: 1})
-	types := watch(t, again.client.Browse.EntityTypes())
-	if shown := valueIn[[]string](t, types.now(t)); !slices.Equal(shown, []string{"Person"}) {
-		t.Fatalf("the kept entity types are shown as %v", shown)
-	}
-	again.asksCome(t, askedMark{}, map[string]int{resource: 1, entityTypes: 1})
-	// An annotation that was kept is asked for anew too, by a request that names its resource.
-	one := watch(t, again.client.Browse.Annotation(res1, annotationIdOf(t, "ann-1")))
-	valueIn[api.Annotation](t, one.now(t))
-	again.asksCome(t, askedMark{}, map[string]int{resource: 1, entityTypes: 1, annotation: 1})
-	if asked := payloadsOn(again.transport, bus.Channel(annotation)); asked[0] != `{"annotationId":"ann-1","resourceId":"res-1"}` {
-		t.Fatalf("the kept annotation was asked for as %s", asked[0])
-	}
+		// An event about an annotation nobody holds changes nothing the client keeps: nothing is owed.
+		first.transport.Deliver(eventOf(t, xynolog.CacheRefreshMarkDeleteOk, "", "res-1", "ann-nobody-holds"))
+		synctest.Wait()
+		if !c.PersistenceSettled() {
+			t.Fatal("an event about an annotation nobody holds owes a save")
+		}
+		c.Close()
 
-	// A client of another knowledge base, or for another person, over the same storage, begins with nothing of this one's.
-	other := newLiveWorld(t, liveSetup{saveWait: saveWait, persistence: &xynolog.CachePersistence{Storage: storage, KbID: "another", PersonKey: keptForAlice}, silent: true})
-	isPending(t, watch(t, other.client.Browse.Resource(res1)).now(t))
-	someoneElse := newLiveWorld(t, liveSetup{saveWait: saveWait, persistence: &xynolog.CachePersistence{Storage: storage, KbID: "kb", PersonKey: xynolog.PersonKey("did:web:example.org:users:bob")}, silent: true})
-	isPending(t, watch(t, someoneElse.client.Browse.Resource(res1)).now(t))
+		// Each query the refresh table persists, a document under its own key for the person; no other query is kept.
+		for _, query := range xynolog.CacheQueries {
+			_, kept := storage.Get(xynolog.CacheKey("kb", keptForAlice, query))
+			if persisted := slices.Contains(xynolog.PersistedCacheQueries, query); kept != persisted {
+				t.Fatalf("%s is kept: %v; the refresh table persists it: %v", query, kept, persisted)
+			}
+			if kept {
+				keptOf(t, storage, query)
+			}
+		}
+		// As the wire had it: by the wire's names, and without what the knowledge base never said.
+		if key, value := keptOf(t, storage, xynolog.CacheQueryResource); !sameJSON(t, key, []byte(`"res-1"`)) || !sameJSON(t, value, []byte(describing("res-1", "A resource"))) {
+			t.Fatalf("the resource is kept as %s: %s", key, value)
+		}
+		listed := `{"annotations":[` + annotating("ann-1", "res-1", "") + `],"total":1}`
+		if key, value := keptOf(t, storage, xynolog.CacheQueryAnnotations); !sameJSON(t, key, []byte(`"res-1"`)) || !sameJSON(t, value, []byte(listed)) {
+			t.Fatalf("the annotations are kept as %s: %s", key, value)
+		}
+		wholeKey := wholeKeyOf(t)
+		if key, _ := keptOf(t, storage, xynolog.CacheQueryEntityTypes); !sameJSON(t, key, wholeKey) {
+			t.Fatalf("the entity types are kept under %s; the table's key is %s", key, wholeKey)
+		}
+
+		// The next client of the same knowledge base, over the same storage.
+		again := newLiveWorld(t, liveSetup{persistence: persistence})
+		res1 := resourceOf(t, "res-1")
+		// Shown at once: no pending before it. And asked for anew, once.
+		live := watch(t, again.client.Browse.Resource(res1))
+		if shown := valueIn[api.ResourceDescriptor](t, live.now(t)); shown.Name != "A resource" {
+			t.Fatalf("the kept resource is shown as %q", shown.Name)
+		}
+		resource, entityTypes, annotation := asks[xynolog.CacheQueryResource][0], asks[xynolog.CacheQueryEntityTypes][0], asks[xynolog.CacheQueryAnnotation][0]
+		again.asksCome(t, askedMark{}, map[string]int{resource: 1})
+		types := watch(t, again.client.Browse.EntityTypes())
+		if shown := valueIn[[]string](t, types.now(t)); !slices.Equal(shown, []string{"Person"}) {
+			t.Fatalf("the kept entity types are shown as %v", shown)
+		}
+		again.asksCome(t, askedMark{}, map[string]int{resource: 1, entityTypes: 1})
+		// An annotation that was kept is asked for anew too, by a request that names its resource.
+		one := watch(t, again.client.Browse.Annotation(res1, annotationIdOf(t, "ann-1")))
+		valueIn[api.Annotation](t, one.now(t))
+		again.asksCome(t, askedMark{}, map[string]int{resource: 1, entityTypes: 1, annotation: 1})
+		if asked := payloadsOn(again.transport, bus.Channel(annotation)); asked[0] != `{"annotationId":"ann-1","resourceId":"res-1"}` {
+			t.Fatalf("the kept annotation was asked for as %s", asked[0])
+		}
+
+		// A client of another knowledge base, or for another person, over the same storage, begins with nothing of this one's.
+		other := newLiveWorld(t, liveSetup{persistence: &xynolog.CachePersistence{Storage: storage, KbID: "another", PersonKey: keptForAlice}, silent: true})
+		isPending(t, watch(t, other.client.Browse.Resource(res1)).now(t))
+		someoneElse := newLiveWorld(t, liveSetup{persistence: &xynolog.CachePersistence{Storage: storage, KbID: "kb", PersonKey: xynolog.PersonKey("did:web:example.org:users:bob")}, silent: true})
+		isPending(t, watch(t, someoneElse.client.Browse.Resource(res1)).now(t))
+	})
 }
 
 func TestAClientThatKeepsNothingIsAlwaysSettled(t *testing.T) {
@@ -977,7 +976,7 @@ func TestAClientIsSettledUnlessAQueryItKeepsIsBeingFetchedOrIsOwedToStorage(t *t
 // save.
 func TestAClientIsNotSettledWhileItsRefresherOwesARefetch(t *testing.T) {
 	const window = time.Second
-	w := newLiveWorld(t, liveSetup{window: window, saveWait: 10 * time.Millisecond, persistence: &xynolog.CachePersistence{Storage: xynolog.NewMemoryStorage(), KbID: "kb", PersonKey: keptForAlice}})
+	w := newLiveWorld(t, liveSetup{window: window, persistence: &xynolog.CachePersistence{Storage: xynolog.NewMemoryStorage(), KbID: "kb", PersonKey: keptForAlice}})
 	c := w.client
 	resources := bus.BrowseResourceRequested.Request().Channel()
 	asked := func() int { return len(requestsOn(w.transport, resources)) }
@@ -1023,8 +1022,9 @@ func (s *notingStorage) Set(key, value string) error {
 // saves may write are those noted before the reading.
 func TestCloseReadsWhetherWhatIsKeptIsAtRestBeforeItDisposesAnything(t *testing.T) {
 	const placesKey = "places"
-	// Long enough that Close comes before either ends.
-	const window, saveWait = 5 * time.Second, 5 * time.Second
+	// Long enough that Close comes before it ends. Each row is on the test's own
+	// clock, which nothing moves before Close: no save falls due before it.
+	const window = 5 * time.Second
 	closed := func(t *testing.T, owing bool) xynolog.SessionStorage {
 		storage := xynolog.NewMemoryStorage()
 		underneath := &notingStorage{SessionStorage: storage, key: xynolog.CacheKey("kb", keptForAlice, xynolog.CacheQueryResource)}
@@ -1035,7 +1035,7 @@ func TestCloseReadsWhetherWhatIsKeptIsAtRestBeforeItDisposesAnything(t *testing.
 			places.Save(resourceOf(t, "res-2"), "p-res-2-3")
 			noted = true
 		}
-		w := newLiveWorld(t, liveSetup{window: window, saveWait: saveWait, persistence: &xynolog.CachePersistence{Storage: places.Storage(), KbID: "kb", PersonKey: keptForAlice}})
+		w := newLiveWorld(t, liveSetup{window: window, persistence: &xynolog.CachePersistence{Storage: places.Storage(), KbID: "kb", PersonKey: keptForAlice}})
 		places.CoupleTo(w.client)
 		resources := bus.BrowseResourceRequested.Request().Channel()
 		updated := func() { w.transport.Deliver(eventOf(t, xynolog.CacheRefreshYieldUpdated, "", "res-1", "ann-1")) }
@@ -1048,7 +1048,7 @@ func TestCloseReadsWhetherWhatIsKeptIsAtRestBeforeItDisposesAnything(t *testing.
 			untilReady(t, watched)
 			// The next is owed to the window.
 			updated()
-			time.Sleep(settling)
+			synctest.Wait()
 			if asked := len(requestsOn(w.transport, resources)); asked != 2 {
 				t.Fatalf("asked %d resources, want 2: the second refetch is not owed", asked)
 			}
@@ -1062,18 +1062,22 @@ func TestCloseReadsWhetherWhatIsKeptIsAtRestBeforeItDisposesAnything(t *testing.
 	}
 
 	t.Run("a refetch owed holds the places back", func(t *testing.T) {
-		storage := closed(t, true)
-		keptOf(t, storage, xynolog.CacheQueryResource)
-		if kept, ok := storage.Get(placesKey); ok {
-			t.Fatalf("the places were written while a refetch was owed: %s", kept)
-		}
+		synctest.Test(t, func(t *testing.T) {
+			storage := closed(t, true)
+			keptOf(t, storage, xynolog.CacheQueryResource)
+			if kept, ok := storage.Get(placesKey); ok {
+				t.Fatalf("the places were written while a refetch was owed: %s", kept)
+			}
+		})
 	})
 	t.Run("with nothing in flight or owed the places noted before are written", func(t *testing.T) {
-		storage := closed(t, false)
-		keptOf(t, storage, xynolog.CacheQueryResource)
-		kept, ok := storage.Get(placesKey)
-		if !ok || !sameJSON(t, []byte(kept), []byte(`{"res-1":"p-res-1-7"}`)) {
-			t.Fatalf("the places kept are %q, %v: only res-1's was noted before Close read the gate", kept, ok)
-		}
+		synctest.Test(t, func(t *testing.T) {
+			storage := closed(t, false)
+			keptOf(t, storage, xynolog.CacheQueryResource)
+			kept, ok := storage.Get(placesKey)
+			if !ok || !sameJSON(t, []byte(kept), []byte(`{"res-1":"p-res-1-7"}`)) {
+				t.Fatalf("the places kept are %q, %v: only res-1's was noted before Close read the gate", kept, ok)
+			}
+		})
 	})
 }

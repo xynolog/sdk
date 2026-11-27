@@ -19,19 +19,19 @@ class Links:
     """The client's transport, the bus over it, the client's own bus, the waits the client keeps, and the tasks it runs."""
 
     def __init__(
-        self, *, transport: Transport, wire: Bus, own: EventBus, bus_request_ms: int, job_silence_ms: int, job_status_poll_ms: int
+        self, *, transport: Transport, wire: Bus, own: EventBus, bus_request_timeout_ms: int, job_silence_ms: int, job_status_poll_ms: int
     ) -> None:
         self.transport: Final = transport
         self.wire: Final = wire
         self.own: Final = own
-        self.bus_request_ms: Final = bus_request_ms
+        self.bus_request_timeout_ms: Final = bus_request_timeout_ms
         self.job_silence_ms: Final = job_silence_ms
         self.job_status_poll_ms: Final = job_status_poll_ms
         self._tasks: Final[set[asyncio.Task[object]]] = set()
 
     async def request[Q: WireModel, R: WireModel, F: WireModel](self, operation: Operation[Q, R, F], payload: Q) -> R:
         """A request of `operation`, within the client's deadline."""
-        return await self.wire.request(operation, payload, timeout_ms=self.bus_request_ms)
+        return await self.wire.request(operation, payload, timeout_ms=self.bus_request_timeout_ms)
 
     async def drive[P: WireModel](self, channel: Channel[P], payload: P) -> int | None:
         """A drive at the other participants: one frame over the wire, and how many of them the gateway reached."""

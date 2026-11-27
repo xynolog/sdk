@@ -70,7 +70,8 @@ data Driver = Driver
     workerMode :: Bool,
     claims :: TVar (Maybe Worker.Claims),
     currentJob :: TVar (Maybe ActiveJob),
-    workerTimings :: TVar Timing.Settings
+    -- | The claim's waits the open's timing states, which each claim's options are given.
+    claimWaits :: TVar Object
   }
 
 say :: Driver -> ConformanceDriverLine -> IO ()
@@ -103,6 +104,12 @@ reporter driver action = mask $ \restore -> do
   result <- restore (race (takeMVar ready) (wait worker)) `onException` cancel worker
   case result of { Left () -> pure (); Right () -> throwIO (Misuse "Reporter ended before registering") }
 
+-- | The members of ClaimOptions that are waits: every one but the jobs it takes.
+claimWaitMembers :: Object
+claimWaitMembers = case toJSON (ClaimOptions [] (Just 0) (Just 0) (Just 0) (Just 0)) of
+  Object fields -> KM.delete "accepts" fields
+  _ -> error "ClaimOptions is not an object"
+
 open :: Driver -> Object -> IO Value
 open driver args = do
   previous <- readTVarIO (connection driver)
@@ -115,9 +122,10 @@ open driver args = do
         commits <- maybe False id <$> optional args "commits"
         pure (jobClaimChannels ++ if commits then jobCommitChannels else [])
       else need args "channels"
-  overrides <- maybe (pure (Object KM.empty)) pure =<< optional args "timing"
-  timings <- either (throwIO . Misuse) pure (Timing.withOverrides overrides)
-  atomically (writeTVar (workerTimings driver) timings)
+  stated <- maybe KM.empty id <$> optional args "timing"
+  let waits = if workerMode driver then KM.filterWithKey (\name _ -> KM.member name claimWaitMembers) stated else KM.empty
+  timing <- either (throwIO . Misuse) pure (Timing.withOverrides Timing.protocolTransportTiming (Object (KM.difference stated waits)))
+  atomically (writeTVar (claimWaits driver) waits)
   remaining <- newTVarIO =<< (maybe (pure []) pure =<< optional args "renewals")
   atomically (writeTVar (credential driver) (Just token))
   let renew _ = atomically $ do
@@ -132,7 +140,7 @@ open driver args = do
           (readTVarIO (credential driver))
           renew
           (time driver)
-          timings
+          timing
           UUID.nextRandom
           (Set.fromList channels)
           (pure Map.empty)
@@ -318,11 +326,11 @@ workerPerform driver identifier operation args = case operation of
   "claim" -> Just $ do
     previous <- readTVarIO (claims driver)
     when (maybe False (const True) previous) (throwIO (Misuse "Worker is already claiming"))
-    options <- decode (Object args)
+    waits <- readTVarIO (claimWaits driver)
+    options <- decode (Object (KM.union args waits))
     http <- opened driver
-    timing <- readTVarIO (workerTimings driver)
     let clock = Bus.BusOptions now waitUntil (UUID.toText <$> UUID.nextRandom)
-    worker <- Worker.newClaims (Http.transport http) clock timing options
+    worker <- Worker.newClaims (Http.transport http) clock options
     atomically (writeTVar (claims driver) (Just worker))
     reporter driver $ \ready -> Worker.refused worker $ \events ->
       ready
@@ -460,5 +468,5 @@ run = do
       <*> pure mode
       <*> newTVarIO Nothing
       <*> newTVarIO Nothing
-      <*> newTVarIO Timing.protocolSettings
+      <*> newTVarIO KM.empty
   void (race (serve driver) (atomically (readTMVar (fatal driver)) >>= throwIO)) `finally` dispose driver

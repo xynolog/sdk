@@ -29,7 +29,7 @@ internal class Links(val transport: Transport, val wire: Bus, val own: EventBus,
     val scope = CoroutineScope(context + SupervisorJob(context[Job]))
 
     /** A request of `operation`, within the client's deadline. */
-    suspend fun <Q, R, F> request(operation: Operation<Q, R, F>, payload: Q): R = wire.request(operation, payload, timing.busRequestMs)
+    suspend fun <Q, R, F> request(operation: Operation<Q, R, F>, payload: Q): R = wire.request(operation, payload, timing.busRequestTimeoutMs)
 
     /** A drive at the other participants: one frame over the wire, and how many of them the gateway reached. */
     suspend fun <P> drive(channel: Channel<P>, payload: P): Long? = wire.emit(channel, payload)

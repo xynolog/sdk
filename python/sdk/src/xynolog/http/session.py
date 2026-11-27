@@ -58,6 +58,7 @@ from xynolog.resume import CoupledBookmarks
 from xynolog.session import SignInKept, Validate, XynologSession
 from xynolog.storage import SessionStorage
 from xynolog.storage_keys import last_event_id_key, person_key
+from xynolog.timing import ClientTiming, TransportTiming
 from xynolog.types import (
     BeginAuthorizationOptions,
     ConnectionIdentity,
@@ -125,7 +126,7 @@ class _Renewing:
             await asyncio.wait([under_way])
 
 
-def _asking(base_url: str, http: httpx.AsyncClient | None) -> Validate:
+def _asking(base_url: str, timing: TransportTiming | None, http: httpx.AsyncClient | None) -> Validate:
     """Ask the gateway who a token is: one request, by a caller that holds nothing else.
 
     No stream is opened for it, and nothing renews the token: a refusal is
@@ -133,7 +134,7 @@ def _asking(base_url: str, http: httpx.AsyncClient | None) -> Validate:
     """
 
     async def ask(token: str) -> UserResponse:
-        asking = HttpTransport(base_url, token=Variable[str | None](token), channels=(), http=http)
+        asking = HttpTransport(base_url, token=Variable[str | None](token), channels=(), timing=timing, http=http)
         try:
             return await asking.get_current_user()
         finally:
@@ -426,6 +427,8 @@ async def session_from_kept(
     channels: Sequence[str],
     storage: SessionStorage | None = None,
     on_auth_failed: Callable[[SessionEndReason], None] | None = None,
+    client_timing: ClientTiming | None = None,
+    transport_timing: TransportTiming | None = None,
     http: httpx.AsyncClient | None = None,
 ) -> AsyncGenerator[XynologSession[HttpTransport]]:
     """A session with the knowledge base `kb`, at the gateway its endpoint names, over the sign-in `kept` holds.
@@ -471,6 +474,10 @@ async def session_from_kept(
     the way out. What the way out cannot write is lost, its refusal said
     before the session's errors end; the way out raises nothing.
 
+    The session's client keeps `client_timing`, and its transport keeps
+    `transport_timing`, as does the request that asks the gateway who the
+    token is: each is the protocol's table where none is given.
+
     With `http`, every request of the session, of the gateway and of the
     issuer, is made with that client, which its caller built and closes
     (`HttpTransport`, `issuer_client`).
@@ -486,6 +493,8 @@ async def session_from_kept(
         channels=channels,
         storage=storage,
         on_auth_failed=on_auth_failed,
+        client_timing=client_timing,
+        transport_timing=transport_timing,
         http=http,
     ) as session:
         await session.ready()
@@ -501,6 +510,8 @@ async def _session_started(
     channels: Sequence[str],
     storage: SessionStorage | None,
     on_auth_failed: Callable[[SessionEndReason], None] | None,
+    client_timing: ClientTiming | None,
+    transport_timing: TransportTiming | None,
     http: httpx.AsyncClient | None,
 ) -> AsyncGenerator[XynologSession[HttpTransport]]:
     """`session_from_kept`'s session as soon as it has started, before it is ready: what a registry holds, and waits on itself.
@@ -520,9 +531,11 @@ async def _session_started(
     named = await kept.held() if storage is not None else None
     token = Variable[str | None](None)
     renewing = _Renewing(kept, http)
-    transport = HttpTransport(base_url, token=token, refresher=lambda refused: session.refresh(refused), channels=channels, http=http)
-    client = XynologClient(transport, transport.content, transport)
-    asking = _asking(base_url, http) if validate else None
+    transport = HttpTransport(
+        base_url, token=token, refresher=lambda refused: session.refresh(refused), channels=channels, timing=transport_timing, http=http
+    )
+    client = XynologClient(transport, transport.content, transport, timing=client_timing)
+    asking = _asking(base_url, transport_timing, http) if validate else None
     keeping: _Keeping | None = None
     if storage is not None:
         keeping = _Keeping(kb.id, storage, kept, transport, client)
@@ -629,11 +642,22 @@ class HttpSessionFactory(SessionFactory):
     its own: a knowledge base's old session and its new one, during a
     sign-in, are closed in turn. It reads none of what a session says: the
     registry is the one reader of its errors, what the closing flush met among
-    them. With `http`, every request of each session, and each revocation, is
-    made with that client, which its caller built and closes.
+    them. The client of each session keeps `client_timing`, and its transport
+    keeps `transport_timing`, as does the request that asks the gateway who a
+    token is: each is the protocol's table where none is given. With `http`,
+    every request of each session, and each revocation, is made with that
+    client, which its caller built and closes.
     """
 
-    def __init__(self, *, http: httpx.AsyncClient | None = None) -> None:
+    def __init__(
+        self,
+        *,
+        client_timing: ClientTiming | None = None,
+        transport_timing: TransportTiming | None = None,
+        http: httpx.AsyncClient | None = None,
+    ) -> None:
+        self._client_timing: Final = client_timing
+        self._transport_timing: Final = transport_timing
         self._http: Final = http
 
     @override
@@ -646,6 +670,8 @@ class HttpSessionFactory(SessionFactory):
             channels=BRIDGED_CHANNELS,
             storage=options.storage,
             on_auth_failed=options.signals.notify_session_ended,
+            client_timing=self._client_timing,
+            transport_timing=self._transport_timing,
             http=self._http,
         )
 

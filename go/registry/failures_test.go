@@ -12,6 +12,7 @@ import (
 
 	xynolog "github.com/xynolog/sdk/go"
 	"github.com/xynolog/sdk/go/api"
+	"github.com/xynolog/sdk/go/internal/timing"
 )
 
 // noSessions is the factory of a registry with no knowledge bases, which asks
@@ -43,7 +44,7 @@ func failure(n int) *xynolog.SessionError {
 func TestARegistryNobodyHasReadKeepsTheLatestOfWhatItSaysForItsFirstReader(t *testing.T) {
 	b := unread(t)
 	beyond := 5
-	said := make([]*xynolog.SessionError, xynolog.DefaultTiming().ErrorsKeptForFirstReaderCount+beyond)
+	said := make([]*xynolog.SessionError, timing.ErrorsKeptForFirstReaderCount+beyond)
 	for n := range said {
 		said[n] = failure(n)
 		b.failed(said[n])
@@ -67,7 +68,7 @@ func TestARegistryNobodyHasReadKeepsTheLatestOfWhatItSaysForItsFirstReader(t *te
 func TestEachReaderOfARegistrysErrorsHearsEverythingSaidFromWhenItReadsHoweverFarBehindItFalls(t *testing.T) {
 	b := unread(t)
 	first, later := b.Errors(context.Background()), b.Errors(context.Background())
-	said := make([]*xynolog.SessionError, xynolog.DefaultTiming().ErrorsKeptForFirstReaderCount+5)
+	said := make([]*xynolog.SessionError, timing.ErrorsKeptForFirstReaderCount+5)
 	for n := range said {
 		said[n] = failure(n)
 		b.failed(said[n])

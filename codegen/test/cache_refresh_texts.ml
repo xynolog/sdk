@@ -134,8 +134,8 @@ func applyRefresh(acts cacheActs, row CacheRefresh, subject cacheSubject) {
 // attach has the caches of the queries the table persists keep their values
 // in persistence from now on, each beginning with what it kept.
 func (v *live) attach(persistence *CachePersistence) {
-	keepIn(v.thing, persistence, CacheQueryThing, v.links.timing)
-	keepIn(v.deep, persistence, CacheQueryDeep, v.links.timing)
+	keepIn(v.thing, persistence, CacheQueryThing)
+	keepIn(v.deep, persistence, CacheQueryDeep)
 }
 |xx}
 

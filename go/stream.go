@@ -41,6 +41,7 @@ import (
 	"github.com/xynolog/sdk/go/api"
 	"github.com/xynolog/sdk/go/bus"
 	"github.com/xynolog/sdk/go/internal/required"
+	"github.com/xynolog/sdk/go/internal/timing"
 )
 
 type commandKind int
@@ -219,7 +220,7 @@ func (s *stream) transition(next api.ConnectionState) {
 	// the threshold: the timer runs while the state is reconnecting.
 	s.degradedAt = nil
 	if next == api.ConnectionStateReconnecting {
-		at := time.Now().Add(s.shared.timing.DegradedThreshold)
+		at := time.Now().Add(timing.DegradedThreshold)
 		s.degradedAt = &at
 	}
 	s.state.Set(next)
@@ -232,9 +233,9 @@ func (s *stream) scheduleRetry(after time.Duration, keepPrevious bool) {
 }
 
 // backoff is equal-jitter exponential backoff: a wait in [cap/2, cap), where
-// cap is the reconnect wait doubled per failure up to MaxReconnect.
+// cap is the reconnect wait doubled per failure up to maxReconnectMs.
 func (s *stream) backoff() time.Duration {
-	limit := s.shared.timing.MaxReconnect
+	limit := timing.MaxReconnect
 	wait := s.shared.timing.Reconnect
 	for range s.retryAttempt {
 		if wait >= limit {
@@ -597,7 +598,7 @@ func (s *stream) command(c command) {
 		// A new scope needs to be live now: additions are gathered for the
 		// debounce, and carry any removal waiting with them.
 		s.lazyAt = nil
-		at := time.Now().Add(s.shared.timing.ReconnectDebounce)
+		at := time.Now().Add(timing.ReconnectDebounce)
 		s.debounceAt = &at
 	case commandTakeUpPlaces:
 		for scope, place := range c.bookmarks.Load() {

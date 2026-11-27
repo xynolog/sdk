@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/xynolog/sdk/go/api"
+	"github.com/xynolog/sdk/go/internal/timing"
 )
 
 var keptKey = CacheKey("kb", PersonKey("did:web:example.org:users:alice"), CacheQueryResource)
@@ -152,7 +153,7 @@ func TestAnUpdateIsGivenWhatIsStoredAndStoresWhatItSays(t *testing.T) {
 
 func TestACachesValuesAreKeptAsOneDocumentAsTheWireHadThemAndComeBackAsTheyWere(t *testing.T) {
 	storage := NewMemoryStorage()
-	most := DefaultTiming().MaxStoredBytesCount
+	most := timing.MaxStoredBytesCount
 	if kept := keeping(storage, most).Load(); kept != nil {
 		t.Fatalf("an empty storage kept %v", kept)
 	}
@@ -182,7 +183,7 @@ func TestACachesValuesAreKeptAsOneDocumentAsTheWireHadThemAndComeBackAsTheyWere(
 
 func TestAnEntryKeepsTheTimeItsValueWasLastWritten(t *testing.T) {
 	storage := NewMemoryStorage()
-	most := DefaultTiming().MaxStoredBytesCount
+	most := timing.MaxStoredBytesCount
 	persister := keeping(storage, most)
 	resource, other := mustResource(t, "res-1"), mustResource(t, "res-2")
 	one := readJSON[api.ResourceDescriptor](t, descriptorText("res-1", "A resource"))
@@ -223,7 +224,7 @@ func TestAnEntryKeepsTheTimeItsValueWasLastWritten(t *testing.T) {
 }
 
 func TestADocumentWhoseStructureIsNotTheTablesReadsAsNothingKept(t *testing.T) {
-	most := DefaultTiming().MaxStoredBytesCount
+	most := timing.MaxStoredBytesCount
 	good := `["res-1", ` + descriptorText("res-1", "A resource") + `, 5]`
 	for _, stored := range []string{
 		"not json",
@@ -275,7 +276,7 @@ func TestAnEntryThatIsNotThisCachesShapeIsOneItNeverKept(t *testing.T) {
 		document += entry
 	}
 	storage.Set(keptKey, document+"]}")
-	kept := keeping(storage, DefaultTiming().MaxStoredBytesCount).Load()
+	kept := keeping(storage, timing.MaxStoredBytesCount).Load()
 	value, ok := kept[mustResource(t, "res-1")]
 	if len(kept) != 1 || !ok || !sameJSON(t, textOf(t, value), descriptorText("res-1", "A resource")) {
 		t.Fatalf("kept %v", kept)
@@ -301,7 +302,7 @@ func TestADocumentTooLargeLosesTheEntriesThatHaveGoneLongestWithoutANewValueUnti
 
 	// How large a document of three of them is, and so the most that keeps three and not four.
 	measuring := NewMemoryStorage()
-	keeping(measuring, DefaultTiming().MaxStoredBytesCount).Save(of(ids[:3]...))
+	keeping(measuring, timing.MaxStoredBytesCount).Save(of(ids[:3]...))
 	measured, _ := measuring.Get(keptKey)
 	three := len(measured)
 
@@ -338,7 +339,7 @@ func TestADocumentTooLargeLosesTheEntriesThatHaveGoneLongestWithoutANewValueUnti
 	if keys := keysOf(documentIn(t, tiny)); len(keys) != 0 {
 		t.Fatalf("a document of ten bytes kept %v", keys)
 	}
-	if kept := keeping(tiny, DefaultTiming().MaxStoredBytesCount).Load(); kept == nil || len(kept) != 0 {
+	if kept := keeping(tiny, timing.MaxStoredBytesCount).Load(); kept == nil || len(kept) != 0 {
 		t.Fatalf("kept %v, want no entries", kept)
 	}
 }

@@ -23,13 +23,13 @@ from xynolog import model, telemetry
 from xynolog._bus_log import bus_log, bus_note, enabled
 from xynolog.channels import CHANNELS
 from xynolog.errors import XynologError
-from xynolog.http import HttpTransport, Timing
+from xynolog.http import HttpTransport, TransportTiming
 from xynolog.identifiers import ResourceId
 from xynolog.model import WireModel
 from xynolog.types import PutBinaryRequest, RetryBudget, TraceCarrier
 from xynolog.watched import Variable, reached
 
-QUICK: Final = Timing(
+QUICK: Final = TransportTiming(
     reconnect_ms=10, lazy_remove_ms=10, linger_ms=10, emit_retry=RetryBudget(attempts=2, initial_delay_ms=1, max_delay_ms=1)
 )
 RESOURCE: Final = ResourceId("res-1")
@@ -283,7 +283,7 @@ def test_every_member_a_bus_payload_declares_whose_name_reads_as_a_credential_s_
 CHANNELS_NAMED: Final = ("beckon:focus",)
 
 
-def transport_to(gateway: GatewayServer, timing: Timing = QUICK) -> HttpTransport:
+def transport_to(gateway: GatewayServer, timing: TransportTiming = QUICK) -> HttpTransport:
     return HttpTransport(gateway.origin, token=Variable[str | None]("t"), channels=CHANNELS_NAMED, timing=timing)
 
 
@@ -367,7 +367,7 @@ def test_a_transport_writes_a_line_for_each_frame_it_receives_as_the_frame_carri
 def test_a_frame_a_retired_connection_delivers_is_noted_as_one(capsys: pytest.CaptureFixture[str]) -> None:
     # A stream that takes over from another leaves the other read for a while. What that one still delivers is what
     # closing it at once would have lost.
-    lingering = Timing(reconnect_ms=10, lazy_remove_ms=10, linger_ms=60_000)
+    lingering = TransportTiming(reconnect_ms=10, lazy_remove_ms=10, linger_ms=60_000)
 
     async def scenario() -> None:
         async with GatewayServer() as gateway, transport_to(gateway, lingering) as transport:

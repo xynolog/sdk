@@ -6,7 +6,7 @@ package xynolog
 // The two are separate questions. A RetryRule answers the first for one
 // context, as protocol/specs/src/retry/cases.json states it. An api.RetryBudget answers the
 // second: a budget of attempts, and the backoff between them. The budgets a
-// client keeps are protocol/specs/src/client/timing.json's (Timing).
+// client keeps are protocol/specs/src/client/timing.json's.
 
 import (
 	"context"

@@ -184,7 +184,7 @@ func sleeping(_ clock: TestClock, until due: TestClock.Instant) async throws {
   let clock = TestClock()
   let probe = ProbeTransport(channels: bridgedChannels)
   let client = try await XynologClient(
-    transport: probe, followTiming: FollowTiming(silenceMs: 1000, statusPollMs: 60000),
+    transport: probe, timing: ClientTiming(jobSilenceMs: 1000, jobStatusPollMs: 60000),
     clock: clock)
   defer { client.dispose() }
   probe.handle { name, _ in
@@ -216,7 +216,7 @@ func sleeping(_ clock: TestClock, until due: TestClock.Instant) async throws {
   let clock = TestClock()
   let probe = ProbeTransport(channels: bridgedChannels)
   let client = try await XynologClient(
-    transport: probe, followTiming: FollowTiming(silenceMs: 60000, statusPollMs: 60000),
+    transport: probe, timing: ClientTiming(jobSilenceMs: 60000, jobStatusPollMs: 60000),
     clock: clock)
   defer { client.dispose() }
   let cancelled = Watched(false)
@@ -268,7 +268,7 @@ final class AskedClock: Clock {
   let clock = AskedClock()
   let probe = ProbeTransport(channels: bridgedChannels)
   let client = try await XynologClient(
-    transport: probe, followTiming: FollowTiming(silenceMs: 600_000, statusPollMs: 600_000),
+    transport: probe, timing: ClientTiming(jobSilenceMs: 600_000, jobStatusPollMs: 600_000),
     clock: clock)
   defer { client.dispose() }
   probe.handle { name, _ in
@@ -361,7 +361,7 @@ final class AskedClock: Clock {
 @Test func silencePollsOneAtATimeAndRecoversAnUnheardEnd() async throws {
   let probe = ProbeTransport(channels: bridgedChannels)
   let client = try await XynologClient(
-    transport: probe, followTiming: FollowTiming(silenceMs: 5, statusPollMs: 5))
+    transport: probe, timing: ClientTiming(jobSilenceMs: 5, jobStatusPollMs: 5))
   defer { client.dispose() }
   let polls = Mutex(0)
   let inFlight = Mutex(0)
@@ -392,7 +392,7 @@ final class AskedClock: Clock {
 @Test func aStaleStatusCannotEndTheAttemptThatFollowsASetback() async throws {
   let probe = ProbeTransport(channels: bridgedChannels)
   let client = try await XynologClient(
-    transport: probe, followTiming: FollowTiming(silenceMs: 5, statusPollMs: 5))
+    transport: probe, timing: ClientTiming(jobSilenceMs: 5, jobStatusPollMs: 5))
   defer { client.dispose() }
   let gate = ReplyGate<[String: JSONValue]>()
   let stale = try wirePayload(
@@ -432,7 +432,7 @@ final class AskedClock: Clock {
   for state in [JobStatusResponseStatus.cancelled, .failed, .complete] {
     let probe = ProbeTransport(channels: bridgedChannels)
     let client = try await XynologClient(
-      transport: probe, followTiming: FollowTiming(silenceMs: 1, statusPollMs: 1))
+      transport: probe, timing: ClientTiming(jobSilenceMs: 1, jobStatusPollMs: 1))
     defer { client.dispose() }
     probe.handle { name, _ in
       if name == Operations.jobCreate.request.name { return try jobCreatedFixture() }
@@ -460,7 +460,7 @@ final class AskedClock: Clock {
   let clock = TestClock()
   let probe = ProbeTransport(channels: bridgedChannels)
   let client = try await XynologClient(
-    transport: probe, followTiming: FollowTiming(silenceMs: 1000, statusPollMs: 1000),
+    transport: probe, timing: ClientTiming(jobSilenceMs: 1000, jobStatusPollMs: 1000),
     clock: clock)
   defer { client.dispose() }
   let cancelled = Watched(false)
@@ -490,7 +490,7 @@ final class AskedClock: Clock {
   let clock = TestClock()
   let probe = ProbeTransport(channels: bridgedChannels)
   let client = try await XynologClient(
-    transport: probe, followTiming: FollowTiming(silenceMs: 60000, statusPollMs: 60000),
+    transport: probe, timing: ClientTiming(jobSilenceMs: 60000, jobStatusPollMs: 60000),
     clock: clock)
   defer { client.dispose() }
   probe.handle { _, _ in try jobCreatedFixture() }
@@ -555,7 +555,7 @@ private struct UnexpectedStatusFailure: Error {}
     let probe = ProbeTransport(channels: bridgedChannels)
     let client = try await XynologClient(
       transport: probe,
-      followTiming: wrongFrame ? FollowTiming() : FollowTiming(silenceMs: 1, statusPollMs: 1))
+      timing: wrongFrame ? ClientTiming() : ClientTiming(jobSilenceMs: 1, jobStatusPollMs: 1))
     defer { client.dispose() }
     probe.handle { [weak client] name, _ in
       if name == Operations.jobCreate.request.name {
@@ -711,7 +711,7 @@ func jobPollingDeadlineBoundsRequestsAndIntervals(unanswered: Bool) async throws
 @Test func followingRefusesAnotherJobsStatusAndExposesItsFailureCode() async throws {
   let probe = ProbeTransport(channels: bridgedChannels)
   let client = try await XynologClient(
-    transport: probe, followTiming: FollowTiming(silenceMs: 1, statusPollMs: 1))
+    transport: probe, timing: ClientTiming(jobSilenceMs: 1, jobStatusPollMs: 1))
   defer { client.dispose() }
   probe.handle { name, _ in
     if name == Operations.jobCreate.request.name { return try jobCreatedFixture() }

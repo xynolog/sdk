@@ -20,6 +20,7 @@ import (
 	"testing"
 
 	"github.com/xynolog/sdk/go/api"
+	"github.com/xynolog/sdk/go/internal/timing"
 )
 
 // objectShape is an object schema of the table: the members it names, and
@@ -122,7 +123,7 @@ func TestAKeptDocumentAndThePlacesAreOfTheTablesForm(t *testing.T) {
 	table := readSessionTable(t)
 	storage := NewMemoryStorage()
 	key := CacheKey("kb-a", PersonKey("did:web:kb.example.org:users:jo%40example.org"), CacheQueryEntityTypes)
-	NewStoragePersister[whole, []string](storage, key, DefaultTiming().MaxStoredBytesCount).Save(map[whole][]string{{}: {"Person"}})
+	NewStoragePersister[whole, []string](storage, key, timing.MaxStoredBytesCount).Save(map[whole][]string{{}: {"Person"}})
 	written, _ := storage.Get(key)
 	if got, want := membersOf(t, []byte(written)), slices.Sorted(maps.Keys(table.CacheDocument.Properties)); !slices.Equal(got, want) {
 		t.Errorf("a kept document is written with %v; the table's members are %v", got, want)

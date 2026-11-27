@@ -25,7 +25,7 @@ func AsMe(ctx context.Context, kb api.KbTarget, home string) error {
 	}
 	// The sign-in of the stack `xynolog login` keys as the knowledge base's id.
 	kept := xynolog.NewSignInStore(filepath.Join(directory, xynolog.SignInFile)).Entry(kb.Id)
-	timing := xynolog.DefaultTiming()
+	timing := xynolog.DefaultTransportTiming()
 	if _, held, err := kept.Held(ctx); err != nil {
 		return err
 	} else if !held {
@@ -43,7 +43,8 @@ func AsMe(ctx context.Context, kb api.KbTarget, home string) error {
 		}
 	}
 	session, end, err := xynolog.SessionFromKept(ctx, xynolog.SessionFromKeptConfig{
-		Kb: kb, Kept: kept, HTTP: http.DefaultClient, Timing: timing, Channels: bus.BridgedChannels,
+		Kb: kb, Kept: kept, HTTP: http.DefaultClient, Channels: bus.BridgedChannels,
+		ClientTiming: xynolog.DefaultClientTiming(), TransportTiming: timing,
 	})
 	if err != nil {
 		return err

@@ -20,7 +20,6 @@ import (
 	"net/http"
 	"slices"
 	"sync"
-	"time"
 
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
@@ -30,45 +29,6 @@ import (
 	"github.com/xynolog/sdk/go/api"
 	"github.com/xynolog/sdk/go/conformance/internal/protocol"
 )
-
-// timing is the client's timing, with what the case overrides, each entry by
-// its name in protocol/specs/src/client/timing.json: the transport's, and a worker's.
-func timing(args protocol.Arguments) (xynolog.Timing, error) {
-	timing := xynolog.DefaultTiming()
-	if _, given := args["timing"]; !given {
-		return timing, nil
-	}
-	var stated protocol.Arguments
-	if json.Unmarshal(args["timing"], &stated) != nil || stated == nil {
-		return timing, protocol.Misused("timing must be an object")
-	}
-	for name := range stated {
-		n, err := protocol.Count(stated, name)
-		if err != nil {
-			return timing, err
-		}
-		ms := time.Duration(n) * time.Millisecond
-		switch name {
-		case "reconnectMs":
-			timing.Reconnect = ms
-		case "lazyRemoveMs":
-			timing.LazyRemove = ms
-		case "lingerMs":
-			timing.Linger = ms
-		case "jobClaimTimeoutMs":
-			timing.JobClaimTimeout = ms
-		case "heldJobStallMs":
-			timing.HeldJobStall = ms
-		case "heldJobStallCheckMs":
-			timing.HeldJobStallCheck = ms
-		case "markCommitTimeoutMs":
-			timing.MarkCommitTimeout = ms
-		default:
-			return timing, protocol.Misused("this driver cannot override %s", name)
-		}
-	}
-	return timing, nil
-}
 
 // asTheSuiteWroteIt is what a case states as the wire carries it, as the
 // SDK's type for it. One the type refuses is the suite's mistake.
@@ -119,6 +79,8 @@ type worker struct {
 	client    *xynolog.Client
 	closed    bool
 	claims    *xynolog.Claims
+	// options is the claims' waits, as the case's timing states them.
+	options api.ClaimOptions
 	// held is the job the worker last came to hold, as its claims handed it
 	// out.
 	held     *running
@@ -226,8 +188,9 @@ func (w *worker) open(args protocol.Arguments) error {
 	if open {
 		return protocol.Misused("a transport is already open")
 	}
-	timing, err := timing(args)
-	if err != nil {
+	clientTiming, transportTiming := xynolog.DefaultClientTiming(), xynolog.DefaultTransportTiming()
+	var options api.ClaimOptions
+	if err := protocol.Timing(args, &clientTiming, &transportTiming, &options); err != nil {
 		return err
 	}
 	baseURL, err := protocol.Text(args, "baseUrl")
@@ -249,16 +212,16 @@ func (w *worker) open(args protocol.Arguments) error {
 		channels = append(channels, xynolog.JobCommitChannels...)
 	}
 	transport := xynolog.NewHTTPTransport(xynolog.HTTPTransportConfig{
-		BaseURL: baseURL, Token: xynolog.NewVariable(token), Channels: channels, HTTP: &http.Client{}, Timing: timing,
+		BaseURL: baseURL, Token: xynolog.NewVariable(token), Channels: channels, HTTP: &http.Client{}, Timing: transportTiming,
 	})
 	// Taken at once, so every failure from the first request on is said, each
 	// before the call that met it returns, until the transport closes.
 	transport.Failures(func(failed *xynolog.TransportError) {
 		protocol.Say(api.ConformanceDriverLineErrorStream{Error: protocol.Failure(failed)})
 	})
-	c := xynolog.NewClient(xynolog.ClientConfig{Transport: transport, Content: xynolog.NewHTTPContentTransport(transport), Gateway: transport, Timing: timing})
+	c := xynolog.NewClient(xynolog.ClientConfig{Transport: transport, Content: xynolog.NewHTTPContentTransport(transport), Gateway: transport, Timing: clientTiming})
 	w.mu.Lock()
-	w.transport, w.client = transport, c
+	w.transport, w.client, w.options = transport, c, options
 	w.mu.Unlock()
 	w.reporters.Add(1)
 	go func() {
@@ -324,7 +287,9 @@ func (w *worker) claim(args protocol.Arguments) error {
 	if w.claims != nil {
 		return protocol.Misused("the worker is already claiming")
 	}
-	claims := c.Job.Claim(api.ClaimOptions{Accepts: accepts})
+	options := w.options
+	options.Accepts = accepts
+	claims := c.Job.Claim(options)
 	w.claims = claims
 	w.reporters.Add(2)
 	go func() {

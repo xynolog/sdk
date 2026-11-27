@@ -80,6 +80,7 @@ import (
 	"github.com/xynolog/sdk/go/api"
 	"github.com/xynolog/sdk/go/bus"
 	"github.com/xynolog/sdk/go/internal/kept"
+	"github.com/xynolog/sdk/go/internal/timing"
 )
 
 // stoppedWhileHeld is the error of a job failed because its worker stopped,
@@ -472,7 +473,7 @@ func (h *heldJob) answered(ctx context.Context, request bus.Channel, payload any
 	if err != nil {
 		return err
 	}
-	_, err = h.claims.links.wire.result(h.inTrace(ctx), request, object, h.claims.timing.MarkCommitTimeout, nil)
+	_, err = h.claims.links.wire.result(h.inTrace(ctx), request, object, h.claims.markCommitTimeout, nil)
 	return err
 }
 
@@ -632,9 +633,12 @@ type handedOut struct {
 // Close stops it is failed first.
 type Claims struct {
 	links *links
-	// timing is the client's, with each wait the claim's options state.
-	timing  Timing
-	accepts []api.JobFilter
+	// Each wait is the one the claim's options state, or the table's.
+	jobClaimTimeout   time.Duration
+	heldJobStall      time.Duration
+	heldJobStallCheck time.Duration
+	markCommitTimeout time.Duration
+	accepts           []api.JobFilter
 	// filters is each filter as the wire carries it, which is what an
 	// announcement is compared with.
 	filters []any
@@ -675,13 +679,16 @@ type Claims struct {
 func newClaims(l *links, options api.ClaimOptions) *Claims {
 	life, end := context.WithCancel(l.life)
 	c := &Claims{
-		links:   l,
-		timing:  claimTiming(l.timing, options),
-		accepts: slices.Clone(options.Accepts),
-		handed:  kept.NewQueue[handedOut](),
-		stalls:  kept.NewStream[*api.HeldJobStall](l.timing.ErrorsKeptForFirstReaderCount),
-		life:    life,
-		end:     end,
+		links:             l,
+		jobClaimTimeout:   waitStated(options.JobClaimTimeoutMs, timing.JobClaimTimeout),
+		heldJobStall:      waitStated(options.HeldJobStallMs, timing.HeldJobStall),
+		heldJobStallCheck: waitStated(options.HeldJobStallCheckMs, timing.HeldJobStallCheck),
+		markCommitTimeout: waitStated(options.MarkCommitTimeoutMs, timing.MarkCommitTimeout),
+		accepts:           slices.Clone(options.Accepts),
+		handed:            kept.NewQueue[handedOut](),
+		stalls:            kept.NewStream[*api.HeldJobStall](timing.ErrorsKeptForFirstReaderCount),
+		life:              life,
+		end:               end,
 	}
 	if c.accepts == nil {
 		c.accepts = []api.JobFilter{}
@@ -704,22 +711,12 @@ func newClaims(l *links, options api.ClaimOptions) *Claims {
 	return c
 }
 
-// claimTiming is timing with each wait options states in its place.
-func claimTiming(timing Timing, options api.ClaimOptions) Timing {
-	for _, each := range []struct {
-		stated *int
-		wait   *time.Duration
-	}{
-		{options.JobClaimTimeoutMs, &timing.JobClaimTimeout},
-		{options.HeldJobStallMs, &timing.HeldJobStall},
-		{options.HeldJobStallCheckMs, &timing.HeldJobStallCheck},
-		{options.MarkCommitTimeoutMs, &timing.MarkCommitTimeout},
-	} {
-		if each.stated != nil {
-			*each.wait = time.Duration(*each.stated) * time.Millisecond
-		}
+// waitStated is the wait ms states, or otherwise when it states none.
+func waitStated(ms *int, otherwise time.Duration) time.Duration {
+	if ms == nil {
+		return otherwise
 	}
-	return timing
+	return time.Duration(*ms) * time.Millisecond
 }
 
 // All is the claims as they are ranged over: each job the worker comes to
@@ -727,9 +724,9 @@ func claimTiming(timing Timing, options api.ClaimOptions) Timing {
 // begins claiming; the sequence ends when the claims do. A range under way is
 // handed every job claimed and every refusal, in order, however slowly it
 // takes them. While none is, the claims keep every job claimed and, as each
-// refusal is met, the latest ErrorsKeptForFirstReaderCount (Timing) of the
-// refusals, the oldest dropped beyond them, for whoever ranges over them
-// next. A transport whose stream does not name JobClaimChannels cannot carry
+// refusal is met, the latest errorsKeptForFirstReaderCount
+// (protocol/specs/src/client/timing.json) of the refusals, the oldest dropped
+// beyond them, for whoever ranges over them next. A transport whose stream does not name JobClaimChannels cannot carry
 // a worker's claims, and is refused as unsubscribed.
 func (c *Claims) All() iter.Seq2[HeldJob, error] {
 	return func(yield func(HeldJob, error) bool) {
@@ -807,14 +804,14 @@ func stampedAt(at time.Time) *string {
 	return &stamped
 }
 
-// Stalled is each held job that has shown no activity for the client's
-// HeldJobStall, reported once (WORKER-CONTRACT V2); what its host does then
-// is the host's. Its first reader is given the latest
-// ErrorsKeptForFirstReaderCount (Timing) reported since the claims were
-// made, the oldest dropped beyond them, in order, and every later one what
-// is reported from then on; reporting never waits for a reader. It ends when
-// the claims end, and a reader who comes after that, the first among them,
-// is given nothing.
+// Stalled is each held job that has shown no activity for longer than the
+// claims' heldJobStallMs, reported once (WORKER-CONTRACT V2); what its host
+// does then is the host's. Its first reader is given the latest
+// errorsKeptForFirstReaderCount (protocol/specs/src/client/timing.json)
+// reported since the claims were made, the oldest dropped beyond them, in
+// order, and every later one what is reported from then on; reporting never
+// waits for a reader. It ends when the claims end, and a reader who comes
+// after that, the first among them, is given nothing.
 func (c *Claims) Stalled() iter.Seq[*api.HeldJobStall] { return c.stalls.Reported(nil) }
 
 // Close stops claiming. A job still held is failed first, and Close returns
@@ -987,11 +984,10 @@ func (c *Claims) watchTheStream() {
 	}
 }
 
-// lookForStalls looks at the held job every HeldJobStallCheck, and reports
-// one that has shown no activity for longer than HeldJobStall, once.
+// lookForStalls looks at the held job every heldJobStallCheck, and reports
+// one that has shown no activity for longer than heldJobStall, once.
 func (c *Claims) lookForStalls() {
-	timing := c.timing
-	ticker := time.NewTicker(timing.HeldJobStallCheck)
+	ticker := time.NewTicker(c.heldJobStallCheck)
 	defer ticker.Stop()
 	for {
 		select {
@@ -1006,14 +1002,14 @@ func (c *Claims) lookForStalls() {
 			continue
 		}
 		silentFor := time.Since(c.lastActivityAt)
-		if silentFor <= timing.HeldJobStall {
+		if silentFor <= c.heldJobStall {
 			c.mu.Unlock()
 			continue
 		}
 		c.stallReported = true
 		stall := &api.HeldJobStall{
 			JobId: held.record.JobId, JobType: held.record.JobType, HeldSince: stamp(c.heldSince), LastActivityAt: stamp(c.lastActivityAt),
-			SilentForMs: int(silentFor.Milliseconds()), ThresholdMs: int(timing.HeldJobStall.Milliseconds()),
+			SilentForMs: int(silentFor.Milliseconds()), ThresholdMs: int(c.heldJobStall.Milliseconds()),
 		}
 		c.mu.Unlock()
 		c.stalls.Report(stall)
@@ -1090,7 +1086,7 @@ func (c *Claims) claim() {
 		// until it is settled, which its reader does once it has taken it,
 		// and nothing is claimed meanwhile.
 		if c.ranging == 0 {
-			c.handed.KeepLatest(c.links.timing.ErrorsKeptForFirstReaderCount)
+			c.handed.KeepLatest(timing.ErrorsKeptForFirstReaderCount)
 		}
 	}
 	if c.wakePending {
@@ -1111,7 +1107,7 @@ func (c *Claims) claim() {
 // context of whatever settled the job before it.
 func (c *Claims) claimNext() (HeldJob, *api.ClaimRefusal) {
 	life := c.links.life
-	answer, err := claimed(life, c.links, c.accepts, c.timing.JobClaimTimeout)
+	answer, err := claimed(life, c.links, c.accepts, c.jobClaimTimeout)
 	if err != nil {
 		if life.Err() != nil {
 			// The client closed: nobody is left to claim for.

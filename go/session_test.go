@@ -24,6 +24,7 @@ import (
 
 	xynolog "github.com/xynolog/sdk/go"
 	"github.com/xynolog/sdk/go/api"
+	"github.com/xynolog/sdk/go/internal/timing"
 	"github.com/xynolog/sdk/go/xynologtest"
 )
 
@@ -106,7 +107,7 @@ func fromTheIssuer(t *testing.T, status int) error {
 		}
 		body := `{"error":"invalid_grant","error_description":"Token is not active"}`
 		return &http.Response{StatusCode: status, Header: http.Header{}, Body: io.NopCloser(strings.NewReader(body))}, nil
-	})}, Timing: xynolog.DefaultTiming()}
+	})}, Timing: xynolog.DefaultTransportTiming()}
 	_, err := issuer.Refresh(context.Background(), "https://issuer.test/token", "xynolog-cli", "a-refresh-token")
 	if err == nil {
 		t.Fatalf("an issuer that answers %d renewed", status)
@@ -196,7 +197,7 @@ func (w *world) start(t *testing.T) *xynolog.Session {
 			defer w.mu.Unlock()
 			w.told = append(w.told, reason)
 		},
-		Timing: xynolog.DefaultTiming(),
+		Timing: xynolog.DefaultTransportTiming(),
 	})
 	w.heard, w.closed = heard, closed
 	ready, cancel := context.WithTimeout(context.Background(), 5*time.Second)
@@ -209,7 +210,7 @@ func (w *world) start(t *testing.T) *xynolog.Session {
 
 // testClient is a client over doubles nothing is scripted to answer.
 func testClient() xynologtest.TestClient {
-	return xynologtest.NewTestClient(xynologtest.TestClientConfig{Timing: xynolog.DefaultTiming()})
+	return xynologtest.NewTestClient(xynologtest.TestClientConfig{Timing: xynolog.DefaultClientTiming()})
 }
 
 // started is a session of config over client, what it says on its errors
@@ -565,7 +566,7 @@ func TestASessionEndedAsItStartsHasSaidWhyByTheTimeItIsReady(t *testing.T) {
 			}
 			return api.UserResponse{}, refusedAtTheGateway
 		},
-		Timing: xynolog.DefaultTiming(),
+		Timing: xynolog.DefaultTransportTiming(),
 	})
 	answered := make(chan struct{})
 	go func() {
@@ -632,7 +633,7 @@ func TestARefusalMetWhileTheStartAnswersOneIsAnsweredByIt(t *testing.T) {
 		Validate: func(context.Context, string) (api.UserResponse, error) {
 			return api.UserResponse{}, refusedAtTheGateway
 		},
-		Timing: xynolog.DefaultTiming(),
+		Timing: xynolog.DefaultTransportTiming(),
 	})
 	select {
 	case <-renewing:
@@ -728,7 +729,7 @@ func TestARefusalMetWhileTheStartAsksWaitsForIt(t *testing.T) {
 			}
 			return alice(), nil
 		},
-		Timing: xynolog.DefaultTiming(),
+		Timing: xynolog.DefaultTransportTiming(),
 	})
 	select {
 	case <-asking:
@@ -926,9 +927,9 @@ func TestARenewalThatGotNoAnswerKeepsWhatIsKeptAndTheNextRefusalRenewsAgain(t *t
 // while nobody has said who the token is asks the gateway once. On the test's
 // own clock.
 func TestARenewalThatGotNoAnswerIsTriedAgainOnTheReconnectBackoff(t *testing.T) {
-	timing := xynolog.DefaultTiming()
+	reconnect := xynolog.DefaultTransportTiming().Reconnect
 	var steps []time.Duration
-	for step := timing.Reconnect; len(steps) < 6; step = min(2*step, timing.MaxReconnect) {
+	for step := reconnect; len(steps) < 6; step = min(2*step, timing.MaxReconnect) {
 		steps = append(steps, step)
 	}
 	unanswered := fromTheIssuer(t, 0)
@@ -992,7 +993,7 @@ func TestARenewalThatGotNoAnswerIsTriedAgainOnTheReconnectBackoff(t *testing.T) 
 			session.Refresh(context.Background(), first)
 			// Past the latest its renewal on the backoff falls due, and
 			// short of the earliest a second can.
-			time.Sleep(timing.Reconnect * 6 / 5)
+			time.Sleep(reconnect * 6 / 5)
 			synctest.Wait()
 			if _, kept, _ := w.kept.Held(context.Background()); kept {
 				t.Error("the sign-in the issuer refused is still kept")
@@ -1016,7 +1017,7 @@ func TestARenewalThatGotNoAnswerIsTriedAgainOnTheReconnectBackoff(t *testing.T) 
 			}
 			// Past the latest its renewal on the backoff falls due, and
 			// short of the earliest a second can.
-			time.Sleep(timing.Reconnect * 6 / 5)
+			time.Sleep(reconnect * 6 / 5)
 			synctest.Wait()
 			if w.token.Value() != renewed {
 				t.Fatal("the renewal on the backoff was not made")
@@ -1069,7 +1070,7 @@ func TestAnExpiredSignInTheStorageWillNotForgetIsSaidAtTheStart(t *testing.T) {
 	session, heard, closed := started(t, testClient(), xynolog.SessionConfig{
 		Kb: api.KbTarget{Id: kb}, Token: xynolog.NewVariable(""), Kept: kept,
 		Refresh: func(context.Context, string) (string, error) { return "", invalidGrant },
-		Timing:  xynolog.DefaultTiming(),
+		Timing:  xynolog.DefaultTransportTiming(),
 	})
 	ready, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
@@ -1103,7 +1104,7 @@ func TestASessionClosedWhileItStartsIsReadyAndSaysNothing(t *testing.T) {
 				return alice(), nil
 			}
 		},
-		Timing: xynolog.DefaultTiming(),
+		Timing: xynolog.DefaultTransportTiming(),
 	})
 	<-asking
 	session.Close()
@@ -1159,7 +1160,7 @@ func TestASessionSaysItsOwnFailuresAndItsTransportsOnOneStream(t *testing.T) {
 	session, heard, closed := started(t, client, xynolog.SessionConfig{
 		Kb: api.KbTarget{Id: kb}, Token: xynolog.NewVariable(""), Kept: kept,
 		Refresh: func(context.Context, string) (string, error) { return "", unanswered },
-		Timing:  xynolog.DefaultTiming(),
+		Timing:  xynolog.DefaultTransportTiming(),
 	})
 	ready, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
@@ -1205,7 +1206,7 @@ func TestASessionEndedAloneEndsItsErrors(t *testing.T) {
 	client := testClient()
 	session, heard, _ := started(t, client, xynolog.SessionConfig{
 		Kb: api.KbTarget{Id: kb}, Token: xynolog.NewVariable(""), Kept: &xynolog.MemorySignIn{},
-		Timing: xynolog.DefaultTiming(),
+		Timing: xynolog.DefaultTransportTiming(),
 	})
 	forbidden := &xynolog.TransportError{Code: api.TransportErrorCodeForbidden, Message: "HTTP 403"}
 	client.Transport.Fail(forbidden)
@@ -1233,7 +1234,7 @@ func TestATransportFailureSaidJustBeforeTheCloseIsSaidBeforeTheErrorsEnd(t *test
 		client := testClient()
 		_, heard, closed := started(t, client, xynolog.SessionConfig{
 			Kb: api.KbTarget{Id: kb}, Token: xynolog.NewVariable(""), Kept: &xynolog.MemorySignIn{},
-			Timing: xynolog.DefaultTiming(),
+			Timing: xynolog.DefaultTransportTiming(),
 		})
 		forbidden := &xynolog.TransportError{Code: api.TransportErrorCodeForbidden, Message: "HTTP 403"}
 		client.Transport.Fail(forbidden)
@@ -1280,7 +1281,7 @@ func (m *metInTurn) config(t *testing.T) xynolog.SessionConfig {
 	return xynolog.SessionConfig{
 		Kb: api.KbTarget{Id: kb}, Token: xynolog.NewVariable(""), Kept: kept,
 		Refresh: func(context.Context, string) (string, error) { return "", unanswered(m.renewals.Add(1)) },
-		Timing:  xynolog.DefaultTiming(),
+		Timing:  xynolog.DefaultTransportTiming(),
 	}
 }
 
@@ -1355,10 +1356,9 @@ func TestASessionsOwnErrorsAndItsTransportsFailuresAreHeardInTheOrderTheyWereMet
 // ErrorsKeptForFirstReaderCount for its first reader, the oldest dropped, and
 // its first reader hears them in the order they were met.
 func TestASessionNobodyHasReadKeepsTheLatestOfWhatItSaysForItsFirstReader(t *testing.T) {
-	timing := xynolog.DefaultTiming()
 	client := testClient()
 	session, err := xynolog.StartSession(context.Background(), xynolog.SessionConfig{
-		Kb: api.KbTarget{Id: kb}, Client: client.Client, Token: xynolog.NewVariable(""), Kept: &xynolog.MemorySignIn{}, Timing: timing,
+		Kb: api.KbTarget{Id: kb}, Client: client.Client, Token: xynolog.NewVariable(""), Kept: &xynolog.MemorySignIn{}, Timing: xynolog.DefaultTransportTiming(),
 	})
 	if err != nil {
 		t.Fatal(err)
@@ -1390,7 +1390,7 @@ func TestASessionNobodyHasReadKeepsTheLatestOfWhatItSaysForItsFirstReader(t *tes
 func TestAFirstReaderWhoComesAfterTheSessionHasEndedHearsNothing(t *testing.T) {
 	client := testClient()
 	session, err := xynolog.StartSession(context.Background(), xynolog.SessionConfig{
-		Kb: api.KbTarget{Id: kb}, Client: client.Client, Token: xynolog.NewVariable(""), Kept: &xynolog.MemorySignIn{}, Timing: xynolog.DefaultTiming(),
+		Kb: api.KbTarget{Id: kb}, Client: client.Client, Token: xynolog.NewVariable(""), Kept: &xynolog.MemorySignIn{}, Timing: xynolog.DefaultTransportTiming(),
 	})
 	if err != nil {
 		t.Fatal(err)
@@ -1455,7 +1455,7 @@ func TestASignInUnreadableAtTheStartIsGivenToTheCaller(t *testing.T) {
 		t.Run(row.why, func(t *testing.T) {
 			session, end, err := xynolog.SessionFromKept(context.Background(), xynolog.SessionFromKeptConfig{
 				Kb: localTarget(t), Kept: &failsAfter{MemorySignIn: &xynolog.MemorySignIn{}},
-				HTTP: &http.Client{}, Timing: xynolog.DefaultTiming(), Storage: row.storage,
+				HTTP: &http.Client{}, ClientTiming: xynolog.DefaultClientTiming(), TransportTiming: xynolog.DefaultTransportTiming(), Storage: row.storage,
 			})
 			if err == nil {
 				end()
@@ -1475,7 +1475,7 @@ func TestASignInUnreadableAtTheStartIsGivenToTheCaller(t *testing.T) {
 // again on the reconnect backoff. The sign-in is read once as the session
 // starts; every read after that is a renewal's. On the test's own clock.
 func TestASignInUnreadableAtARenewalIsARenewalWithNoAnswer(t *testing.T) {
-	timing := xynolog.DefaultTiming()
+	waits := xynolog.DefaultTransportTiming()
 	for _, row := range []struct {
 		why string
 		// stored is the access token kept.
@@ -1499,7 +1499,7 @@ func TestASignInUnreadableAtARenewalIsARenewalWithNoAnswer(t *testing.T) {
 				client := testClient()
 				session, err := xynolog.ResumeSession(context.Background(), xynolog.ResumeConfig{
 					Kb: localTarget(t), Client: client.Client, Kept: kept, Token: xynolog.NewVariable(""),
-					HTTP: &http.Client{}, Timing: timing, SkipAskingWhoTokenIs: true,
+					HTTP: &http.Client{}, Timing: waits, SkipAskingWhoTokenIs: true,
 					OnAuthFailed: func(reason api.SessionEndReason) {
 						mu.Lock()
 						defer mu.Unlock()
@@ -1534,7 +1534,7 @@ func TestASignInUnreadableAtARenewalIsARenewalWithNoAnswer(t *testing.T) {
 				// Past the latest its renewal on the backoff falls due, and
 				// short of the earliest a second can.
 				readsBefore := kept.reads.Load()
-				time.Sleep(timing.Reconnect * 6 / 5)
+				time.Sleep(waits.Reconnect * 6 / 5)
 				synctest.Wait()
 				if kept.reads.Load() == readsBefore {
 					t.Error("the session did not renew again on the reconnect backoff")
@@ -1559,7 +1559,7 @@ func TestASignInUnreadableAtARenewalIsARenewalWithNoAnswer(t *testing.T) {
 // and renews again on the reconnect backoff. On the test's own clock.
 func TestARenewalAfterWhichTheSignInCannotBeReadDoesNotEndTheSession(t *testing.T) {
 	synctest.Test(t, func(t *testing.T) {
-		timing := xynolog.DefaultTiming()
+		waits := xynolog.DefaultTransportTiming()
 		kept := &failsAfter{MemorySignIn: &xynolog.MemorySignIn{}, readable: 1}
 		held := keptUnexpired(t, kept.MemorySignIn)
 		var mu sync.Mutex
@@ -1579,7 +1579,7 @@ func TestARenewalAfterWhichTheSignInCannotBeReadDoesNotEndTheSession(t *testing.
 				defer mu.Unlock()
 				told = append(told, reason)
 			},
-			Timing: timing,
+			Timing: waits,
 		})
 		if err := session.Ready(context.Background()); err != nil {
 			t.Fatal(err)
@@ -1595,7 +1595,7 @@ func TestARenewalAfterWhichTheSignInCannotBeReadDoesNotEndTheSession(t *testing.
 		}
 		// Past the latest its renewal on the backoff falls due, and short of
 		// the earliest a second can.
-		time.Sleep(timing.Reconnect * 6 / 5)
+		time.Sleep(waits.Reconnect * 6 / 5)
 		synctest.Wait()
 		if _, has, _ := kept.MemorySignIn.Held(context.Background()); !has {
 			t.Error("the sign-in was forgotten")

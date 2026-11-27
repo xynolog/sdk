@@ -172,7 +172,7 @@ impl Actor {
             seen: SeenIds {
                 order: VecDeque::new(),
                 ids: HashSet::new(),
-                capacity: shared.timing.seen_event_ids,
+                capacity: shared.timing.seen_event_ids_count,
             },
             shared,
             state,
@@ -763,7 +763,7 @@ async fn connection(
         request = request.header(reqwest::header::ACCEPT, media);
     }
     let request = request.json(&body).send();
-    let response = match tokio::time::timeout(shared.timing.stream_open, request).await {
+    let response = match tokio::time::timeout(shared.timing.stream_open_timeout, request).await {
         Ok(Ok(response)) => response,
         Ok(Err(_)) | Err(_) => {
             let _ = events.send(Event::Ended { conn }).await;
@@ -780,10 +780,11 @@ async fn connection(
         );
         // A refusal's body is read within the request deadline, as any other
         // answer is: one not read by then is a refusal that says nothing.
-        let said = tokio::time::timeout(shared.timing.http_request, response.json::<Value>())
-            .await
-            .ok()
-            .and_then(Result::ok);
+        let said =
+            tokio::time::timeout(shared.timing.http_request_timeout, response.json::<Value>())
+                .await
+                .ok()
+                .and_then(Result::ok);
         let message = match gateway_words(said.as_ref()) {
             Some(words) => format!("SSE connect failed: {status}: {words}"),
             None => format!("SSE connect failed: {status}"),
@@ -868,7 +869,7 @@ pub(crate) async fn run(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::transport::{HttpTransportConfig, Timing};
+    use crate::transport::{HttpTransportConfig, TransportTiming};
     use futures::{FutureExt, Stream};
     use serde_json::json;
     use xynolog::bus::StreamError;
@@ -968,7 +969,7 @@ mod tests {
             refresher: None,
             channels: BRIDGED_CHANNELS.iter().map(ToString::to_string).collect(),
             http: reqwest::Client::new(),
-            timing: Timing::default(),
+            timing: TransportTiming::default(),
             random: None,
         }))
     }

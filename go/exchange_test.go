@@ -30,7 +30,7 @@ func TestARefusalWhoseBodyNeverEndsIsReportedAtTheRequestDeadline(t *testing.T) 
 	defer gateway.Close()
 	ctx, abandon := context.WithCancel(context.Background())
 	defer abandon()
-	timing := xynolog.DefaultTiming()
+	timing := xynolog.DefaultTransportTiming()
 	timing.HttpRequestTimeout = 200 * time.Millisecond
 	transport := xynolog.NewHTTPTransport(xynolog.HTTPTransportConfig{BaseURL: gateway.URL, Token: xynolog.NewVariable(""), HTTP: &http.Client{}, Timing: timing})
 	defer transport.Close()
@@ -142,12 +142,9 @@ func hold(arrived chan<- struct{}) func(http.ResponseWriter, *http.Request) {
 	}
 }
 
-// uploader is content over a transport to gateway, with a short wait before
-// a resend.
+// uploader is content over a transport to gateway.
 func uploader(t *testing.T, gateway *uploadGateway) *xynolog.HTTPContentTransport {
-	timing := xynolog.DefaultTiming()
-	timing.RequestRetryPause = 10 * time.Millisecond
-	transport := xynolog.NewHTTPTransport(xynolog.HTTPTransportConfig{BaseURL: gateway.URL, Token: xynolog.NewVariable("a-token"), HTTP: &http.Client{Transport: &http.Transport{}}, Timing: timing})
+	transport := xynolog.NewHTTPTransport(xynolog.HTTPTransportConfig{BaseURL: gateway.URL, Token: xynolog.NewVariable("a-token"), HTTP: &http.Client{Transport: &http.Transport{}}, Timing: xynolog.DefaultTransportTiming()})
 	t.Cleanup(transport.Close)
 	return xynolog.NewHTTPContentTransport(transport)
 }

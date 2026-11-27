@@ -31,7 +31,9 @@ file registers wire, worker and live drivers; the live tier is `parity`. Follow 
 the gateway, core package, Node dependencies and NATS. Run npm commands inside
 Apple `container` locally.
 
-The driver uses the SDK's generated timing settings for every override, real
+A case's `timing` is read into the SDK's generated `ClientTiming` and
+`TransportTiming`, and a worker's waits into its `ClaimOptions`; a name that
+nothing a driver builds holds is `misuse`. The driver uses real
 monotonic time, interruptible absolute waits, independent UUIDs and random jitter.
 When the harness supplies `OTEL_EXPORTER_OTLP_ENDPOINT`, the driver configures
 standard OpenTelemetry providers and exporters and shuts them down before exit.

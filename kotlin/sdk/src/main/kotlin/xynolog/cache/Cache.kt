@@ -88,7 +88,7 @@ private class Key<V : Any>(state: CacheState<V>) {
  * cache's own on the context it is given, for one a host makes. With a
  * `persister`, the cache begins with what was kept, shows a kept value at once
  * and asks for it again the first time it is observed, and saves its values
- * once they have stopped changing for `saveDebounceMs`. A save the persister
+ * once they have stopped changing for client/timing.json's `saveDebounceMs`. A save the persister
  * refuses (it throws) is owed still: the cache's next change, or its closing,
  * saves them again. One a client gives its persister later (`attach`) does the
  * same from then on.
@@ -97,24 +97,21 @@ public class Cache<K : Any, V : Any> internal constructor(
     private val ask: suspend (K) -> V,
     private val scope: CoroutineScope,
     persister: CachePersister<K, V>? = null,
-    private val saveDebounceMs: Long = Timings.SAVE_DEBOUNCE_MS,
 ) : StateUnit {
     /** A cache of a host's own, whose fetches ask `fetch` and run, and whose save debounce waits, on `context`. */
     public constructor(
         fetch: suspend (K) -> V,
         persister: CachePersister<K, V>? = null,
-        saveDebounceMs: Long = Timings.SAVE_DEBOUNCE_MS,
         context: CoroutineContext = Dispatchers.Default,
-    ) : this(fetch, ownScope(context), persister, saveDebounceMs)
+    ) : this(fetch, ownScope(context), persister)
 
     /** A cache of a host's own, for Java: `fetch` gives a key's value as the stage it returns completes. */
     @JvmOverloads
     public constructor(
         fetch: Function<K, CompletionStage<V>>,
         persister: CachePersister<K, V>? = null,
-        saveDebounceMs: Long = Timings.SAVE_DEBOUNCE_MS,
         context: CoroutineContext = Dispatchers.Default,
-    ) : this({ key: K -> fetch.apply(key).await() }, ownScope(context), persister, saveDebounceMs)
+    ) : this({ key: K -> fetch.apply(key).await() }, ownScope(context), persister)
 
     private val lock = Any()
     private var keeping: CachePersister<K, V>? = null
@@ -162,7 +159,7 @@ public class Cache<K : Any, V : Any> internal constructor(
         owed = true
         saving?.cancel()
         saving = scope.launch {
-            delay(saveDebounceMs)
+            delay(Timings.SAVE_DEBOUNCE_MS)
             val entries = synchronized(lock) {
                 saving = null
                 owed = false

@@ -28,10 +28,11 @@ import Xynolog.Internal.CacheDocument (Whole)
 import Xynolog.Internal.Coupled qualified as Coupled
 import Xynolog.Internal.Generated.CachePersistence (KeptQuery (..), keptQueryName)
 import Xynolog.Internal.Generated.CacheRefresh qualified as Fact
+import Xynolog.Internal.Generated.TimingSettings (settingsOf)
 import Xynolog.Internal.Kept qualified as Kept
 import Xynolog.Internal.Persistence qualified as Persistence
 import Xynolog.SessionStorage qualified as Storage
-import Xynolog.Timing.Settings qualified as Timing
+import Xynolog.Timing.Settings qualified as Settings
 import Xynolog.Types (AnnotationId, ResourceId, resourceIdValue)
 
 type Using result =
@@ -110,7 +111,7 @@ persisterOf storage query = do
   Persistence.persister
     (Persistence.CachePersistence storage kb person (pure 1800000000000.6))
     coupled
-    Timing.protocolSettings
+    (settingsOf Settings.protocolClientTiming Settings.protocolTransportTiming)
     query
     (\key _ -> parseJSON key)
 
@@ -144,7 +145,7 @@ holding name row query storage wait between = do
         cache <-
           Cache.newCache
             (\_ -> failure name "asked the wire")
-            (Cache.CacheOptions (pure 0) wait 0 (Just persister) (const (pure (pure ()))))
+            (Cache.CacheOptions (pure 0) wait (Just persister) (const (pure (pure ()))))
         forM_ values (uncurry (Cache.set cache))
         between (Cache.persistencePending cache)
         Cache.dispose cache
