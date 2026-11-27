@@ -8,6 +8,8 @@ the coming release's, and gathers its changes as they land.
 
 ### Added
 
+- `Testing.delivery_op_name`: a delivery step as Protocol's word for it
+  (`"write"`, `"transition"`), as the other SDKs carry it.
 - `Records.Engine_with_limits` and `Records.Engines_with_limits`, the types of
   Protocol's `client/types/EngineWithLimits.json` and
   `client/types/EnginesWithLimits.json`.

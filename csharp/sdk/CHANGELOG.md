@@ -55,6 +55,8 @@ the coming release's, and gathers its changes as they land.
 
 ### Changed
 
+- The testing kit's `DeliveryOp` is written and read as Protocol's words for
+  the steps, `"write"` and `"transition"`, as the other SDKs carry them.
 - An upload is a `PutBinaryRequest` (`Xynolog.Types`), the type of
   Protocol's `client/types/PutBinaryRequest.json`, where it was the
   multipart body's `ResourceUpload`: `Yield.Resource` and
