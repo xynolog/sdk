@@ -2,9 +2,9 @@
    (csharp/sdk/src/Xynolog/Generated/TestingKit.g.cs): the faults, a closed
    record and a case each, a delay held as a TimeSpan; every fault, to draw
    from, the delay and schedule bounds, each its least and its most, and the
-   slack, in TestingKit; the delivery steps; and the kit's records, each
-   member of C#'s type for it, a duration named without its unit as the
-   timing is. A member the table's record has a default for is a property to
+   slack, in TestingKit; the delivery steps, each by its word; and the kit's
+   records, each member of C#'s type for it, a duration named without its
+   unit as the timing is. A member the table's record has a default for is a property to
    initialize, the rest its constructor's. The liveness records are partial:
    what C# holds of them besides, a scenario's end and a spec's clock, is the
    SDK's own (Liveness.cs), as drawing a schedule is. *)
@@ -192,12 +192,35 @@ let kit (s : T.t) =
     }
 
 let delivery_ops (s : T.t) =
+  let serialization = "global::System.Text.Json.Serialization." in
+  let name = "DeliveryOp" in
   C.Enum
     {
-      attributes = [];
+      attributes =
+        [
+          {
+            C.name = serialization ^ "JsonConverter";
+            args =
+              [
+                Typeof
+                  (Generic
+                     (serialization ^ "JsonStringEnumConverter", [ T name ]));
+              ];
+          };
+        ];
       modifiers = [ Public ];
-      name = "DeliveryOp";
-      members = List.map (fun op -> ([], Naming.variant op)) s.delivery_ops.ops;
+      name;
+      members =
+        List.map
+          (fun op ->
+            ( [
+                {
+                  C.name = serialization ^ "JsonStringEnumMemberName";
+                  args = [ Str op ];
+                };
+              ],
+              Naming.variant op ))
+          s.delivery_ops.ops;
     }
 
 let file table =

@@ -100,7 +100,7 @@ public func completeAuthorization(
 }
 
 public struct IdentityUnverifiableError: Error, Sendable, CustomStringConvertible {
-  public let reason: KbIdentityErrorCode
+  public let reason: IdentityUnverifiableReason
   public let description: String
 }
 
