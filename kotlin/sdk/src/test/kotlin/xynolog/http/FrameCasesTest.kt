@@ -38,8 +38,8 @@ import xynolog.sameJson
 import xynolog.transport.Carried
 import xynolog.transport.Delivered
 import xynolog.transport.Frame
-import xynolog.transport.FrameRefusal
 import xynolog.transport.Heard
+import xynolog.transport.Refused
 import xynolog.types.BeckonFocusEvent
 import xynolog.types.Fault
 import xynolog.types.FrameRefusalReason
@@ -98,7 +98,7 @@ private fun <P> typedRead(transport: HttpTransport, channel: Channel<P>): suspen
     return {
         when (val heard = withTimeout(5_000) { typed.first() }) {
             is Delivered -> wireJson.encodeToJsonElement(channel.payload, heard.payload)
-            is FrameRefusal -> throw AssertionError("its typed reader refused it: $heard")
+            is Refused -> throw AssertionError("its typed reader refused it: $heard")
         }
     }
 }
@@ -194,7 +194,7 @@ class FrameCasesTest {
                 when (val whom = case.getValue("told").jsonPrimitive.content) {
                     "readers" -> {
                         assertEquals(channel, checkNotNull(frame).getValue("channel").jsonPrimitive.content)
-                        val refusal = assertInstanceOf(FrameRefusal::class.java, heard.single())
+                        val refusal = assertInstanceOf(Refused::class.java, heard.single()).refusal
                         assertEquals(Triple(channel, fault.member, fault.reason), Triple(refusal.channel, refusal.member, refusal.reason))
                         assertEquals(frame["payload"], refusal.payload)
                         assertEquals(frame["scope"]?.jsonPrimitive?.contentOrNull, refusal.scope?.value)

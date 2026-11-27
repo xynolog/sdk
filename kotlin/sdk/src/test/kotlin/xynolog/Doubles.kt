@@ -18,10 +18,10 @@ import xynolog.transport.ContentStream
 import xynolog.transport.ContentTransport
 import xynolog.transport.Events
 import xynolog.transport.Frame
-import xynolog.transport.FrameRefusal
 import xynolog.transport.FrameSink
 import xynolog.transport.GatewayOperations
 import xynolog.transport.PendingReply
+import xynolog.transport.Refused
 import xynolog.transport.ReplyRouter
 import xynolog.transport.ResourceHold
 import xynolog.transport.Transport
@@ -50,7 +50,7 @@ internal fun obj(vararg pairs: Pair<String, JsonElement>) = JsonObject(mapOf(*pa
 /** This as the frame it is; a test that reads a frame's refusal here fails. */
 internal fun Carried.frame(): Frame = when (this) {
     is Frame -> this
-    is FrameRefusal -> throw AssertionError("refused: $this")
+    is Refused -> throw AssertionError("refused: $this")
 }
 
 /**
