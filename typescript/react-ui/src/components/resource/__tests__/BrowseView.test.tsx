@@ -11,13 +11,13 @@ import {
 } from '../../../test-utils';
 
 import type { Annotation, AnnotationId } from '@xynolog/core';
-import { FrameRefusal, annotationId, resourceId } from '@xynolog/core';
+import { Refused, annotationId, resourceId } from '@xynolog/core';
 
 /** What the bus said, as its channel's payload: nothing bridges into this test's bus, so a refusal on it is the test's own fault. */
-function told<T>(payload: T | FrameRefusal): T {
-  if (payload instanceof FrameRefusal)
+function told<T>(payload: T | Refused): T {
+  if (payload instanceof Refused)
     throw new Error(
-      `refused: ${payload.channel} ${payload.reason} ${payload.member}`,
+      `refused: ${payload.refusal.channel} ${payload.refusal.reason} ${payload.refusal.member}`,
     );
   return payload;
 }

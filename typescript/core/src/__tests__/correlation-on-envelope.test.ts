@@ -9,7 +9,7 @@
 import { describe, test, expect } from 'vitest';
 import { BehaviorSubject } from 'rxjs';
 import { EventBus } from '../event-bus';
-import { Bus, FrameRefusal, type BusPrimitive } from '../bus';
+import { Bus, Refused, type BusPrimitive } from '../bus';
 import { resourceId, type ResourceId } from '../identifiers';
 import type { GatheredContext } from '../payload-types';
 
@@ -43,9 +43,9 @@ function respondingBus(): {
 
   eventBus.frames(OP).subscribe(({ payload, correlationId }) => {
     // Nothing bridges into this bus: what it carries is what was emitted on it.
-    if (payload instanceof FrameRefusal)
+    if (payload instanceof Refused)
       throw new Error(
-        `the responder was handed a refusal on ${payload.channel}`,
+        `the responder was handed a refusal on ${payload.refusal.channel}`,
       );
     seen.push({ correlationId, payload });
     // The echo: the key comes off the envelope and goes back on one.

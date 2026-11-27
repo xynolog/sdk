@@ -60,7 +60,7 @@ import {
   MARK_COMMIT_TIMEOUT_MS,
   annotationId as makeAnnotationId,
   Bus,
-  FrameRefusal,
+  Refused,
   isObject,
   isString,
   jobMatchesFilter,
@@ -716,7 +716,7 @@ class ClaimLoop implements Holder {
         // Every announcement received is stamped, before any filtering.
         this.lastQueuedEventAt = Date.now();
         if (
-          announced instanceof FrameRefusal ||
+          announced instanceof Refused ||
           this.accepts.some((filter) => jobMatchesFilter(filter, announced))
         )
           this.pull();
@@ -725,13 +725,13 @@ class ClaimLoop implements Holder {
       this.bus
         .frames('job:cancel-requested')
         .subscribe(({ payload: request }) => {
-          if (request instanceof FrameRefusal) return;
+          if (request instanceof Refused) return;
           if (this.held !== null && request.jobId === this.held.jobId)
             this.held.signalCancellation();
         }),
       // A reply that names no job is refused where the claim's answer is read (C9).
       this.bus.frames('job:claimed').subscribe(({ payload: reply }) => {
-        if (reply instanceof FrameRefusal) return;
+        if (reply instanceof Refused) return;
         const response: unknown = reply.response;
         const metadata = isObject(response) ? response['metadata'] : undefined;
         if (

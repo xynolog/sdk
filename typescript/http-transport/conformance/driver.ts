@@ -14,7 +14,7 @@ import { BehaviorSubject } from 'rxjs';
 import {
   Bus,
   DEFAULT_TRANSPORT_TIMING,
-  FrameRefusal,
+  Refused,
   XynologError,
   accessToken,
   annotationId,
@@ -220,8 +220,8 @@ const operations: Record<
       .subscribe((frame) => {
         // The suite's backend sends only frames BusFrame allows, and the driver's lines have none for a
         // refusal: a frame the transport refused is its bug, which ends the driver, uncaught.
-        if (frame.payload instanceof FrameRefusal) {
-          const { reason, member } = frame.payload;
+        if (frame.payload instanceof Refused) {
+          const { reason, member } = frame.payload.refusal;
           throw new Error(
             `the transport refused a frame on ${channel}: ${reason}, at its \`${member}\``,
           );

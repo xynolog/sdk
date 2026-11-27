@@ -77,6 +77,17 @@ the coming release's, and gathers its changes as they land.
 
 ### Changed
 
+- A frame's refusal is `FrameRefusal`, the type of Protocol's
+  `client/types/FrameRefusal.json`, where `@xynolog/core` declared a
+  `FrameRefusal` class of its own. A transport and a typed read deliver it,
+  in place of a frame, as a `Refused`, which holds it as `refusal`: a reader
+  tells one apart with `instanceof Refused` or by its `status`, and reads
+  `refused.refusal.member` where it read `refusal.member`. Its `channel` is a
+  `string`, as Protocol states it, where it was a `keyof EventMap`. A refusal
+  is made as `new Refused({ channel, member, reason, payload })`.
+- A value's first fault is `Fault`, the type of Protocol's
+  `client/types/Fault.json`, where `@xynolog/core` declared an interface of
+  its own.
 - A schema a `$ref` names at a place within a file is one type, named where
   that place is stated, wherever it is referred to: the Archivist layout's
   trees are all `ArchivistLayoutEventStreamTree`, every error vocabulary

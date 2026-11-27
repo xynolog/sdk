@@ -4,7 +4,7 @@
  * Framework-agnostic typed event bus: a channel is written with `emit` and
  * read as an RxJS Observable through `on` (payloads) or `frames` (envelopes).
  * A transport that bridges into a bus publishes, in place of a payload that
- * is not its channel's, that payload's `FrameRefusal`, so every reader of a
+ * is not its channel's, that payload's `Refused`, so every reader of a
  * channel is given either.
  *
  * Can be used in Node.js, browser, workers, CLI - anywhere RxJS runs.
@@ -12,7 +12,7 @@
 
 import { Observable, Subject } from 'rxjs';
 import { filter, map } from 'rxjs/operators';
-import type { FrameRefusal } from './bus';
+import type { Refused } from './bus';
 import {
   busLog,
   busLogEnabled,
@@ -104,7 +104,7 @@ export class EventBus {
    * The one write path, a resource scope's included (`ScopedEventBus.emit`
    * writes here with its scope on the envelope). An envelope is optional per
    * FIELD, never per frame: an announcement simply carries no correlationId.
-   * A transport's bridge writes a `FrameRefusal` here in place of a payload
+   * A transport's bridge writes a `Refused` here in place of a payload
    * that is not its channel's.
    *
    * Returns the observers of the frame's own scope at dispatch, counted
@@ -113,7 +113,7 @@ export class EventBus {
    */
   emit<K extends keyof EventMap>(
     channel: K,
-    payload: EventMap[K] | FrameRefusal,
+    payload: EventMap[K] | Refused,
     envelope: BusEnvelope = {},
   ): number {
     const stream = this.channel(channel);
@@ -136,9 +136,7 @@ export class EventBus {
   }
 
   /** The payload view, DERIVED from `frames` so the two cannot disagree. */
-  on<K extends keyof EventMap>(
-    channel: K,
-  ): Observable<EventMap[K] | FrameRefusal> {
+  on<K extends keyof EventMap>(channel: K): Observable<EventMap[K] | Refused> {
     return this.frames(channel).pipe(map((frame) => frame.payload));
   }
 
@@ -152,7 +150,7 @@ export class EventBus {
    */
   frames<K extends keyof EventMap>(
     channel: K,
-  ): Observable<BusFrame<EventMap[K] | FrameRefusal>> {
+  ): Observable<BusFrame<EventMap[K] | Refused>> {
     return this.viewOf(channel, undefined);
   }
 
@@ -160,7 +158,7 @@ export class EventBus {
   viewOf<K extends keyof EventMap>(
     channel: K,
     scope: ResourceId | undefined,
-  ): Observable<BusFrame<EventMap[K] | FrameRefusal>> {
+  ): Observable<BusFrame<EventMap[K] | Refused>> {
     const key = `${scope ?? ''}\u0000${String(channel)}`;
     // `asObservable()` before piping, deliberately: `Subject.pipe()` returns
     // an AnonymousSubject, which still carries `next`, so piping alone would
@@ -168,16 +166,14 @@ export class EventBus {
     const view = this.channel(channel)
       .asObservable()
       .pipe(filter((frame) => frame.scope === scope));
-    return new Observable<BusFrame<EventMap[K] | FrameRefusal>>(
-      (subscriber) => {
-        this.observerCounts.set(key, (this.observerCounts.get(key) ?? 0) + 1);
-        const inner = view.subscribe(subscriber);
-        return () => {
-          this.observerCounts.set(key, (this.observerCounts.get(key) ?? 1) - 1);
-          inner.unsubscribe();
-        };
-      },
-    );
+    return new Observable<BusFrame<EventMap[K] | Refused>>((subscriber) => {
+      this.observerCounts.set(key, (this.observerCounts.get(key) ?? 0) + 1);
+      const inner = view.subscribe(subscriber);
+      return () => {
+        this.observerCounts.set(key, (this.observerCounts.get(key) ?? 1) - 1);
+        inner.unsubscribe();
+      };
+    });
   }
 
   /** Observers that receive a frame of `scope` on `channel`: that scope's view, and every reader of all scopes. */
@@ -194,7 +190,7 @@ export class EventBus {
   /** Every frame on a channel, scoped or not. Internal to the scoped view. */
   private channel<K extends keyof EventMap>(
     channel: K,
-  ): Subject<BusFrame<EventMap[K] | FrameRefusal>> {
+  ): Subject<BusFrame<EventMap[K] | Refused>> {
     if (this.isDestroyed) {
       throw new Error(
         `Cannot access event '${String(channel)}' on destroyed bus`,
@@ -203,7 +199,7 @@ export class EventBus {
     if (!this.subjects.has(channel)) {
       this.subjects.set(
         channel,
-        new Subject<BusFrame<EventMap[K] | FrameRefusal>>(),
+        new Subject<BusFrame<EventMap[K] | Refused>>(),
       );
     }
     return this.subjects.get(channel)!;
@@ -216,24 +212,22 @@ export class EventBus {
    */
   channelStream<K extends keyof EventMap>(
     channel: K,
-  ): Observable<BusFrame<EventMap[K] | FrameRefusal>> {
+  ): Observable<BusFrame<EventMap[K] | Refused>> {
     const stream = this.channel(channel).asObservable();
-    return new Observable<BusFrame<EventMap[K] | FrameRefusal>>(
-      (subscriber) => {
+    return new Observable<BusFrame<EventMap[K] | Refused>>((subscriber) => {
+      this.everyScopeCounts.set(
+        channel,
+        (this.everyScopeCounts.get(channel) ?? 0) + 1,
+      );
+      const inner = stream.subscribe(subscriber);
+      return () => {
         this.everyScopeCounts.set(
           channel,
-          (this.everyScopeCounts.get(channel) ?? 0) + 1,
+          (this.everyScopeCounts.get(channel) ?? 1) - 1,
         );
-        const inner = stream.subscribe(subscriber);
-        return () => {
-          this.everyScopeCounts.set(
-            channel,
-            (this.everyScopeCounts.get(channel) ?? 1) - 1,
-          );
-          inner.unsubscribe();
-        };
-      },
-    );
+        inner.unsubscribe();
+      };
+    });
   }
 
   /**
@@ -315,16 +309,14 @@ export class ScopedEventBus {
   }
 
   /** The payload view for this scope, derived from `frames` as it is globally. */
-  on<K extends keyof EventMap>(
-    channel: K,
-  ): Observable<EventMap[K] | FrameRefusal> {
+  on<K extends keyof EventMap>(channel: K): Observable<EventMap[K] | Refused> {
     return this.frames(channel).pipe(map((frame) => frame.payload));
   }
 
   /** Frames emitted into THIS scope only. */
   frames<K extends keyof EventMap>(
     channel: K,
-  ): Observable<BusFrame<EventMap[K] | FrameRefusal>> {
+  ): Observable<BusFrame<EventMap[K] | Refused>> {
     return this.parent.viewOf(channel, this.resourceId);
   }
 }

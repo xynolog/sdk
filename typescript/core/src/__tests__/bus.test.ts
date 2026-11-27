@@ -8,13 +8,7 @@
 import { describe, it, expect, vi } from 'vitest';
 import type { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
-import {
-  asDeclared,
-  Bus,
-  FrameRefusal,
-  type Delivered,
-  type Heard,
-} from '../bus';
+import { asDeclared, Bus, Refused, type Delivered, type Heard } from '../bus';
 import { BRIDGED_CHANNELS } from '../bridging';
 import { FaultyTransport } from '../faulty-transport';
 import { EventBus } from '../event-bus';
@@ -56,7 +50,7 @@ function collect<T>(observable: Observable<T>): {
 function delivered<T>(heard: Heard<T>): Delivered<T> {
   if (heard.status === 'refused')
     throw new Error(
-      `refused: ${heard.channel}, its \`${heard.member}\` ${heard.reason}`,
+      `refused: ${heard.refusal.channel}, its \`${heard.refusal.member}\` ${heard.refusal.reason}`,
     );
   return heard;
 }
@@ -116,7 +110,7 @@ describe('Bus.frames: a channel of no scope', () => {
     class Traced extends FaultyTransport {
       override frames<K extends keyof EventMap>(
         channel: K,
-      ): Observable<BusFrame<EventMap[K] | FrameRefusal>> {
+      ): Observable<BusFrame<EventMap[K] | Refused>> {
         return super
           .frames(channel)
           .pipe(map((frame) => ({ ...frame, trace })));
@@ -145,7 +139,7 @@ describe('Bus.frames: a channel of no scope', () => {
 
 /**
  * A payload with a fault as its channel's is not that channel's: a typed read
- * gives, in place of its frame, a `FrameRefusal` that names the channel, the
+ * gives, in place of its frame, a `Refused` that names the channel, the
  * way from the frame to the member the fault is at (within `payload`) and why
  * (`lacks` or `malformed`), with the payload as it came, and goes on, as
  * every SDK's typed read does. A transport's bridge publishes the refusal on
@@ -177,15 +171,14 @@ describe("Bus.frames: a payload that is not its channel's", () => {
 
       const [refused, next] = seen;
       expect(seen).toHaveLength(2);
-      expect(refused).toBeInstanceOf(FrameRefusal);
+      expect(refused).toBeInstanceOf(Refused);
       expect(refused).toStrictEqual(
-        new FrameRefusal(
-          'job:fail',
-          'payload.jobId',
-          'lacks',
-          lacking,
-          undefined,
-        ),
+        new Refused({
+          channel: 'job:fail',
+          member: 'payload.jobId',
+          reason: 'lacks',
+          payload: lacking,
+        }),
       );
       expect(refused?.status).toBe('refused');
       expect(next !== undefined && delivered(next).payload).toEqual(failed);
@@ -208,13 +201,12 @@ describe("Bus.frames: a payload that is not its channel's", () => {
       void transport.emit('job:fail', failed);
 
       expect(seen).toStrictEqual([
-        new FrameRefusal(
-          'job:fail',
-          'payload.jobId',
-          'lacks',
-          lacking,
-          undefined,
-        ),
+        new Refused({
+          channel: 'job:fail',
+          member: 'payload.jobId',
+          reason: 'lacks',
+          payload: lacking,
+        }),
         failed,
       ]);
       expect(warned).not.toHaveBeenCalled();
@@ -236,14 +228,18 @@ describe("Bus.frames: a payload that is not its channel's", () => {
     void transport.emit('job:fail', twice);
 
     expect(seen).toStrictEqual([
-      new FrameRefusal(
-        'job:fail',
-        'payload.error',
-        'malformed',
-        numbered,
-        undefined,
-      ),
-      new FrameRefusal('job:fail', 'payload.jobId', 'lacks', twice, undefined),
+      new Refused({
+        channel: 'job:fail',
+        member: 'payload.error',
+        reason: 'malformed',
+        payload: numbered,
+      }),
+      new Refused({
+        channel: 'job:fail',
+        member: 'payload.jobId',
+        reason: 'lacks',
+        payload: twice,
+      }),
     ]);
   });
 });
@@ -339,13 +335,13 @@ describe('asDeclared', () => {
     expect(asDeclared('bus:resume-gap', stamped, undefined)).toStrictEqual(gap);
     const more = { ...gap, more: 1 };
     expect(asDeclared('bus:resume-gap', more, 'c-1')).toStrictEqual(
-      new FrameRefusal(
-        'bus:resume-gap',
-        'payload.more',
-        'malformed',
-        more,
-        'c-1',
-      ),
+      new Refused({
+        channel: 'bus:resume-gap',
+        member: 'payload.more',
+        reason: 'malformed',
+        payload: more,
+        correlationId: 'c-1',
+      }),
     );
   });
 });

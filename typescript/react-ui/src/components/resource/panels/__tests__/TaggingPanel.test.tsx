@@ -13,7 +13,7 @@ import {
 } from '@xynolog/sdk';
 import { TaggingPanel } from '../TaggingPanel';
 import {
-  FrameRefusal,
+  Refused,
   type EventBus,
   type EventMap,
   type TagSchema,
@@ -41,9 +41,9 @@ function createEventTracker() {
       panelEvents.forEach((eventName) => {
         eventBus.on(eventName).subscribe((payload) => {
           // Nothing bridges into this test's bus: a refusal on it is the test's own fault.
-          if (payload instanceof FrameRefusal)
+          if (payload instanceof Refused)
             throw new Error(
-              `refused: ${payload.channel} ${payload.reason} ${payload.member}`,
+              `refused: ${payload.refusal.channel} ${payload.refusal.reason} ${payload.refusal.member}`,
             );
           events.push({ event: eventName, payload });
         });

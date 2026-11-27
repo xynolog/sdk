@@ -56,7 +56,7 @@ import type {
   MatchSearchOptions,
   PutBinaryRequest,
   EventMap,
-  FrameRefusal,
+  Refused,
   HealthCheckResponse,
   ResourceSearchFilters,
   StatusResponse,
@@ -436,15 +436,13 @@ export interface BeckonNamespace {
  */
 export interface JobNamespace {
   /** Live stream of `job:queued` events from the bus. */
-  readonly queued$: Observable<EventMap['job:queued'] | FrameRefusal>;
+  readonly queued$: Observable<EventMap['job:queued'] | Refused>;
   /** Live stream of `job:report-progress` events from the bus. */
-  readonly progress$: Observable<
-    EventMap['job:report-progress'] | FrameRefusal
-  >;
+  readonly progress$: Observable<EventMap['job:report-progress'] | Refused>;
   /** Live stream of `job:complete` events from the bus. */
-  readonly complete$: Observable<EventMap['job:complete'] | FrameRefusal>;
+  readonly complete$: Observable<EventMap['job:complete'] | Refused>;
   /** Live stream of `job:fail` events from the bus. */
-  readonly fail$: Observable<EventMap['job:fail'] | FrameRefusal>;
+  readonly fail$: Observable<EventMap['job:fail'] | Refused>;
 
   status(jobId: JobId): Promise<JobStatusResponse>;
   /**

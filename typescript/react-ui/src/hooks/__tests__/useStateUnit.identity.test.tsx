@@ -27,7 +27,7 @@ import type {
   EventMap,
   XynologError,
 } from '@xynolog/core';
-import { EventBus, FrameRefusal, baseUrl } from '@xynolog/core';
+import { EventBus, Refused, baseUrl } from '@xynolog/core';
 import { type ITransport } from '@xynolog/core';
 import { BrowseNamespace } from '@xynolog/sdk';
 import { useStateUnit } from '../useStateUnit';
@@ -81,9 +81,9 @@ function inMemoryTransport(
   ): Observable<BusFrame<EventMap[K]>> =>
     bus.frames(channel).pipe(
       map(({ payload, ...envelope }) => {
-        if (payload instanceof FrameRefusal)
+        if (payload instanceof Refused)
           throw new Error(
-            `this double's wire holds a refusal on ${payload.channel}`,
+            `this double's wire holds a refusal on ${payload.refusal.channel}`,
           );
         return { ...envelope, payload };
       }),

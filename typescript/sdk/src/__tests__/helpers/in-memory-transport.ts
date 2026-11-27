@@ -30,7 +30,7 @@ import type {
   EventMap,
   BusEnvelope,
   BusFrame,
-  FrameRefusal,
+  Refused,
   IContentTransport,
   IGatewayOperations,
   ITransport,
@@ -78,7 +78,7 @@ export function inMemoryTransport(
   // a refusal among it, as a transport delivers one in place of a frame it refused.
   const frames = <K extends keyof EventMap>(
     channel: K,
-  ): Observable<BusFrame<EventMap[K] | FrameRefusal>> => bus.frames(channel);
+  ): Observable<BusFrame<EventMap[K] | Refused>> => bus.frames(channel);
 
   return {
     baseUrl: baseUrl('http://transport.test'),

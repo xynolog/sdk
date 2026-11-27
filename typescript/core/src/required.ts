@@ -13,7 +13,7 @@
 
 import { byCodePoint } from './by-code-point';
 import { REQUIRED_SCHEMAS } from './required-schemas';
-import type { FrameRefusalReason } from './payload-types';
+import type { Fault } from './payload-types';
 /** A component schema of the spec or a table record, by its name. */
 type SchemaName = keyof typeof REQUIRED_SCHEMAS;
 
@@ -71,20 +71,6 @@ export interface Shape {
   readonly minMembers?: number;
   /** What each of an object's members' names must be. */
   readonly names?: Shape;
-}
-
-/**
- * The first thing wrong with a value: the way to the member it is at (the
- * names of the members it is within, and its own, joined by dots; the empty
- * way is the value itself), and why. `lacks`: the value does not carry the
- * member, or the member holds null where it may not. `malformed`: the member
- * is not what its schema allows (of another kind, another value, form or
- * size), is one a closed object does not name, or has a name that is not of
- * the object's names.
- */
-export interface Fault {
-  readonly member: string;
-  readonly reason: FrameRefusalReason;
 }
 
 /**

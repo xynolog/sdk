@@ -72,7 +72,7 @@ import {
   type TransportTiming,
   type Watched,
 } from '@xynolog/core';
-import type { BusEnvelope, BusFrame, FrameRefusal } from '@xynolog/core';
+import type { BusEnvelope, BusFrame, Refused } from '@xynolog/core';
 
 type ProtectedResourceMetadata =
   components['schemas']['ProtectedResourceMetadata'];
@@ -568,7 +568,7 @@ export class HttpTransport implements ITransport, IGatewayOperations {
 
   on<K extends keyof EventMap>(
     channel: K,
-    handler: (payload: EventMap[K] | FrameRefusal) => void,
+    handler: (payload: EventMap[K] | Refused) => void,
   ): () => void {
     const sub = this.actor.stream(channel).subscribe(handler);
     return () => sub.unsubscribe();
@@ -576,13 +576,13 @@ export class HttpTransport implements ITransport, IGatewayOperations {
 
   stream<K extends keyof EventMap>(
     channel: K,
-  ): Observable<EventMap[K] | FrameRefusal> {
+  ): Observable<EventMap[K] | Refused> {
     return this.actor.stream(channel);
   }
 
   frames<K extends keyof EventMap>(
     channel: K,
-  ): Observable<BusFrame<EventMap[K] | FrameRefusal>> {
+  ): Observable<BusFrame<EventMap[K] | Refused>> {
     return this.actor.frames(channel);
   }
 
@@ -591,7 +591,7 @@ export class HttpTransport implements ITransport, IGatewayOperations {
    * channel it was given (and subsequently per-resource scoped channels
    * opened by `subscribeToResource`) is published on the bus, as its
    * channel types it; one that is not its channel's, or that the stream
-   * refused, is published as its `FrameRefusal`, in its place.
+   * refused, is published as its `Refused`, in its place.
    * Safe to call multiple times — each bus is added to the fan-out list.
    */
   bridgeInto(bus: EventBus): void {

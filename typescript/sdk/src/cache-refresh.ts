@@ -2,7 +2,7 @@ import { Observable } from 'rxjs';
 import {
   CACHE_REFRESH,
   CACHE_REFRESH_CHANNELS,
-  FrameRefusal,
+  Refused,
   faultOf,
   isAnnotationId,
   isObject,
@@ -273,7 +273,7 @@ export class CacheRefresher<Q extends CacheQuery> {
     this.subs.push(
       this.bus.on(channel).subscribe((event) => {
         const subject =
-          event instanceof FrameRefusal ? undefined : subjectOf(channel, event);
+          event instanceof Refused ? undefined : subjectOf(channel, event);
         // An event that cannot be read: something changed and nothing says what.
         if (subject === undefined) this.refresh('unreadable');
         else this.refresh(channel, subject);

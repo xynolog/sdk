@@ -1,4 +1,4 @@
-import { FrameRefusal, type AnnotationId } from '@xynolog/core';
+import { Refused, type AnnotationId } from '@xynolog/core';
 import { BehaviorSubject, type Observable, map } from 'rxjs';
 import type { AttributedEvent, ResourceId } from '@xynolog/core';
 import { createDisposer } from '@xynolog/sdk';
@@ -122,8 +122,7 @@ export function createResourceViewerPageStateUnit(
   const bindInitiateSub = client.bus.on('bind:initiate').subscribe((event) => {
     // The signal names its resource, and several viewers may share a client;
     // one whose payload is not its channel's names none.
-    if (event instanceof FrameRefusal || event.resourceId !== resourceId)
-      return;
+    if (event instanceof Refused || event.resourceId !== resourceId) return;
     wizard$.next({
       open: true,
       annotationId: event.annotationId,

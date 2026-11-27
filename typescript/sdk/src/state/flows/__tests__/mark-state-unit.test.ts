@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, afterEach } from 'vitest';
 import { Observable } from 'rxjs';
-import { FrameRefusal, resourceId as makeResourceId } from '@xynolog/core';
+import { Refused, resourceId as makeResourceId } from '@xynolog/core';
 import { createMarkStateUnit, type MarkStateUnit } from '../mark-state-unit';
 import {
   makeTestClient,
@@ -44,7 +44,7 @@ describe('createMarkStateUnit', () => {
     tc.bus
       .on('panel:open')
       .subscribe((e) =>
-        panels.push(e instanceof FrameRefusal ? e.channel : e.panel),
+        panels.push(e instanceof Refused ? e.refusal.channel : e.panel),
       );
 
     tc.bus.emit('mark:requested', {

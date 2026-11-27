@@ -28,7 +28,7 @@ import {
   CHECKS_AT_ONCE_COUNT,
   EventBus,
   faultOf,
-  FrameRefusal,
+  Refused,
   getPrimaryRepresentation,
   kbDid,
   KeptForFirstReader,
@@ -84,10 +84,10 @@ import type { SessionFactory } from './session-factory';
  * that bus, so a refusal there is no signal anything sent, and is this
  * browser's own fault.
  */
-function signalled<T>(payload: T | FrameRefusal): T {
-  if (payload instanceof FrameRefusal) {
+function signalled<T>(payload: T | Refused): T {
+  if (payload instanceof Refused) {
     throw new Error(
-      `The app-scoped bus holds a refusal on ${payload.channel}, and nothing bridges into it`,
+      `The app-scoped bus holds a refusal on ${payload.refusal.channel}, and nothing bridges into it`,
     );
   }
   return payload;

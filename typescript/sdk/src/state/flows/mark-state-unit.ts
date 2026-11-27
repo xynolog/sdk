@@ -2,7 +2,7 @@ import { BehaviorSubject, type Subscription } from 'rxjs';
 import type { XynologClient } from '../../client';
 import {
   DELEGATE_SILENCE_MS,
-  FrameRefusal,
+  Refused,
   watched,
   type JobId,
   type MarkJobParams,
@@ -88,7 +88,7 @@ export function createMarkStateUnit(
   // A signal whose payload is not its channel's names no resource it is for.
   subs.push(
     client.bus.on('mark:requested').subscribe((event) => {
-      if (event instanceof FrameRefusal || event.source !== resourceId) return;
+      if (event instanceof Refused || event.source !== resourceId) return;
       pendingAnnotation$.next({
         selector: event.selector as Selector | Selector[],
         motivation: event.motivation,
@@ -98,7 +98,7 @@ export function createMarkStateUnit(
 
   subs.push(
     client.bus.on('mark:submit').subscribe(async (event) => {
-      if (event instanceof FrameRefusal || event.source !== resourceId) return;
+      if (event instanceof Refused || event.source !== resourceId) return;
       try {
         await client.mark.annotation({
           motivation: event.motivation,

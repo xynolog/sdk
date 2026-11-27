@@ -13,7 +13,7 @@
  * compile, and is refused when called.
  */
 
-import { FrameRefusal, isResourceScopedChannel } from '@xynolog/core';
+import { Refused, isResourceScopedChannel } from '@xynolog/core';
 import type { EventMap, UnscopedChannel } from '@xynolog/core';
 import type { XynologClient } from '@xynolog/sdk';
 
@@ -31,7 +31,7 @@ export function subscribeChannel<K extends UnscopedChannel>(
   // A handler is given the channel's payloads; a refusal of one that is not
   // the channel's has nothing in it for the handler to act on.
   const sub = client.bus.on(channel).subscribe((payload) => {
-    if (!(payload instanceof FrameRefusal)) handler(payload);
+    if (!(payload instanceof Refused)) handler(payload);
   });
   return () => sub.unsubscribe();
 }
