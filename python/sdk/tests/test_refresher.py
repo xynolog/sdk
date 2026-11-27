@@ -47,8 +47,8 @@ from xynolog.refresh import (
     CacheRefreshWhen,
 )
 from xynolog.testing import ContentCall, FaultyTransport, GetAnnotations, InMemoryContent, StubGateway
-from xynolog.transport import Frame, FrameRefusal
-from xynolog.types import Annotation
+from xynolog.transport import Frame
+from xynolog.types import Annotation, FrameRefusal
 
 type Client = XynologClient[FaultyTransport]
 

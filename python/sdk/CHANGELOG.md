@@ -70,6 +70,16 @@ the coming release's, and gathers its changes as they land.
 
 ### Changed
 
+- A frame's refusal is `xynolog.types.FrameRefusal`, the type of Protocol's
+  `client/types/FrameRefusal.json`, where `xynolog.transport` declared a
+  dataclass of its own; import it from `xynolog.types`. It carries no
+  `status`: a reader tells it from a `Delivered` by its class, as a `match`
+  does.
+- A value's first fault is `xynolog.types.Fault`, the type of Protocol's
+  `client/types/Fault.json`, where `xynolog.required` declared a dataclass of
+  its own. What every SDK says of it is `xynolog.required.said(fault)`, where
+  it was `str(fault)`; the fault of the value that holds it is
+  `xynolog.required.within(fault, name)`, where it was `fault.within(name)`.
 - A schema a `$ref` names at a place within a file is one type, named where
   that place is stated, wherever it is referred to: the Archivist layout's
   trees are all `ArchivistLayoutEventStreamTree`, every error vocabulary

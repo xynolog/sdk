@@ -19,10 +19,10 @@ from xynolog.testing import DropReply, FaultyTransport, RejectEmit
 from xynolog.transport import (
     ConnectionState,
     Frame,
-    FrameRefusal,
     ReplyRouter,
     ResourceHold,
 )
+from xynolog.types import FrameRefusal
 
 RESULT, FAILURE = "browse:resource-result", "browse:resource-failed"
 

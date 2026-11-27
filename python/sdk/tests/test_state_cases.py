@@ -37,8 +37,8 @@ from xynolog.state import (
 )
 from xynolog.state_unit import StateUnit
 from xynolog.testing import Delay, DropReply, FaultAction, FaultyTransport, create_test_client, refuse_unscripted_operation
-from xynolog.transport import Frame, FrameRefusal, Transport
-from xynolog.types import GatherAnnotationOptions
+from xynolog.transport import Frame, Transport
+from xynolog.types import FrameRefusal, GatherAnnotationOptions
 from xynolog.watched import Watched
 
 SETTLE_TURNS: Final = 200

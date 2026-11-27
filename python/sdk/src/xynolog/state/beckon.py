@@ -19,8 +19,8 @@ from xynolog.events import Events
 from xynolog.identifiers import AnnotationId, ResourceId
 from xynolog.state._tasks import Tasks
 from xynolog.state_unit import StateUnit
-from xynolog.transport import Frame, FrameRefusal, Transport
-from xynolog.types import BeckonFocusEvent, BeckonSparkleEvent
+from xynolog.transport import Frame, Transport
+from xynolog.types import BeckonFocusEvent, BeckonSparkleEvent, FrameRefusal
 from xynolog.watched import Variable, Watched
 
 __all__ = ["BeckonStateUnit"]

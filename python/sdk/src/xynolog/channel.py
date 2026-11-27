@@ -7,8 +7,8 @@ from typing import Annotated, Protocol, TypeAliasType, Union, final, get_args, g
 from pydantic import JsonValue, TypeAdapter
 
 from xynolog.model import WireModel, written
-from xynolog.required import Fault, as_read
-from xynolog.types import StoredEventResponse
+from xynolog.required import as_read, said
+from xynolog.types import Fault, StoredEventResponse
 
 __all__ = ["AnyChannel", "AnyOperation", "Channel", "Operation", "RecordedChannel", "ScopedChannel"]
 
@@ -111,7 +111,7 @@ def _own[E: WireModel](recorded: str, shape: type[E], stored: StoredEventRespons
         raise ValueError(f"{stored.type} {stored.id} is not a {recorded} event")
     read = as_read(shape, stored.payload)
     if isinstance(read, Fault):
-        raise ValueError(f"the payload of {stored.type} {stored.id} is not its event's: {read}")
+        raise ValueError(f"the payload of {stored.type} {stored.id} is not its event's: {said(read)}")
     return shape.model_validate(read)
 
 

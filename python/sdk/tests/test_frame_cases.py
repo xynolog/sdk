@@ -25,8 +25,8 @@ from xynolog.http import HttpTransport, TransportTiming
 from xynolog.identifiers import ResourceId
 from xynolog.model import written
 from xynolog.operations import BROWSE_RESOURCE_REQUESTED
-from xynolog.transport import Frame, FrameRefusal
-from xynolog.types import BeckonFocusEvent, BrowseResourceResult, CommandError, GatherFailed, RetryBudget
+from xynolog.transport import Frame
+from xynolog.types import BeckonFocusEvent, BrowseResourceResult, CommandError, FrameRefusal, GatherFailed, RetryBudget
 from xynolog.watched import Variable, reached
 
 type Told = Literal["readers", "failure-report"]

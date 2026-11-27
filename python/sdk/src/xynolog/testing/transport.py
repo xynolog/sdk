@@ -43,7 +43,6 @@ from xynolog.transport import (
     ConnectionState,
     Frame,
     FrameHub,
-    FrameRefusal,
     FrameSink,
     PendingReply,
     ReplyRouter,
@@ -51,6 +50,7 @@ from xynolog.transport import (
     Transport,
     unsubscribed,
 )
+from xynolog.types import FrameRefusal
 from xynolog.watched import Variable, Watched
 
 __all__ = [

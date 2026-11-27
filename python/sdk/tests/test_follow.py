@@ -24,9 +24,10 @@ from xynolog.required import fault_of
 from xynolog.running import Running
 from xynolog.testing import FaultyTransport, InMemoryContent, StubGateway
 from xynolog.timing import GENERATION_STALL_FLOOR_MS, JOB_SILENCE_MS, JOB_STATUS_POLL_MS
-from xynolog.transport import Frame, FrameRefusal
+from xynolog.transport import Frame
 from xynolog.types import (
     CommentingJobParams,
+    FrameRefusal,
     GatheredContext,
     GenerationJobParams,
     HighlightingJobParams,

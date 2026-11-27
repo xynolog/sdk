@@ -11,8 +11,8 @@ from pydantic import BaseModel, Field, JsonValue
 from spec import SPEC
 
 from xynolog import types
-from xynolog.required import Fault, fault_of
-from xynolog.types import FrameRefusalReason
+from xynolog.required import fault_of
+from xynolog.types import Fault, FrameRefusalReason
 
 
 class Accepted(BaseModel, frozen=True, extra="forbid"):

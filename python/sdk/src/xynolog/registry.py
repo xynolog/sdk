@@ -71,7 +71,7 @@ from xynolog.events import Events
 from xynolog.identifiers import ResourceId
 from xynolog.identity import kb_did
 from xynolog.model import written
-from xynolog.required import Fault, as_read, fault_of, read_as
+from xynolog.required import as_read, fault_of, read_as
 from xynolog.resources import primary_media_type
 from xynolog.session import SignInKept, XynologSession, is_token_expired
 from xynolog.session_signals import SessionSignals
@@ -88,6 +88,7 @@ from xynolog.timing import CHECKS_AT_ONCE_COUNT
 from xynolog.transport import Transport
 from xynolog.types import (
     Expected,
+    Fault,
     KbDescription,
     KbIdentityConflict,
     KbRead,
@@ -99,8 +100,8 @@ from xynolog.types import (
     KnowledgeBase,
     NewKnowledgeBase,
     OpenResource,
-    SignedIn,
     SignInOutcome,
+    SignedIn,
     StoredSession,
     TabCheck,
     TabCheckGone,

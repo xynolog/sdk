@@ -32,10 +32,10 @@ from xynolog.errors import TransportError, XynologError
 from xynolog.http._withheld import why_unanswered
 from xynolog.http.gateway_http import IDEMPOTENCY_KEY, RETRY_AFTER
 from xynolog.model import WireModel
-from xynolog.required import Fault, read_as
+from xynolog.required import read_as, said
 from xynolog.retry import TRANSPORT, RetryFacts, retry_after_ms
 from xynolog.timing import REQUEST_RETRY_PAUSE_MS
-from xynolog.types import ErrorResponse, LimitRefusal
+from xynolog.types import ErrorResponse, Fault, LimitRefusal
 from xynolog.watched import Watched
 
 __all__ = ["Exchange", "TokenRefresher", "refusal"]
@@ -347,6 +347,6 @@ class Exchange:
         answered = read_as(declared, body, read)
         if isinstance(answered, Fault):
             raise self.failed(
-                TransportError("error", f"{method} {path} answered what is not its declared body: {answered}", status=response.status_code)
+                TransportError("error", f"{method} {path} answered what is not its declared body: {said(answered)}", status=response.status_code)
             )
         return answered

@@ -46,10 +46,11 @@ from xynolog.state._jobs import cancelled
 from xynolog.state._tasks import Tasks
 from xynolog.state_unit import StateUnit
 from xynolog.timing import DELEGATE_SILENCE_MS
-from xynolog.transport import Frame, FrameRefusal, Transport
+from xynolog.transport import Frame, Transport
 from xynolog.types import (
     AnnotationTarget,
     CreateAnnotationRequest,
+    FrameRefusal,
     JobProgress,
     MarkDelegateTimeoutEvent,
     MarkJobCompleteCommand,

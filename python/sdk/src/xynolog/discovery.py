@@ -31,7 +31,7 @@ from typing import Final, Protocol, final, get_args, override
 from pydantic import JsonValue, TypeAdapter, ValidationError
 
 from xynolog._discovery_url_path import DISCOVERY_URL_PATH
-from xynolog.required import Fault, read_as
+from xynolog.required import read_as, said
 from xynolog.timing import DISCOVERY_INTERVAL_MS
 from xynolog.types import (
     DiscoveredKB,
@@ -43,6 +43,7 @@ from xynolog.types import (
     DiscoveryRead,
     DiscoveryState,
     DiscoveryUnchanged,
+    Fault,
 )
 
 __all__ = [
@@ -98,7 +99,7 @@ def parse_discovery_document(text: str) -> DiscoveryState:
     # Strictly: a port written as text, or a name written as a number, is not the schema's.
     document = read_as(DiscoveryDocument, text, lambda read: DiscoveryDocument.model_validate(read, strict=True))
     if isinstance(document, Fault):
-        return DiscoveryAbsent(kind="absent", reason="invalid", diagnostic=f"the document is no discovery document: {document}")
+        return DiscoveryAbsent(kind="absent", reason="invalid", diagnostic=f"the document is no discovery document: {said(document)}")
     return DiscoveryManaged(kind="managed", kbs=document.kbs)
 
 

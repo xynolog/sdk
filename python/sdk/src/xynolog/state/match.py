@@ -16,8 +16,8 @@ from xynolog.client import XynologClient
 from xynolog.errors import XynologError
 from xynolog.state._tasks import Tasks
 from xynolog.state_unit import StateUnit
-from xynolog.transport import FrameRefusal, Transport
-from xynolog.types import MatchSearchFailed, MatchSearchRequest
+from xynolog.transport import Transport
+from xynolog.types import FrameRefusal, MatchSearchFailed, MatchSearchRequest
 
 __all__ = ["MatchStateUnit"]
 

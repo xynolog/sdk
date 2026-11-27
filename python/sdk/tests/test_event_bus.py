@@ -11,8 +11,8 @@ from xynolog.event_bus import EventBus
 from xynolog.events import Events
 from xynolog.identifiers import AnnotationId, ResourceId
 from xynolog.testing import FaultyTransport
-from xynolog.transport import Frame, FrameHub, FrameRefusal
-from xynolog.types import BeckonHoverEvent
+from xynolog.transport import Frame, FrameHub
+from xynolog.types import BeckonHoverEvent, FrameRefusal
 
 ONE, OTHER = ResourceId("res-1"), ResourceId("res-2")
 

@@ -16,9 +16,9 @@ is told to its failures.
 
 import asyncio
 from collections.abc import AsyncGenerator, AsyncIterator, Callable, Collection, Generator, Mapping
-from dataclasses import dataclass, field, replace
+from dataclasses import dataclass, replace
 from types import TracebackType
-from typing import Final, Literal, Protocol, Self, final
+from typing import Final, Protocol, Self, final
 
 from pydantic import JsonValue
 
@@ -30,7 +30,7 @@ from xynolog.types import (
     AnchoredTextAnswer,
     ConnectionState,
     CreateResourceResponse,
-    FrameRefusalReason,
+    FrameRefusal,
     GetAnnotationsResponse,
     GetResourceResponse,
     HealthResponse,
@@ -53,7 +53,6 @@ __all__ = [
     "ContentTransport",
     "Frame",
     "FrameHub",
-    "FrameRefusal",
     "FrameSink",
     "GatewayOperations",
     "PendingReply",
@@ -81,34 +80,13 @@ class Frame:
     """The trace the work done for this frame continues, when the frame was sent under one."""
 
 
-@final
-@dataclass(frozen=True, slots=True, kw_only=True)
-class FrameRefusal:
-    """A frame refused, in its place: it is not what BusFrame allows, or its payload is not its channel's.
-
-    A transport gives one for a frame BusFrame does not allow, and a typed read
-    for one whose payload is not its channel's, or passes on the transport's.
-    """
-
-    channel: str
-    member: str
-    """The way to the member its first fault is at, from the frame: the names of the members it is within and its own, joined by dots.
-
-    A fault of its payload is within `payload` (`payload.resourceId`); the payload itself is `payload`.
-    """
-    reason: FrameRefusalReason
-    """Why: `lacks`, the frame does not carry the member, or it holds null where it may not.
-
-    `malformed`: the member is not what its schema allows (of another kind, another value, form or
-    size), or is one a closed object does not name.
-    """
-    payload: JsonValue
-    """The payload as it came, the gateway's stamps and all; None when the frame carries none."""
-    scope: ResourceId | None
-    """The resource whose scope the frame was delivered on."""
-    correlation_id: str | None
-    """The frame's correlation id, when it carries one BusFrame allows: the request awaiting the reply it names is told of the refusal."""
-    status: Literal["refused"] = field(default="refused", init=False)
+def _unscoped(carried: Frame | FrameRefusal) -> Frame | FrameRefusal:
+    """`carried` on no scope, as a bridged bus is given it."""
+    match carried:
+        case Frame():
+            return replace(carried, scope=None)
+        case FrameRefusal():
+            return carried.model_copy(update={"scope": None})
 
 
 def unsubscribed(channel: str) -> BusRequestError:
@@ -164,7 +142,7 @@ class FrameHub:
     def deliver(self, frame: Frame | FrameRefusal) -> int:
         """Give `frame`, or its refusal, to its channel's readers, and to every bus bridged into. Returns how many readers there were."""
         for bus in self._bridged:
-            bus.deliver(frame if frame.scope is None else replace(frame, scope=None))
+            bus.deliver(frame if frame.scope is None else _unscoped(frame))
         broadcast = self._channels.get(frame.channel)
         return 0 if broadcast is None else broadcast.deliver(frame)
 

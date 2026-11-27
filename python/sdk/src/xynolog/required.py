@@ -20,15 +20,15 @@ sizes and bounds the table states of a member rather than restating them.
 
 from collections.abc import Callable
 from dataclasses import dataclass
-from typing import Final, Literal, TypeAliasType, final, override
+from typing import Final, Literal, TypeAliasType, final
 
 from pydantic import BaseModel, Field, JsonValue, TypeAdapter, ValidationError
 
 from xynolog._required_table import SCHEMAS
 from xynolog.model import Empty, Response, WireModel
-from xynolog.types import FrameRefusalReason
+from xynolog.types import Fault
 
-__all__ = ["UNDECODED", "Bounds", "Fault", "as_read", "bounds_of", "fault_of", "read_as"]
+__all__ = ["UNDECODED", "Bounds", "as_read", "bounds_of", "fault_of", "read_as", "said", "within"]
 
 type _Kind = Literal["object", "array", "string", "integer", "number", "boolean", "null"]
 
@@ -98,31 +98,16 @@ _SCHEMAS: Final = TypeAdapter(dict[str, _Shape]).validate_json(SCHEMAS)
 _JSON: Final = TypeAdapter[JsonValue](JsonValue)
 
 
-@final
-@dataclass(frozen=True, slots=True)
-class Fault:
-    """The first thing wrong with a value: the way to the member it is at, and why.
+def within(fault: Fault, name: str) -> Fault:
+    """`fault` as one of the value that holds the faulty value as its member `name`: the value itself is that member."""
+    return Fault(member=name if fault.member == "" else f"{name}.{fault.member}", reason=fault.reason)
 
-    The way is the names of the members it is within, and its own, joined by
-    dots; the empty way is the value itself. `lacks`: the value does not carry
-    the member, or the member holds null where it may not. `malformed`: the
-    member is not what its schema allows (of another kind, another value, form
-    or size), or is one a closed object does not name.
-    """
 
-    member: str
-    reason: FrameRefusalReason
-
-    def within(self, name: str) -> "Fault":
-        """The fault as one of the value that holds this one as its member `name`: the value itself is that member."""
-        return Fault(member=name if self.member == "" else f"{name}.{self.member}", reason=self.reason)
-
-    @override
-    def __str__(self) -> str:
-        """What every SDK says of the fault."""
-        if self.reason == "lacks":
-            return f"it has no `{self.member}`"
-        return "it is malformed" if self.member == "" else f"its `{self.member}` is malformed"
+def said(fault: Fault) -> str:
+    """What every SDK says of the fault."""
+    if fault.reason == "lacks":
+        return f"it has no `{fault.member}`"
+    return "it is malformed" if fault.member == "" else f"its `{fault.member}` is malformed"
 
 
 UNDECODED: Final = Fault(member="", reason="malformed")

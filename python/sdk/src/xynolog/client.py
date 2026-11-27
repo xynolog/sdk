@@ -46,7 +46,8 @@ from xynolog.namespaces.system import SystemNamespace
 from xynolog.namespaces.yield_ import YieldNamespace
 from xynolog.resume import seal_coupled_places
 from xynolog.timing import ClientTiming
-from xynolog.transport import ContentTransport, Frame, FrameRefusal, FrameSink, GatewayOperations, Transport
+from xynolog.transport import ContentTransport, Frame, FrameSink, GatewayOperations, Transport
+from xynolog.types import FrameRefusal
 
 __all__ = ["CachePersistence", "ClientTiming", "XynologClient"]
 

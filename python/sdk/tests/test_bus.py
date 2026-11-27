@@ -25,7 +25,7 @@ from xynolog.operations import (
     OPERATIONS,
 )
 from xynolog.testing import FaultyTransport
-from xynolog.transport import Frame, FrameRefusal
+from xynolog.transport import Frame
 from xynolog.types import (
     BeckonFocusEvent,
     BeckonHoverEvent,
@@ -33,6 +33,7 @@ from xynolog.types import (
     CommandError,
     CreateAnnotationRequest,
     FrameAddEntityTypeCommand,
+    FrameRefusal,
     GatheredContext,
     GenerationJobParams,
     JobParams,

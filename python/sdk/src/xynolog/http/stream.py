@@ -52,17 +52,19 @@ from xynolog.http.gateway_http import (
 )
 from xynolog.http.sse import SseParser
 from xynolog.identifiers import ResourceId
-from xynolog.required import Fault, as_read, read_as
+from xynolog.required import as_read, read_as, said
 from xynolog.resume import is_place
 from xynolog.retry import equal_jitter, retry_after_ms
 from xynolog.timing import DEGRADED_THRESHOLD_MS, MAX_RECONNECT_MS, RECONNECT_DEBOUNCE_MS, TransportTiming
-from xynolog.transport import CONNECTION_STATE_MAY_BECOME, ConnectionState, Frame, FrameHub, FrameRefusal, ReplyRouter
+from xynolog.transport import CONNECTION_STATE_MAY_BECOME, ConnectionState, Frame, FrameHub, ReplyRouter
 from xynolog.types import (
     BusEventMessage,
     BusFrame,
     BusSubscribeRequest,
     BusSubscribeRequestScopedItem,
     ErrorResponse,
+    Fault,
+    FrameRefusal,
     TraceCarrier,
 )
 from xynolog.watched import Variable, Watched
@@ -570,7 +572,7 @@ class Stream:
             return
         read = carried(data)
         if isinstance(read, Unaddressed):
-            self._failures.deliver(TransportError("error", f"the stream carried what is not a frame: {read.fault}"))
+            self._failures.deliver(TransportError("error", f"the stream carried what is not a frame: {said(read.fault)}"))
             return
         if isinstance(read, FrameRefusal):
             self._router.route(read)
