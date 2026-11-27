@@ -15,7 +15,10 @@ module Pending_authorization_issuer : sig
 end
 
 module Connection_identity : sig
-  type t = { did : string; description : [ `KbDescription ] Models.t }
+  type t = {
+    did : Identifiers.User_id.t;
+    description : [ `KbDescription ] Models.t;
+  }
 
   val of_json : Yojson.Safe.t -> (t, Models.fault) result
   val to_json : t -> Yojson.Safe.t
@@ -43,27 +46,6 @@ module Tab_check : sig
     | Gone
     | Ready of { name : string; media_type : string option }
     | Unknown
-
-  val of_json : Yojson.Safe.t -> (t, Models.fault) result
-  val to_json : t -> Yojson.Safe.t
-end
-
-module Session_ended : sig
-  type t = { reason : Enums.Session_end_reason.t }
-
-  val of_json : Yojson.Safe.t -> (t, Models.fault) result
-  val to_json : t -> Yojson.Safe.t
-end
-
-module Permission_denied : sig
-  type t = { detail : string option }
-
-  val of_json : Yojson.Safe.t -> (t, Models.fault) result
-  val to_json : t -> Yojson.Safe.t
-end
-
-module Kb_identity_conflict : sig
-  type t = { expected_did : string; observed_did : string }
 
   val of_json : Yojson.Safe.t -> (t, Models.fault) result
   val to_json : t -> Yojson.Safe.t
@@ -116,6 +98,13 @@ module Claim_options : sig
   val to_json : t -> Yojson.Safe.t
 end
 
+module Claim_refusal : sig
+  type t = { code : Error_codes.Bus_request.t option; message : string }
+
+  val of_json : Yojson.Safe.t -> (t, Models.fault) result
+  val to_json : t -> Yojson.Safe.t
+end
+
 module Create_from_token_options : sig
   type t = {
     token : string;
@@ -140,11 +129,56 @@ module Device_code : sig
   val to_json : t -> Yojson.Safe.t
 end
 
+module Discovery_absent : sig
+  type t = {
+    reason : Enums.Discovery_absent_reason.t;
+    diagnostic : string option;
+  }
+
+  val of_json : Yojson.Safe.t -> (t, Models.fault) result
+  val to_json : t -> Yojson.Safe.t
+end
+
+module Discovery_managed : sig
+  type t = { kbs : [ `DiscoveredKB ] Models.t list }
+
+  val of_json : Yojson.Safe.t -> (t, Models.fault) result
+  val to_json : t -> Yojson.Safe.t
+end
+
+module Discovery_unchanged : sig
+  type t = unit
+
+  val of_json : Yojson.Safe.t -> (t, Models.fault) result
+  val to_json : t -> Yojson.Safe.t
+end
+
 module Engine_with_limits : sig
   type t = {
     engine : [ `Engine ] Models.t;
     jobs : [ `JobFilter ] Models.t list option;
     limits : [ `InferenceLimits ] Models.t option;
+  }
+
+  val of_json : Yojson.Safe.t -> (t, Models.fault) result
+  val to_json : t -> Yojson.Safe.t
+end
+
+module Fault : sig
+  type t = { member : string; reason : Enums.Frame_refusal_reason.t }
+
+  val of_json : Yojson.Safe.t -> (t, Models.fault) result
+  val to_json : t -> Yojson.Safe.t
+end
+
+module Frame_refusal : sig
+  type t = {
+    channel : string;
+    member : string;
+    reason : Enums.Frame_refusal_reason.t;
+    payload : Yojson.Safe.t option;
+    scope : Identifiers.Resource_id.t option;
+    correlation_id : string option;
   }
 
   val of_json : Yojson.Safe.t -> (t, Models.fault) result
@@ -164,6 +198,36 @@ module Gather_resource_options : sig
   val to_json : t -> Yojson.Safe.t
 end
 
+module Held_job_record : sig
+  type t = {
+    job_id : Identifiers.Job_id.t;
+    job_type : Enums.Job_type.t;
+    resource_id : Identifiers.Resource_id.t;
+    params : [ `JobParams ] Models.t;
+    completed_units : string list;
+    unit_cursors : (string * [ `UnitCursor ] Models.t) list;
+    retry_count : int;
+    max_retries : int;
+  }
+
+  val of_json : Yojson.Safe.t -> (t, Models.fault) result
+  val to_json : t -> Yojson.Safe.t
+end
+
+module Held_job_stall : sig
+  type t = {
+    job_id : Identifiers.Job_id.t;
+    job_type : Enums.Job_type.t;
+    held_since : string;
+    last_activity_at : string;
+    silent_for_ms : int;
+    threshold_ms : int;
+  }
+
+  val of_json : Yojson.Safe.t -> (t, Models.fault) result
+  val to_json : t -> Yojson.Safe.t
+end
+
 module Issued_tokens : sig
   type t = { access : string; refresh : string }
 
@@ -171,8 +235,46 @@ module Issued_tokens : sig
   val to_json : t -> Yojson.Safe.t
 end
 
+module Job_checkpoint : sig
+  type t = {
+    completed_units : string list;
+    unit_cursors : (string * [ `UnitCursor ] Models.t) list option;
+  }
+
+  val of_json : Yojson.Safe.t -> (t, Models.fault) result
+  val to_json : t -> Yojson.Safe.t
+end
+
+module Job_failure : sig
+  type t = {
+    completed_units : string list option;
+    unit_cursors : (string * [ `UnitCursor ] Models.t) list option;
+    failure_class : Enums.Failure_class.t option;
+  }
+
+  val of_json : Yojson.Safe.t -> (t, Models.fault) result
+  val to_json : t -> Yojson.Safe.t
+end
+
 module Job_poll_options : sig
   type t = { every_ms : int option; within_ms : int option }
+
+  val of_json : Yojson.Safe.t -> (t, Models.fault) result
+  val to_json : t -> Yojson.Safe.t
+end
+
+module Job_reached : sig
+  type t = {
+    completed_units : string list option;
+    unit_cursors : (string * [ `UnitCursor ] Models.t) list option;
+  }
+
+  val of_json : Yojson.Safe.t -> (t, Models.fault) result
+  val to_json : t -> Yojson.Safe.t
+end
+
+module Kb_identity_conflict : sig
+  type t = { expected_did : string; observed_did : string }
 
   val of_json : Yojson.Safe.t -> (t, Models.fault) result
   val to_json : t -> Yojson.Safe.t
@@ -195,8 +297,15 @@ end
 module Pending_annotation : sig
   type t = {
     selector : [ `AnnotationSelector ] Models.t;
-    motivation : [ `Motivation ] Models.t;
+    motivation : Enums.Motivation.t;
   }
+
+  val of_json : Yojson.Safe.t -> (t, Models.fault) result
+  val to_json : t -> Yojson.Safe.t
+end
+
+module Permission_denied : sig
+  type t = { detail : string option }
 
   val of_json : Yojson.Safe.t -> (t, Models.fault) result
   val to_json : t -> Yojson.Safe.t
@@ -210,11 +319,11 @@ module Put_binary_request : sig
     storage_uri : string;
     language : string option;
     entity_types : string list option;
-    source_annotation_id : string option;
-    source_resource_id : string option;
+    source_annotation_id : Identifiers.Annotation_id.t option;
+    source_resource_id : Identifiers.Resource_id.t option;
     generation_prompt : string option;
     generator : [ `OneOrMoreAgents ] Models.t option;
-    job_id : string option;
+    job_id : Identifiers.Job_id.t option;
     is_draft : bool option;
     clone_token : string option;
     archive_original : bool option;
@@ -286,6 +395,13 @@ module Resource_search_filters : sig
   val to_json : t -> Yojson.Safe.t
 end
 
+module Session_ended : sig
+  type t = { reason : Enums.Session_end_reason.t }
+
+  val of_json : Yojson.Safe.t -> (t, Models.fault) result
+  val to_json : t -> Yojson.Safe.t
+end
+
 module Text_span : sig
   type t = {
     start : int;
@@ -299,11 +415,32 @@ module Text_span : sig
   val to_json : t -> Yojson.Safe.t
 end
 
+module Trace_carrier : sig
+  type t = { traceparent : string; tracestate : string option }
+
+  val of_json : Yojson.Safe.t -> (t, Models.fault) result
+  val to_json : t -> Yojson.Safe.t
+end
+
 module Upload_progress : sig
   type t =
-    | Started of { total_bytes : int }
-    | Progress of { bytes_uploaded : int; total_bytes : int }
-    | Finished of { resource_id : string }
+    | Started of { total_bytes : int option }
+    | Progress of { bytes_uploaded : int; total_bytes : int option }
+    | Finished of { resource_id : Identifiers.Resource_id.t }
+
+  val of_json : Yojson.Safe.t -> (t, Models.fault) result
+  val to_json : t -> Yojson.Safe.t
+end
+
+module Worker_vitals : sig
+  type t = {
+    last_queued_event_at : string option;
+    last_claim_at : string option;
+    last_finished_at : string option;
+    last_activity_at : string option;
+    active_job : [ `WorkerActiveJob ] Models.t option;
+    jobs_completed : int;
+  }
 
   val of_json : Yojson.Safe.t -> (t, Models.fault) result
   val to_json : t -> Yojson.Safe.t
@@ -346,8 +483,38 @@ module Pending_authorization : sig
   val to_json : t -> Yojson.Safe.t
 end
 
+module Discovery_read : sig
+  type t =
+    | Absent of Discovery_absent.t
+    | Managed of Discovery_managed.t
+    | Unchanged
+
+  val of_json : Yojson.Safe.t -> (t, Models.fault) result
+  val to_json : t -> Yojson.Safe.t
+end
+
+module Discovery_state : sig
+  type t = Absent of Discovery_absent.t | Managed of Discovery_managed.t
+
+  val of_json : Yojson.Safe.t -> (t, Models.fault) result
+  val to_json : t -> Yojson.Safe.t
+end
+
 module Engines_with_limits : sig
   type t = Engine_with_limits.t list
+
+  val of_json : Yojson.Safe.t -> (t, Models.fault) result
+  val to_json : t -> Yojson.Safe.t
+end
+
+module Discovery_diff : sig
+  type t = {
+    state : Discovery_state.t;
+    added : [ `DiscoveredKB ] Models.t list;
+    updated : [ `DiscoveredKB ] Models.t list;
+    removed : [ `DiscoveredKB ] Models.t list;
+    duplicated : string list;
+  }
 
   val of_json : Yojson.Safe.t -> (t, Models.fault) result
   val to_json : t -> Yojson.Safe.t
@@ -786,17 +953,10 @@ module Dir_entry : sig
 end
 
 module Discovered_kb : sig
-  module Placement : sig
-    type t = Local | Codespace
-
-    val to_string : t -> string
-    val of_string : string -> t option
-  end
-
   type t = {
     host : string;
     port : int;
-    placement : Placement.t;
+    placement : Enums.Kb_placement.t;
     repo : string option;
     did : string;
     site_name : string option;
@@ -2274,14 +2434,7 @@ module Storage_uri_entry : sig
 end
 
 module Engine : sig
-  module Provider : sig
-    type t = Anthropic | Google | Llamacpp | Ollama | Openai | Together | Vllm
-
-    val to_string : t -> string
-    val of_string : string -> t option
-  end
-
-  type t = { provider : Provider.t; model : string }
+  type t = { provider : Enums.Inference_provider.t; model : string }
 
   val of_model : [ `Engine ] Models.t -> t
   val to_json : t -> Yojson.Raw.t
@@ -2645,13 +2798,6 @@ module Logs_follow_result : sig
 end
 
 module Root : sig
-  module Placement : sig
-    type t = Local | Codespace
-
-    val to_string : t -> string
-    val of_string : string -> t option
-  end
-
   module Current : sig
     type t = Cwd | Xynolog_root
 
@@ -2660,7 +2806,7 @@ module Root : sig
   end
 
   type t = {
-    placement : Placement.t;
+    placement : Enums.Kb_placement.t;
     path : string option;
     present : bool option;
     current : Current.t option;
@@ -2952,14 +3098,11 @@ module Settings_unset_params : sig
 end
 
 module Target : sig
-  module Kind : sig
-    type t = Local | Codespace
-
-    val to_string : t -> string
-    val of_string : string -> t option
-  end
-
-  type t = { kind : Kind.t; root : string option; repo : string option }
+  type t = {
+    kind : Enums.Kb_placement.t;
+    root : string option;
+    repo : string option;
+  }
 
   val of_model : [ `Target ] Models.t -> t
   val to_json : t -> Yojson.Raw.t
@@ -3286,6 +3429,16 @@ module Qdrant_vectors_config : sig
     t -> ([ `QdrantVectorsConfig ] Models.t, Models.decode_error) result
 end
 
+module Worker_active_job : sig
+  type t = { job_id : string; type_ : Enums.Job_type.t; since : string }
+
+  val of_model : [ `WorkerActiveJob ] Models.t -> t
+  val to_json : t -> Yojson.Raw.t
+
+  val to_model :
+    t -> ([ `WorkerActiveJob ] Models.t, Models.decode_error) result
+end
+
 module Mark_job_filter_params : sig
   type t = { motivation : Enums.Motivation.t }
 
@@ -3480,8 +3633,62 @@ module Archivist_config_staging : sig
   val to_json : t -> Yojson.Raw.t
 end
 
+module Client_connection_states_states_item : sig
+  type t = {
+    state : Enums.Connection_state.t;
+    meaning : string;
+    moves : Enums.Connection_state.t list;
+  }
+
+  val to_json : t -> Yojson.Raw.t
+end
+
 module Client_discovery_absent_reasons_item : sig
-  type t = { reason : string; docs : string }
+  type t = { reason : Enums.Discovery_absent_reason.t; docs : string }
+
+  val to_json : t -> Yojson.Raw.t
+end
+
+module
+  Client_option_defaults_defaults_item_schema_reference_type_arguments_value : sig
+  type t = { type_parameter : string }
+
+  val to_json : t -> Yojson.Raw.t
+end
+
+module Client_option_defaults_defaults_item_schema_date_time : sig
+  module Type_ : sig
+    type t = Integer | String | Boolean
+
+    val to_string : t -> string
+    val of_string : string -> t option
+  end
+
+  module Format : sig
+    type t = Date_time
+
+    val to_string : t -> string
+    val of_string : string -> t option
+  end
+
+  type t = {
+    type_ : Type_.t;
+    minimum : int option;
+    format : Format.t option;
+    description : string;
+  }
+
+  val to_json : t -> Yojson.Raw.t
+end
+
+module Client_option_defaults_defaults_item_schema_type_parameter : sig
+  type t = { type_parameter : string }
+
+  val to_json : t -> Yojson.Raw.t
+end
+
+module Client_option_defaults_defaults_item_schema_decided_decided_by : sig
+  type t = { member : string }
 
   val to_json : t -> Yojson.Raw.t
 end
@@ -3644,41 +3851,13 @@ module Conformance_step_progress : sig
 end
 
 module Conformance_step_state : sig
-  module State : sig
-    type t =
-      | Initial
-      | Connecting
-      | Open
-      | Reconnecting
-      | Degraded
-      | Unauthenticated
-      | Closed
-
-    val to_string : t -> string
-    val of_string : string -> t option
-  end
-
-  type t = { state : State.t }
+  type t = { state : Enums.Connection_state.t }
 
   val to_json : t -> Yojson.Raw.t
 end
 
 module Conformance_step_stays : sig
-  module Stays : sig
-    type t =
-      | Initial
-      | Connecting
-      | Open
-      | Reconnecting
-      | Degraded
-      | Unauthenticated
-      | Closed
-
-    val to_string : t -> string
-    val of_string : string -> t option
-  end
-
-  type t = { stays : Stays.t }
+  type t = { stays : Enums.Connection_state.t }
 
   val to_json : t -> Yojson.Raw.t
 end
@@ -3910,8 +4089,20 @@ module Errors_codes_bus_request_codes_item : sig
   val to_json : t -> Yojson.Raw.t
 end
 
-module Errors_codes_transport_codes_item_status : sig
-  type t = { code : string; docs : string; status : int }
+module Errors_codes_transport_codes_item_status_limit_refusals_item : sig
+  module Code : sig
+    type t =
+      | Streams
+      | Emit_rate
+      | Unanswered_requests
+      | Capacity
+      | Refusal_rate
+
+    val to_string : t -> string
+    val of_string : string -> t option
+  end
+
+  type t = { status : int; code : Code.t }
 
   val to_json : t -> Yojson.Raw.t
 end
@@ -3930,6 +4121,12 @@ end
 
 module Errors_codes_job_codes_item : sig
   type t = { code : string; docs : string }
+
+  val to_json : t -> Yojson.Raw.t
+end
+
+module Errors_codes_control_codes_item : sig
+  type t = { code : string; docs : string; rpc : int; retryable : bool }
 
   val to_json : t -> Yojson.Raw.t
 end
@@ -4018,6 +4215,12 @@ module Media_types_registry_media_types_item : sig
     uploadable : bool;
     generatable : bool;
   }
+
+  val to_json : t -> Yojson.Raw.t
+end
+
+module Principals_roles_roles_item : sig
+  type t = { role : string; docs : string }
 
   val to_json : t -> Yojson.Raw.t
 end
@@ -4130,12 +4333,6 @@ module Worker_knowledge_base_config_identity : sig
   val to_json : t -> Yojson.Raw.t
 end
 
-module Worker_engine_health_active_job : sig
-  type t = { job_id : string; type_ : Enums.Job_type.t; since : string }
-
-  val to_json : t -> Yojson.Raw.t
-end
-
 module Conformance_driver_line_ready : sig
   type t = { ready : bool }
 
@@ -4184,7 +4381,7 @@ module Conformance_driver_line_frame_frame : sig
 end
 
 module Conformance_driver_line_progress_progress : sig
-  type t = { upload : int; bytes_uploaded : int; total_bytes : int }
+  type t = { upload : int; bytes_uploaded : int; total_bytes : int option }
 
   val to_json : t -> Yojson.Raw.t
 end
@@ -4222,7 +4419,7 @@ module Conformance_driver_line_completed : sig
 end
 
 module Conformance_driver_line_claimed : sig
-  type t = { claimed : (string * Yojson.Raw.t) list }
+  type t = { claimed : Held_job_record.t }
 
   val to_json : t -> Yojson.Raw.t
 end
@@ -4685,6 +4882,19 @@ module Archivist_streams_response : sig
     t -> ([ `ArchivistStreamsResponse ] Models.t, Models.decode_error) result
 end
 
+module Client_connection_states : sig
+  type t = {
+    field_comment : string;
+    states : Client_connection_states_states_item.t list;
+  }
+
+  val of_model : [ `ClientConnectionStates ] Models.t -> t
+  val to_json : t -> Yojson.Raw.t
+
+  val to_model :
+    t -> ([ `ClientConnectionStates ] Models.t, Models.decode_error) result
+end
+
 module Client_discovery_absent : sig
   type t = {
     field_comment : string;
@@ -5140,6 +5350,22 @@ module Media_types_registry : sig
     t -> ([ `MediaTypesRegistry ] Models.t, Models.decode_error) result
 end
 
+module Principals_roles : sig
+  type t = {
+    field_comment : string;
+    roles_claim : string;
+    roles : Principals_roles_roles_item.t list;
+    kind_claim : string;
+    agent_kind : string;
+  }
+
+  val of_model : [ `PrincipalsRoles ] Models.t -> t
+  val to_json : t -> Yojson.Raw.t
+
+  val to_model :
+    t -> ([ `PrincipalsRoles ] Models.t, Models.decode_error) result
+end
+
 module Session_oauth : sig
   type t = {
     field_comment : string;
@@ -5365,6 +5591,36 @@ module Archivist_engines_actors : sig
   val to_json : t -> Yojson.Raw.t
 end
 
+module Client_option_defaults_defaults_item_schema_reference : sig
+  type t = {
+    field_ref : string;
+    type_arguments :
+      (string
+      * Client_option_defaults_defaults_item_schema_reference_type_arguments_value
+        .t)
+      list
+      option;
+  }
+
+  val to_json : t -> Yojson.Raw.t
+end
+
+module Client_option_defaults_defaults_item_schema_decided_decided : sig
+  module In_ : sig
+    type t = Takes
+
+    val to_string : t -> string
+    val of_string : string -> t option
+  end
+
+  type t = {
+    by : Client_option_defaults_defaults_item_schema_decided_decided_by.t;
+    in_ : In_.t;
+  }
+
+  val to_json : t -> Yojson.Raw.t
+end
+
 module Client_refresh_queries_item_asks : sig
   module Per : sig
     type t = Resource | Annotation | Filters
@@ -5487,17 +5743,26 @@ module Errors_codes_bus_request : sig
   val to_json : t -> Yojson.Raw.t
 end
 
-module Errors_codes_transport_codes_item : sig
-  type t =
-    | Status of Errors_codes_transport_codes_item_status.t
-    | StatusFrom of Errors_codes_transport_codes_item_status_from.t
-    | NoStatus of Errors_codes_transport_codes_item_no_status.t
+module Errors_codes_transport_codes_item_status : sig
+  type t = {
+    code : string;
+    docs : string;
+    status : int;
+    limit_refusals :
+      Errors_codes_transport_codes_item_status_limit_refusals_item.t list option;
+  }
 
   val to_json : t -> Yojson.Raw.t
 end
 
 module Errors_codes_job : sig
   type t = { docs : string; codes : Errors_codes_job_codes_item.t list }
+
+  val to_json : t -> Yojson.Raw.t
+end
+
+module Errors_codes_control : sig
+  type t = { docs : string; codes : Errors_codes_control_codes_item.t list }
 
   val to_json : t -> Yojson.Raw.t
 end
@@ -6095,18 +6360,11 @@ module Conformance_implementations : sig
 end
 
 module Knowledge_base_status : sig
-  module Placement : sig
-    type t = Local | Codespace
-
-    val to_string : t -> string
-    val of_string : string -> t option
-  end
-
   type t = {
     name : string;
     key : string;
     recorded : bool;
-    placement : Placement.t;
+    placement : Enums.Kb_placement.t;
     root : string option;
     repo : string option;
     did : string option;
@@ -6329,6 +6587,14 @@ module Anchored_text_entry : sig
     t -> ([ `AnchoredTextEntry ] Models.t, Models.decode_error) result
 end
 
+module Client_option_defaults_defaults_item_schema_decided : sig
+  type t = {
+    decided : Client_option_defaults_defaults_item_schema_decided_decided.t;
+  }
+
+  val to_json : t -> Yojson.Raw.t
+end
+
 module Client_refresh_queries_item : sig
   type t =
     | Asks of Client_refresh_queries_item_asks.t
@@ -6362,12 +6628,22 @@ module Control_cli_commands_value : sig
   val to_json : t -> Yojson.Raw.t
 end
 
-module Errors_codes_transport : sig
+module Control_rpc_codes_codes_item : sig
   type t = {
+    number : int;
+    name : string;
     docs : string;
-    unclassified : string;
-    codes : Errors_codes_transport_codes_item.t list;
+    data : Error_data.t option;
   }
+
+  val to_json : t -> Yojson.Raw.t
+end
+
+module Errors_codes_transport_codes_item : sig
+  type t =
+    | Status of Errors_codes_transport_codes_item_status.t
+    | StatusFrom of Errors_codes_transport_codes_item_status_from.t
+    | NoStatus of Errors_codes_transport_codes_item_no_status.t
 
   val to_json : t -> Yojson.Raw.t
 end
@@ -7048,6 +7324,19 @@ module Control_cli : sig
   val to_model : t -> ([ `ControlCli ] Models.t, Models.decode_error) result
 end
 
+module Control_rpc_codes : sig
+  type t = {
+    field_comment : string;
+    codes : Control_rpc_codes_codes_item.t list;
+  }
+
+  val of_model : [ `ControlRpcCodes ] Models.t -> t
+  val to_json : t -> Yojson.Raw.t
+
+  val to_model :
+    t -> ([ `ControlRpcCodes ] Models.t, Models.decode_error) result
+end
+
 module Stack_start_result : sig
   type t = {
     dry_run : bool;
@@ -7089,24 +7378,6 @@ module Status_snapshot_result : sig
     t -> ([ `StatusSnapshotResult ] Models.t, Models.decode_error) result
 end
 
-module Errors_codes : sig
-  type t = {
-    field_comment : string;
-    bus_request : Errors_codes_bus_request.t;
-    transport : Errors_codes_transport.t;
-    job : Errors_codes_job.t;
-    session : Errors_codes_job.t;
-    sign_in : Errors_codes_job.t;
-    kb_identity : Errors_codes_job.t;
-    span_refusal : Errors_codes_job.t;
-    control : Errors_codes_job.t;
-  }
-
-  val of_model : [ `ErrorsCodes ] Models.t -> t
-  val to_json : t -> Yojson.Raw.t
-  val to_model : t -> ([ `ErrorsCodes ] Models.t, Models.decode_error) result
-end
-
 module Sdk_telemetry_telemetry : sig
   type t = {
     field_comment : string;
@@ -7129,24 +7400,10 @@ module Smelter_health : sig
     val of_string : string -> t option
   end
 
-  module Stream : sig
-    type t =
-      | Initial
-      | Connecting
-      | Open
-      | Reconnecting
-      | Degraded
-      | Unauthenticated
-      | Closed
-
-    val to_string : t -> string
-    val of_string : string -> t option
-  end
-
   type t = {
     status : Status.t;
     kb : string;
-    stream : Stream.t;
+    stream : Enums.Connection_state.t;
     following : Follower_following.t;
     events_processed : int;
     reconcile : Smelter_health_reconcile.t;
@@ -7221,7 +7478,7 @@ module Worker_engine_health : sig
     last_claim_at : string option;
     last_finished_at : string option;
     last_activity_at : string option;
-    active_job : Worker_engine_health_active_job.t option;
+    active_job : Worker_active_job.t option;
     jobs_completed : int;
   }
 
@@ -7253,6 +7510,17 @@ module Job_stored_progress : sig
 
   val to_model :
     t -> ([ `JobStoredProgress ] Models.t, Models.decode_error) result
+end
+
+module Client_option_defaults_defaults_item_schema : sig
+  type t =
+    | Reference of Client_option_defaults_defaults_item_schema_reference.t
+    | DateTime of Client_option_defaults_defaults_item_schema_date_time.t
+    | TypeParameter of
+        Client_option_defaults_defaults_item_schema_type_parameter.t
+    | Decided of Client_option_defaults_defaults_item_schema_decided.t
+
+  val to_json : t -> Yojson.Raw.t
 end
 
 module Conformance_step : sig
@@ -7291,6 +7559,16 @@ module Conformance_step : sig
 
   val to_model :
     t -> ([ `ConformanceStep ] Models.t, Models.decode_error) result
+end
+
+module Errors_codes_transport : sig
+  type t = {
+    docs : string;
+    unclassified : string;
+    codes : Errors_codes_transport_codes_item.t list;
+  }
+
+  val to_json : t -> Yojson.Raw.t
 end
 
 module Issuer_spec : sig
@@ -7627,6 +7905,24 @@ module Conformance_case : sig
     t -> ([ `ConformanceCase ] Models.t, Models.decode_error) result
 end
 
+module Errors_codes : sig
+  type t = {
+    field_comment : string;
+    bus_request : Errors_codes_bus_request.t;
+    transport : Errors_codes_transport.t;
+    job : Errors_codes_job.t;
+    session : Errors_codes_job.t;
+    sign_in : Errors_codes_job.t;
+    kb_identity : Errors_codes_job.t;
+    span_refusal : Errors_codes_job.t;
+    control : Errors_codes_control.t;
+  }
+
+  val of_model : [ `ErrorsCodes ] Models.t -> t
+  val to_json : t -> Yojson.Raw.t
+  val to_model : t -> ([ `ErrorsCodes ] Models.t, Models.decode_error) result
+end
+
 module Issuer : sig
   module Kind : sig
     type t = Issuer
@@ -7783,6 +8079,20 @@ module Gathered_context_focus_resource : sig
   val to_json : t -> Yojson.Raw.t
 end
 
+module Client_option_defaults_defaults_item : sig
+  type t = {
+    method_ : string;
+    parameter : string;
+    option : string option;
+    value : Yojson.Raw.t;
+    schema : Client_option_defaults_defaults_item_schema.t option;
+    sends : string option;
+    docs : string;
+  }
+
+  val to_json : t -> Yojson.Raw.t
+end
+
 module Inference_spec : sig
   type t = {
     providers : (string * Provider.t) list;
@@ -7900,6 +8210,19 @@ module Job_claimed_result : sig
 
   val to_model :
     t -> ([ `JobClaimedResult ] Models.t, Models.decode_error) result
+end
+
+module Client_option_defaults : sig
+  type t = {
+    field_comment : string;
+    defaults : Client_option_defaults_defaults_item.t list;
+  }
+
+  val of_model : [ `ClientOptionDefaults ] Models.t -> t
+  val to_json : t -> Yojson.Raw.t
+
+  val to_model :
+    t -> ([ `ClientOptionDefaults ] Models.t, Models.decode_error) result
 end
 
 module Inference : sig
