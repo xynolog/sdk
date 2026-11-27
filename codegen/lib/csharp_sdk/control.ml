@@ -1,6 +1,6 @@
 (* The launcher's control API as the C# SDK states it
    (Generated/ControlMethods.g.cs, from protocol/specs/src/control/methods.json):
-   which side sends a notification ([ControlSender]), and [ControlMethods], a
+   [ControlMethods], a
    property per method and per notification, named for its name in Pascal
    case. Each is a [ControlMethod<TParams, TResult>] or a
    [ControlNotification<TParams>] (Control/ControlMethod.cs), typed by the
@@ -24,7 +24,8 @@ let model (models : Models.t) id =
       (Refused
          (Printf.sprintf "names %s, which the C# SDK models as no type" id))
 
-let sender from = String.capitalize_ascii (T.control_sender_value from)
+(* Who sends a notification, as the model of ControlSender. *)
+let sender from = Models.enum_constant (T.control_sender_value from)
 
 (* A control method's or notification's property on ControlMethods. *)
 let property_name name = Text.pascal name
@@ -58,7 +59,10 @@ let notification models (n : T.notifications_item) =
   property ~docs:n.docs n.name
     ~type_:(C.Generic ("ControlNotification", [ model models n.params ]))
     ~args:
-      [ Arg (Str n.name); Arg (Member (Name "ControlSender", sender n.from)) ]
+      [
+        Arg (Str n.name);
+        Arg (Member (Name "global::Xynolog.Types.ControlSender", sender n.from));
+      ]
 
 let file (models : Models.t) (spec : Spec.t) =
   let t : T.t = spec.tables.control_methods in
@@ -105,16 +109,6 @@ let file (models : Models.t) (spec : Spec.t) =
                     namespace = "Xynolog.Control";
                     decls =
                       [
-                        C.Enum
-                          {
-                            attributes = [];
-                            modifiers = [ Public ];
-                            name = "ControlSender";
-                            members =
-                              List.map
-                                (fun from -> ([], sender from))
-                                T.control_sender_all;
-                          };
                         C.Type
                           {
                             attributes = [];

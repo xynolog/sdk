@@ -90,7 +90,7 @@ class ClientTypesCensusTest {
     @Test
     fun cacheStateHasTheSchemasBranchesEachOfItsMembers() {
         val branches = branches("CacheState", "status")
-        val written = cacheStates().associate { it.status to held(it.javaClass) + "status" }
+        val written = cacheStates().associate { it.status.value to held(it.javaClass) + "status" }
         assertEquals(branches.keys, written.keys)
         for ((status, members) in written) assertEquals(properties(branches.getValue(status)), members, status)
     }

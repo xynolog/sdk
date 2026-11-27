@@ -14,8 +14,8 @@ use std::path::PathBuf;
 use std::sync::Arc;
 use xynolog::errors::{SignInError, SignInErrorCode};
 use xynolog::session::{SignInKept, person_key};
-use xynolog::sign_in_store::{SignInStore, System, state_dir};
-use xynolog::types::StoredSession;
+use xynolog::sign_in_store::{SignInStore, state_dir};
+use xynolog::types::{StoredSession, System};
 
 // ── Where it is ─────────────────────────────────────────────────────────
 
@@ -27,7 +27,7 @@ fn the_state_home_is_where_the_shared_cases_say() {
     assert!(!cases.is_empty());
     for case in cases {
         let found = state_dir(
-            System::named(case["os"].as_str().expect("a case names its system")),
+            serde_json::from_value::<System>(case["os"].clone()).expect("a case names its system"),
             case["home"].as_str(),
             case["xdgStateHome"].as_str(),
             case["localAppData"].as_str(),

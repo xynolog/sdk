@@ -14,6 +14,72 @@ let union (v : Table.vocabulary) =
           (fun (c : Table.code) -> T.case ~about:[ Doc c.docs ] (T_str c.code))
           v.codes))
 
+let rpc_key r = String.uncapitalize_ascii (Table.rpc_pascal r)
+
+(* The JSON-RPC codes the control API answers with, a constant each, and the
+   one each control code is answered under, with whether it is retryable. *)
+let control_answers (t : Table.t) =
+  [
+    T.const "controlRpcCodes" ~as_const:true
+      ~about:
+        [
+          Doc
+            "Each JSON-RPC error code the launcher's control API answers with \
+             (control/rpc-codes.json), by its name.";
+        ]
+      (T.rows
+         (List.map
+            (fun (r : Tables.Control_rpc_codes.codes_item) ->
+              T.entry ~about:[ Doc r.docs ] (Ident (rpc_key r)) (T.Int r.number))
+            t.rpc_codes));
+    T.type_alias "ControlRpcCode"
+      ~about:
+        [ Doc "A JSON-RPC error code the launcher's control API answers with." ]
+      (T_index
+         ( T_paren (T_typeof "controlRpcCodes"),
+           T_keyof (T_typeof "controlRpcCodes") ));
+    T.const "controlErrorCodeAnswers" ~as_const:true
+      ~about:
+        [
+          Doc
+            "Each control code's JSON-RPC code, the one an answer carries it \
+             under, and whether it is retryable: whether the same request can \
+             succeed sent again unchanged, once something outside it changes.";
+        ]
+      ~satisfies:
+        (T_mapped
+           {
+             layout = Inline;
+             readonly = true;
+             key = "code";
+             in_ = T_name t.control.name;
+             value =
+               T_object
+                 ( Inline,
+                   [
+                     T.member ~readonly:true (Ident "rpc")
+                       (T_name "ControlRpcCode");
+                     T.member ~readonly:true (Ident "retryable")
+                       (T_name "boolean");
+                   ] );
+           })
+      (T.rows
+         (List.map
+            (fun (a : Table.answered) ->
+              T.entry (Quoted a.control_code.code)
+                (T.Object
+                   {
+                     layout = Inline;
+                     entries =
+                       [
+                         T.entry (Ident "rpc")
+                           (T.Member (Name "controlRpcCodes", rpc_key a.rpc));
+                         T.entry (Ident "retryable") (T.Bool a.retryable);
+                       ];
+                   }))
+            t.answered));
+  ]
+
 let text (t : Table.t) =
   T.text
     {
@@ -89,7 +155,7 @@ let text (t : Table.t) =
                   t.limit_refusals));
         ]
         @ List.map union t.others
-        @ [ union t.control ];
+        @ (union t.control :: control_answers t);
     }
 
 let file t = { Output.path; text = text t }

@@ -9,7 +9,7 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import xynolog.Spec
 
-/** ControlMethods against protocol/specs/src/control/methods.json: every notification and method, in the table's order, with what each carries, and ControlSender against the table schema's sides. */
+/** ControlMethods against protocol/specs/src/control/methods.json: every notification and method, in the table's order, with what each carries. */
 class ControlMethodsTest {
     private val table = Spec.read("control/methods.json").jsonObject
 
@@ -38,11 +38,5 @@ class ControlMethodsTest {
         }
         assertEquals(stated, held)
         ControlMethods.METHODS.forEach { (name, m) -> assertEquals(name, m.name) }
-    }
-
-    @Test
-    fun theSidesAreTheTableSchemas() {
-        val from = Spec.read("control/ControlSender.json").jsonObject.getValue("enum").jsonArray
-        assertEquals(from.map { it.jsonPrimitive.content }, ControlSender.entries.map { it.value })
     }
 }

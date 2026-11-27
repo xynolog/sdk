@@ -58,7 +58,10 @@ let session_codes = [ entry ~docs:"No auth." "session.auth-failed" ]
 
 let table ?(bus = bus_codes) ?(unrecognized = "bus.rejected")
     ?(transport = transport_codes) ?(unclassified = "error")
-    ?(session = session_codes) () =
+    ?(session = session_codes)
+    ?(control =
+      {|{"code":"control.failed","docs":"Failed.","rpc":-32603,"retryable":false}|})
+    () =
   Printf.sprintf
     {|{"$comment":"c",
       "busRequest":{"docs":"Why a bus request failed.","unrecognizedFailure":%s,"codes":%s},
@@ -73,10 +76,7 @@ let table ?(bus = bus_codes) ?(unrecognized = "bus.rejected")
        [ entry ~docs:"Unreachable." "unreachable" ])
     (plain "Why a span was refused."
        [ entry ~docs:"Out of range." "span-out-of-range" ])
-    (plain "Control."
-       [
-         {|{"code":"control.failed","docs":"Failed.","rpc":-32603,"retryable":false}|};
-       ])
+    (plain "Control." [ control ])
 
 let decode text =
   Decode.run ~file (Yojson.Safe.from_string text) Tables.Errors_codes.decode
@@ -86,7 +86,19 @@ let model text =
   | Ok (t, _) -> t
   | Error error -> Alcotest.fail (Decode.error_to_string error)
 
-let derive text = Error_codes.Table.derive (model text)
+(* The JSON-RPC codes the control codes are answered under, as
+   control/rpc-codes.json states them. *)
+let rpc_codes =
+  match
+    Decode.run ~file:"control/rpc-codes.json"
+      (Yojson.Safe.from_string
+         {|{"$comment":"c","codes":[{"number":-32603,"name":"internal-error","docs":"Broke."},{"number":-32000,"name":"operation-failed","docs":"Failed."}]}|})
+      Tables.Control_rpc_codes.decode
+  with
+  | Ok (t, _) -> t
+  | Error error -> Alcotest.fail (Decode.error_to_string error)
+
+let derive text = Error_codes.Table.derive ~rpc_codes (model text)
 
 let derived text =
   match derive text with
@@ -190,6 +202,26 @@ let rules =
          [
            "/busRequest/codes: restates no code as CommandError.code's \
             not-found";
+         ]);
+    case "each control code's JSON-RPC code, and whether it is retryable"
+      (fun () ->
+        let t = derived (table ()) in
+        Alcotest.(check (list (triple string string bool)))
+          "answered"
+          [ ("control.failed", "internal-error", false) ]
+          (List.map
+             (fun (a : Error_codes.Table.answered) ->
+               (a.control_code.code, a.rpc.name, a.retryable))
+             t.answered));
+    case "a control code answered under no JSON-RPC code is refused"
+      (refuses
+         (table
+            ~control:
+              {|{"code":"control.failed","docs":"Failed.","rpc":-1,"retryable":true}|}
+            ())
+         [
+           "/control/codes/0/rpc: is -1, which is none of \
+            control/rpc-codes.json's numbers";
          ]);
     case "a wire code restated twice is refused"
       (refuses
@@ -467,6 +499,39 @@ const (
 ~// Failed.
 ~ControlErrorCodeFailed ControlErrorCode = "control.failed"
 )
+
+// ControlRpcCode is a JSON-RPC error code the launcher's control API answers
+// with (control/rpc-codes.json).
+type ControlRpcCode int
+
+const (
+~// Broke.
+~ControlRpcCodeInternalError ControlRpcCode = -32603
+~// Failed.
+~ControlRpcCodeOperationFailed ControlRpcCode = -32000
+)
+
+// Rpc is the JSON-RPC code an answer carries the code under.
+func (c ControlErrorCode) Rpc() ControlRpcCode {
+~switch c {
+~case ControlErrorCodeFailed:
+~~return ControlRpcCodeInternalError
+~default:
+~~panic("a control code \"" + string(c) + "\" is none of ControlErrorCode's")
+~}
+}
+
+// Retryable is whether the same request can succeed sent again unchanged,
+// once something outside it changes: what ErrorData's retryable says of the
+// code.
+func (c ControlErrorCode) Retryable() bool {
+~switch c {
+~case ControlErrorCodeFailed:
+~~return false
+~default:
+~~panic("a control code \"" + string(c) + "\" is none of ControlErrorCode's")
+~}
+}
 |}
 
 let python =
@@ -487,6 +552,8 @@ __all__ = [
     "BUS_REQUEST_ERROR_CODES",
     "BusRequestErrorCode",
     "CONTROL_ERROR_CODES",
+    "CONTROL_RPC_INTERNAL_ERROR",
+    "CONTROL_RPC_OPERATION_FAILED",
     "ControlErrorCode",
     "IDENTITY_UNVERIFIABLE_REASONS",
     "IdentityUnverifiableReason",
@@ -502,6 +569,8 @@ __all__ = [
     "XYNOLOG_SESSION_ERROR_CODES",
     "XynologSessionErrorCode",
     "bus_request_code_for_wire_code",
+    "control_code_retryable",
+    "control_rpc_code",
     "transport_error_code_for_status",
 ]
 
@@ -641,6 +710,30 @@ type ControlErrorCode = Literal[
 ]
 
 CONTROL_ERROR_CODES: Final[tuple[ControlErrorCode, ...]] = ("control.failed",)
+
+CONTROL_RPC_INTERNAL_ERROR: Final = -32603
+"""Broke."""
+
+CONTROL_RPC_OPERATION_FAILED: Final = -32000
+"""Failed."""
+
+
+def control_rpc_code(code: ControlErrorCode) -> int:
+    """The JSON-RPC code of control/rpc-codes.json an answer carries a control code under."""
+    match code:
+        case "control.failed":
+            return CONTROL_RPC_INTERNAL_ERROR
+        case _:
+            assert_never(code)
+
+
+def control_code_retryable(code: ControlErrorCode) -> bool:
+    """Whether the same request can succeed sent again unchanged, once something outside it changes: what `ErrorData.retryable` says of the code."""
+    match code:
+        case "control.failed":
+            return False
+        case _:
+            assert_never(code)
 |}
 
 let typescript =
@@ -728,6 +821,22 @@ export type SpanRefusal =
 export type ControlErrorCode =
   /** Failed. */
   | 'control.failed';
+
+/** Each JSON-RPC error code the launcher's control API answers with (control/rpc-codes.json), by its name. */
+export const controlRpcCodes = {
+  /** Broke. */
+  internalError: -32603,
+  /** Failed. */
+  operationFailed: -32000,
+} as const;
+
+/** A JSON-RPC error code the launcher's control API answers with. */
+export type ControlRpcCode = (typeof controlRpcCodes)[keyof typeof controlRpcCodes];
+
+/** Each control code's JSON-RPC code, the one an answer carries it under, and whether it is retryable: whether the same request can succeed sent again unchanged, once something outside it changes. */
+export const controlErrorCodeAnswers = {
+  'control.failed': { rpc: controlRpcCodes.internalError, retryable: false },
+} as const satisfies { readonly [code in ControlErrorCode]: { readonly rpc: ControlRpcCode; readonly retryable: boolean } };
 |}
 
 let writers =

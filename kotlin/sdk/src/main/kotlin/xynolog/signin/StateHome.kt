@@ -1,17 +1,15 @@
 package xynolog.signin
 
+import xynolog.types.System
 import java.util.Locale
 
-/** The systems the launcher's state home differs by: macOS, Windows, and everything else. */
-public enum class Platform { MACOS, WINDOWS, OTHER }
-
-/** The system this process runs on. */
-public fun thisPlatform(): Platform {
-    val name = System.getProperty("os.name").lowercase(Locale.ROOT)
+/** The system this process runs on, as the launcher's state home differs by it. */
+public fun thisSystem(): System {
+    val name = java.lang.System.getProperty("os.name").lowercase(Locale.ROOT)
     return when {
-        name.startsWith("mac") -> Platform.MACOS
-        name.startsWith("windows") -> Platform.WINDOWS
-        else -> Platform.OTHER
+        name.startsWith("mac") -> System.Macos
+        name.startsWith("windows") -> System.Windows
+        else -> System.Other
     }
 }
 
@@ -26,11 +24,11 @@ private fun under(separator: Char, base: String, vararg names: String): String =
  * when there is no home. The path is written with the system's own separator,
  * not this machine's, so a case gives one answer whichever machine reads it.
  */
-public fun stateDir(platform: Platform, home: String?, xdgStateHome: String?, localAppData: String?): String? {
+public fun stateDir(system: System, home: String?, xdgStateHome: String?, localAppData: String?): String? {
     if (home.isNullOrEmpty()) return null
-    return when (platform) {
-        Platform.MACOS -> under('/', home, "Library", "Application Support", "xynolog")
-        Platform.WINDOWS -> if (!localAppData.isNullOrEmpty()) under('\\', localAppData, "xynolog") else under('\\', home, "AppData", "Local", "xynolog")
-        Platform.OTHER -> if (!xdgStateHome.isNullOrEmpty()) under('/', xdgStateHome, "xynolog") else under('/', home, ".local", "state", "xynolog")
+    return when (system) {
+        System.Macos -> under('/', home, "Library", "Application Support", "xynolog")
+        System.Windows -> if (!localAppData.isNullOrEmpty()) under('\\', localAppData, "xynolog") else under('\\', home, "AppData", "Local", "xynolog")
+        System.Other -> if (!xdgStateHome.isNullOrEmpty()) under('/', xdgStateHome, "xynolog") else under('/', home, ".local", "state", "xynolog")
     }
 }

@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	xynolog "github.com/xynolog/sdk/go"
+	"github.com/xynolog/sdk/go/api"
 )
 
 // The state home, as every program that finds tokens.json computes it
@@ -18,12 +19,12 @@ func TestTheStateHomeIsTheTables(t *testing.T) {
 	}
 	var table struct {
 		Cases []struct {
-			Why          string  `json:"why"`
-			OS           string  `json:"os"`
-			Home         *string `json:"home"`
-			XDGStateHome *string `json:"xdgStateHome"`
-			LocalAppData *string `json:"localAppData"`
-			Dir          *string `json:"dir"`
+			Why          string     `json:"why"`
+			OS           api.System `json:"os"`
+			Home         *string    `json:"home"`
+			XDGStateHome *string    `json:"xdgStateHome"`
+			LocalAppData *string    `json:"localAppData"`
+			Dir          *string    `json:"dir"`
 		} `json:"cases"`
 	}
 	if err := json.Unmarshal(b, &table); err != nil {
@@ -39,17 +40,8 @@ func TestTheStateHomeIsTheTables(t *testing.T) {
 		}
 		return *s
 	}
-	system := func(name string) xynolog.System {
-		switch name {
-		case "macos":
-			return xynolog.SystemMacOS
-		case "windows":
-			return xynolog.SystemWindows
-		}
-		return xynolog.SystemOther
-	}
 	for _, c := range table.Cases {
-		dir, ok := xynolog.StateDir(system(c.OS), set(c.Home), set(c.XDGStateHome), set(c.LocalAppData))
+		dir, ok := xynolog.StateDir(c.OS, set(c.Home), set(c.XDGStateHome), set(c.LocalAppData))
 		switch {
 		case c.Dir == nil && ok:
 			t.Errorf("%s: a state home %q, want none", c.Why, dir)

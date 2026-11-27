@@ -50,7 +50,7 @@ the coming release's, and gathers its changes as they land.
   typed by its params and its result descriptors, whether it runs alone and
   the notifications it sends, and each notification a
   `Control.Notification.t` typed by its params, with who sends it
-  (`Client | Launcher`).
+  (`Enums.Control_sender.t`).
 - `Error_codes` has every vocabulary of codes, the control plane's and span
   refusal's among them, each with `t`, a constructor per code, and `code`,
   the code each is.
@@ -60,6 +60,13 @@ the coming release's, and gathers its changes as they land.
 - An enum for every string enum Protocol roots (`Enums.Output_stream`,
   `Runtime`, `Run_service`, `Service_group`, `Kb_read_kind`, `Tab_verdict`),
   and each record's member of one is read as it.
+- `Error_codes.Control_rpc`, each code of `control/rpc-codes.json`, and
+  `Error_codes.control_rpc` and `control_retryable`: the JSON-RPC code each
+  control error code is answered with, and whether a request it failed is
+  worth sending again, generated from `control/rpc-codes.json` and
+  `errors/codes.json`.
+- `Discovery_url_path.discovery_url_path`, where a launcher's discovery
+  document is, generated from `client/surface.json`.
 
 ### Changed
 
@@ -116,6 +123,22 @@ the coming release's, and gathers its changes as they land.
   `Identifiers.Job_id.t`) and a member that names a string enum Protocol
   roots as its `Enums` type (`Records.Job_failure.failure_class` is an
   `Enums.Failure_class.t`), in place of a string and a `Models.t`.
+- `Browse.resource_representation` answers a
+  `Records.Resource_representation.t`, the record of Protocol's
+  `client/types/ResourceRepresentation.json`, `{ data; content_type }`, where
+  it answered a pair of the media type and the bytes.
+- `Yield.resource` takes a `Records.Put_binary_request.t`, the record of
+  Protocol's `client/types/PutBinaryRequest.json`, whose `file` holds the
+  bytes, in place of `~fields` and `~bytes`.
+- `Agent.sign_in` asks the gateway to name the agent once. A gateway that
+  does not answer, or answers 503 or 401, fails the sign-in at once, after
+  one grant and one `GET /api/users/me`. It no longer asks again after
+  `request_retry_pause_ms`, and no longer renews the token on a 401 to ask
+  again. Starting the sign-in again is the service's, as in the other eight
+  SDKs.
+- `Http_wire.check_user` gives a refusal its status's code (`Not_found` for
+  404, `Unavailable` for 5xx), as every other request does, where every
+  refusal that was not of the credential was `Unavailable`.
 - `Annotations.span_refusal` is `Error_codes.Span_refusal.t`, the
   generated vocabulary, in place of a variant of its own.
 - A member that holds null where its schema does not allow null is refused
@@ -208,6 +231,8 @@ the coming release's, and gathers its changes as they land.
   knowledge base the registry does not hold is `Registry.Unknown_kb`, and a
   sign-in whose id another knowledge base holds is `Id_conflict`, where each
   was a code Protocol does not state (`kb.not-found`, `kb.id-conflict`).
+- `Sign_in_store.state_directory` takes `~system`, Protocol's
+  `Enums.System.t`, where it took `~platform`, the SDK's own `platform`.
 - What discovery reads is the generated records Protocol names, in place of
   `Discovery`'s own types: `Discovery.parse_discovery_document` gives a
   `Records.Discovery_state.t` (`Absent` of a `Records.Discovery_absent.t`,

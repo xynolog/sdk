@@ -15,6 +15,12 @@ __all__ = [
     "BUS_REQUEST_ERROR_CODES",
     "BusRequestErrorCode",
     "CONTROL_ERROR_CODES",
+    "CONTROL_RPC_INTERNAL_ERROR",
+    "CONTROL_RPC_INVALID_PARAMS",
+    "CONTROL_RPC_INVALID_REQUEST",
+    "CONTROL_RPC_METHOD_NOT_FOUND",
+    "CONTROL_RPC_OPERATION_FAILED",
+    "CONTROL_RPC_PARSE_ERROR",
     "ControlErrorCode",
     "IDENTITY_UNVERIFIABLE_REASONS",
     "IdentityUnverifiableReason",
@@ -30,6 +36,8 @@ __all__ = [
     "XYNOLOG_SESSION_ERROR_CODES",
     "XynologSessionErrorCode",
     "bus_request_code_for_wire_code",
+    "control_code_retryable",
+    "control_rpc_code",
     "transport_error_code_for_status",
 ]
 
@@ -398,3 +406,140 @@ CONTROL_ERROR_CODES: Final[tuple[ControlErrorCode, ...]] = (
     "control.cancelled",
     "control.failed",
 )
+
+CONTROL_RPC_PARSE_ERROR: Final = -32700
+"""The line is not JSON, or holds more than one JSON value. Answered under a null id (F2)."""
+
+CONTROL_RPC_INVALID_REQUEST: Final = -32600
+"""The message is a batch, does not state `"jsonrpc": "2.0"` and a method, has a member JSON-RPC
+does not define, or its id is null, a fraction or one in flight. Answered under a null id (F2,
+F3).
+"""
+
+CONTROL_RPC_METHOD_NOT_FOUND: Final = -32601
+"""The API has no method of the request's name (F4)."""
+
+CONTROL_RPC_INVALID_PARAMS: Final = -32602
+"""The request's params are not what its method's schema admits, or are written to a version of the
+API this launcher does not speak (V1, P1).
+"""
+
+CONTROL_RPC_INTERNAL_ERROR: Final = -32603
+"""The launcher would send a result or error data that does not hold to its schema, or the handler
+panicked. Never retryable: the same request fails the same way (E4).
+"""
+
+CONTROL_RPC_OPERATION_FAILED: Final = -32000
+"""The operation the request ran failed. The data's code says why, and whether the request is
+retryable (E2).
+"""
+
+
+def control_rpc_code(code: ControlErrorCode) -> int:
+    """The JSON-RPC code of control/rpc-codes.json an answer carries a control code under."""
+    match code:
+        case "control.invalid-params":
+            return CONTROL_RPC_INVALID_PARAMS
+        case "control.unsupported-api-version":
+            return CONTROL_RPC_INVALID_PARAMS
+        case "control.invalid-request":
+            return CONTROL_RPC_OPERATION_FAILED
+        case "control.invalid-service":
+            return CONTROL_RPC_OPERATION_FAILED
+        case "control.invalid-value":
+            return CONTROL_RPC_OPERATION_FAILED
+        case "control.unknown-setting":
+            return CONTROL_RPC_OPERATION_FAILED
+        case "control.target-required":
+            return CONTROL_RPC_OPERATION_FAILED
+        case "control.target-ambiguous":
+            return CONTROL_RPC_OPERATION_FAILED
+        case "control.root-not-found":
+            return CONTROL_RPC_OPERATION_FAILED
+        case "control.root-not-registered":
+            return CONTROL_RPC_OPERATION_FAILED
+        case "control.stack-not-running":
+            return CONTROL_RPC_OPERATION_FAILED
+        case "control.stack-running":
+            return CONTROL_RPC_OPERATION_FAILED
+        case "control.start-in-progress":
+            return CONTROL_RPC_OPERATION_FAILED
+        case "control.runtime-unavailable":
+            return CONTROL_RPC_OPERATION_FAILED
+        case "control.dependency-unavailable":
+            return CONTROL_RPC_OPERATION_FAILED
+        case "control.unreachable":
+            return CONTROL_RPC_OPERATION_FAILED
+        case "control.instance-in-use":
+            return CONTROL_RPC_OPERATION_FAILED
+        case "control.instance-not-found":
+            return CONTROL_RPC_OPERATION_FAILED
+        case "control.confirmation-required":
+            return CONTROL_RPC_OPERATION_FAILED
+        case "control.unreadable-state":
+            return CONTROL_RPC_OPERATION_FAILED
+        case "control.already-signed-in":
+            return CONTROL_RPC_OPERATION_FAILED
+        case "control.sign-in-failed":
+            return CONTROL_RPC_OPERATION_FAILED
+        case "control.cancelled":
+            return CONTROL_RPC_OPERATION_FAILED
+        case "control.failed":
+            return CONTROL_RPC_OPERATION_FAILED
+        case _:
+            assert_never(code)
+
+
+def control_code_retryable(code: ControlErrorCode) -> bool:
+    """Whether the same request can succeed sent again unchanged, once something outside it changes: what `ErrorData.retryable` says of the code."""
+    match code:
+        case "control.invalid-params":
+            return False
+        case "control.unsupported-api-version":
+            return False
+        case "control.invalid-request":
+            return False
+        case "control.invalid-service":
+            return False
+        case "control.invalid-value":
+            return False
+        case "control.unknown-setting":
+            return False
+        case "control.target-required":
+            return False
+        case "control.target-ambiguous":
+            return False
+        case "control.root-not-found":
+            return False
+        case "control.root-not-registered":
+            return False
+        case "control.stack-not-running":
+            return True
+        case "control.stack-running":
+            return True
+        case "control.start-in-progress":
+            return True
+        case "control.runtime-unavailable":
+            return True
+        case "control.dependency-unavailable":
+            return True
+        case "control.unreachable":
+            return True
+        case "control.instance-in-use":
+            return False
+        case "control.instance-not-found":
+            return False
+        case "control.confirmation-required":
+            return False
+        case "control.unreadable-state":
+            return True
+        case "control.already-signed-in":
+            return False
+        case "control.sign-in-failed":
+            return True
+        case "control.cancelled":
+            return False
+        case "control.failed":
+            return True
+        case _:
+            assert_never(code)

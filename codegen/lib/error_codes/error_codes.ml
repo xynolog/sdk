@@ -16,7 +16,10 @@ module Kotlin = Kotlin
 
 let files ~root:_ (spec : Spec.t) =
   let ( let* ) = Result.bind in
-  let* t = Table.derive spec.tables.errors_codes in
+  let* t =
+    Table.derive ~rpc_codes:spec.tables.control_rpc_codes
+      spec.tables.errors_codes
+  in
   let* ocaml = Ocaml.files t in
   let* types = Kotlin_sdk.types_of spec in
   let* kotlin =

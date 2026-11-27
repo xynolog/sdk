@@ -1,9 +1,11 @@
 """Where the launcher's state home is, as every program that finds it computes it (`protocol/specs/src/sign-in-store/cases.json`)."""
 
 import pytest
+from pydantic import TypeAdapter
 from spec import SPEC, JsonObject, objects, read, text
 
-from xynolog.sign_in_store import System, state_dir
+from xynolog.sign_in_store import state_dir
+from xynolog.types import System
 
 CASES = objects(read(SPEC / "sign-in-store/cases.json")["cases"], "cases")
 
@@ -15,19 +17,13 @@ def said(case: JsonObject, name: str) -> str | None:
     return value
 
 
-def system(name: str) -> System:
-    """The system as the cases name it: `macos`, `windows`, or anything else."""
-    if name == "macos":
-        return "macos"
-    if name == "windows":
-        return "windows"
-    return "other"
+SYSTEM: TypeAdapter[System] = TypeAdapter[System](System)
 
 
 @pytest.mark.parametrize("case", CASES, ids=lambda case: text(case["why"], "why"))
 def test_the_state_home_is_where_the_table_says(case: JsonObject) -> None:
     found = state_dir(
-        system(text(case["os"], "os")),
+        SYSTEM.validate_python(case["os"]),
         home=said(case, "home"),
         xdg_state_home=said(case, "xdgStateHome"),
         local_app_data=said(case, "localAppData"),

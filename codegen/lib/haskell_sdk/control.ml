@@ -1,6 +1,5 @@
 (* The launcher's control API as the Haskell SDK states it (Xynolog.Control,
-   from protocol/specs/src/control/methods.json): which side sends a
-   notification ([ControlSender]), and a value per method and per
+   from protocol/specs/src/control/methods.json): a value per method and per
    notification, named for its name in camel case ([identity.users.list] is
    [identityUsersList]). A method is a [ControlMethod params result] and a
    notification a [ControlNotification params], whose type arguments are the
@@ -13,9 +12,9 @@ module C = Tables.Control_methods
 let component id = Filename.remove_extension (Filename.basename id)
 let value_name name = String.uncapitalize_ascii (Text.pascal name)
 
-let sender from =
-  "ControlSender" ^ String.capitalize_ascii (C.control_sender_value from)
-
+(* Who sends a notification, as Xynolog.Types's constructor of
+   ControlSender. *)
+let sender from = "ControlSender" ^ Naming.variant (C.control_sender_value from)
 let text = H.T_name "Text"
 
 let module_ ~banner (t : C.t) =
@@ -76,16 +75,12 @@ let module_ ~banner (t : C.t) =
             [
               H.import "Data.Text" ~items:[ Plain "Text" ];
               H.import "Xynolog.Types"
-                ~items:(List.map (fun name -> H.Plain name) carried);
+                ~items:
+                  (H.All "ControlSender"
+                  :: List.map (fun name -> H.Plain name) carried);
             ];
           body =
             [
-              H.data
-                ~about:[ "Which side of the control API sends a notification." ]
-                ~deriving:[ "Eq"; "Show" ] "ControlSender"
-                (List.map
-                   (fun from -> H.constructor (sender from))
-                   C.control_sender_all);
               H.record
                 ~about:
                   [

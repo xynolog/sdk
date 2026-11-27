@@ -42,6 +42,56 @@ let vocabulary ~docs (v : Table.vocabulary) =
     K.Enum_class v.go_name
 
 let member type_ (c : Table.code) = K.Member (K.Name type_, variant c.code)
+let rpc_constant r = "CONTROL_RPC_" ^ Text.upper_snake (Table.rpc_pascal r)
+
+(* The JSON-RPC codes the control API answers with, a constant each, and the
+   one each control code is answered under, with whether it is retryable. *)
+let control_answers (t : Table.t) =
+  let control = t.control.go_name in
+  let answering ~about ~returns name key value =
+    K.function_ ~about:(K.Doc about) ~visibility:K.Public
+      ~params:[ ("code", K.Type control) ]
+      ~returns:(K.Type returns) name
+      (K.Same_line
+         (K.When
+            {
+              subject = Some (K.Name "code");
+              branches =
+                List.map
+                  (fun (k, codes) ->
+                    {
+                      K.conditions =
+                        List.map
+                          (fun (c : Table.code) -> K.Equal (member control c))
+                          codes;
+                      result = value k;
+                    })
+                  (Table.grouped key t);
+            }))
+  in
+  List.map
+    (fun (r : Tables.Control_rpc_codes.codes_item) ->
+      K.property ~about:(K.Doc r.docs) ~visibility:K.Public
+        ~type_:(K.Type "Int") ~value:(K.Same_line (K.Int r.number))
+        (rpc_constant r))
+    t.rpc_codes
+  @ [
+      answering
+        ~about:
+          "The JSON-RPC code of control/rpc-codes.json an answer carries \
+           `code` under."
+        ~returns:"Int" "controlRpcCodeOf"
+        (fun (a : Table.answered) -> a.rpc)
+        (fun r -> K.Name (rpc_constant r));
+      answering
+        ~about:
+          "Whether the same request can succeed sent again unchanged, once \
+           something outside it changes: what `ErrorData.retryable` says of \
+           `code`."
+        ~returns:"Boolean" "controlCodeRetryable"
+        (fun (a : Table.answered) -> a.retryable)
+        (fun r -> K.Bool r);
+    ]
 
 let file ~(types : Kotlin_sdk.Types.spec) (t : Table.t) =
   let code_type =
@@ -175,4 +225,5 @@ let file ~(types : Kotlin_sdk.Types.spec) (t : Table.t) =
                          [ K.Int status; K.Str limit; member transport c ])
                      t.limit_refusals)))
           "LIMIT_REFUSAL_TRANSPORT_CODES";
-      ])
+      ]
+    @ control_answers t)

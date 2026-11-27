@@ -6,7 +6,7 @@ type entry
 exception Invalid_store
 
 val state_directory :
-  platform:Enums.System.t ->
+  system:Enums.System.t ->
   home:string option ->
   xdg_state_home:string option ->
   local_app_data:string option ->

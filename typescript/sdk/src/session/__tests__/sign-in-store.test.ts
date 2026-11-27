@@ -25,12 +25,7 @@ import { renewKept } from '../oauth';
 import { httpKb } from '../knowledge-base';
 import { XynologSession, type OpenedSession } from '../xynolog-session';
 import { MemorySignIn, type SignInKept } from '../sign-in-kept';
-import {
-  SignInStore,
-  stateDir,
-  type SignInFiles,
-  type System,
-} from '../sign-in-store';
+import { SignInStore, stateDir, type SignInFiles } from '../sign-in-store';
 import type { StoredSession } from '@xynolog/core';
 import { table, type Issues } from '../../__tests__/cases/sign_in_store_cases';
 import { table as ownerOnly } from '../../__tests__/cases/sign_in_store_owner_only';
@@ -48,13 +43,10 @@ const OWNER_SID = 'S-1-5-21-1004336348-1177238915-682003330-1001';
 const given = (value: string | null | undefined): string | null =>
   value === undefined ? null : value;
 
-const systemOf = (os: string): System =>
-  os === 'macos' || os === 'windows' ? os : 'other';
-
 describe("the launcher's state home (sign-in-store/cases.json, cases)", () => {
   it.each(table.cases.map((c) => [c.why, c] as const))('%s', (_why, c) => {
     expect(
-      stateDir(systemOf(c.os), {
+      stateDir(c.os, {
         home: c.home,
         xdgStateHome: given(c.xdgStateHome),
         localAppData: given(c.localAppData),
