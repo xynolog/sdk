@@ -336,7 +336,7 @@ func (h *heldBridge) Deliver(frame Frame) {
 	h.pass(func(sink FrameSink) { sink.Deliver(frame) })
 }
 
-func (h *heldBridge) DeliverRefusal(refusal *FrameRefusal) {
+func (h *heldBridge) DeliverRefusal(refusal *api.FrameRefusal) {
 	h.pass(func(sink FrameSink) { sink.DeliverRefusal(refusal) })
 }
 

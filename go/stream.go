@@ -394,7 +394,7 @@ func (s *stream) opened(conn uint64) {
 
 // carried is data read as a frame, and true; or, when BusFrame does not allow
 // it, its first fault. A frame carries what BusFrame names, and nothing more.
-func carried(data string) (Frame, required.Fault, bool) {
+func carried(data string) (Frame, api.Fault, bool) {
 	stated, fault, faulty := required.Read([]byte(data), reflect.TypeFor[api.BusFrame]())
 	if faulty {
 		return Frame{}, fault, false
@@ -413,14 +413,14 @@ func carried(data string) (Frame, required.Fault, bool) {
 	if scope, has := members[busFrameScope]; has && json.Unmarshal(scope, &frame.Scope) != nil {
 		return Frame{}, required.Undecoded, false
 	}
-	return frame, required.Fault{}, true
+	return frame, api.Fault{}, true
 }
 
 // refusalOf is the refusal of data, which BusFrame refused for fault, and
 // true when the channel and the scope it carries name its readers; false
 // when they do not, and it names no reader. It carries data's correlation id
 // when that can be read.
-func refusalOf(data string, fault required.Fault) (*FrameRefusal, bool) {
+func refusalOf(data string, fault api.Fault) (*api.FrameRefusal, bool) {
 	var members map[string]json.RawMessage
 	if json.Unmarshal([]byte(data), &members) != nil {
 		return nil, false
@@ -434,15 +434,15 @@ func refusalOf(data string, fault required.Fault) (*FrameRefusal, bool) {
 	if !ok {
 		return nil, false
 	}
-	refusal := &FrameRefusal{Channel: readers.Channel, Member: fault.Member, Reason: fault.Reason, Payload: members[busFramePayload], Envelope: readers.Envelope}
+	readers.Payload = members[busFramePayload]
 	// Its correlation id can be read when a frame of it and its readers alone is one BusFrame allows.
 	if correlationID, has := members[busFrameCorrelationId]; has {
 		named[busFrameCorrelationId] = correlationID
 		if read, ok := framed(named); ok {
-			refusal.CorrelationID = read.CorrelationID
+			readers.CorrelationID = read.CorrelationID
 		}
 	}
-	return refusal, true
+	return frameRefusal(readers, fault), true
 }
 
 // framed is members read as a frame, and true; false when BusFrame does not

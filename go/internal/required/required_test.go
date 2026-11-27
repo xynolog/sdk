@@ -30,15 +30,17 @@ type item struct {
 }
 
 // lacks and malformed are the faults of each reason at member.
-func lacks(member string) Fault { return Fault{Member: member, Reason: api.FrameRefusalReasonLacks} }
-func malformed(member string) Fault {
-	return Fault{Member: member, Reason: api.FrameRefusalReasonMalformed}
+func lacks(member string) api.Fault {
+	return api.Fault{Member: member, Reason: api.FrameRefusalReasonLacks}
+}
+func malformed(member string) api.Fault {
+	return api.Fault{Member: member, Reason: api.FrameRefusalReasonMalformed}
 }
 
 // none is no fault.
-var none = Fault{}
+var none = api.Fault{}
 
-func faults(t *testing.T, generated reflect.Type, text string, want Fault) {
+func faults(t *testing.T, generated reflect.Type, text string, want api.Fault) {
 	t.Helper()
 	_, fault, faulty := Read([]byte(text), generated)
 	if faulty != (want != none) || fault != want {
@@ -48,7 +50,7 @@ func faults(t *testing.T, generated reflect.Type, text string, want Fault) {
 
 func TestWhatATypeOfNoSchemaRequiresIsReadFromTheType(t *testing.T) {
 	generated := reflect.TypeFor[written]()
-	for text, want := range map[string]Fault{
+	for text, want := range map[string]api.Fault{
 		`{"nickname":null}`:                                   lacks("name"),
 		`{"name":null,"nickname":"n"}`:                        lacks("name"),
 		`{"name":"a"}`:                                        lacks("nickname"),
@@ -72,7 +74,7 @@ func TestWhatATypeOfNoSchemaRequiresIsReadFromTheType(t *testing.T) {
 
 func TestWhatATypeOfASchemaRequiresIsItsSchemas(t *testing.T) {
 	resource := reflect.TypeFor[api.ResourceDescriptor]()
-	for text, want := range map[string]Fault{
+	for text, want := range map[string]api.Fault{
 		`{"@id":"r","name":"n","representations":[]}`:                                                                                lacks("@context"),
 		`{"@context":"c","@id":"r","name":"n","representations":[]}`:                                                                 none,
 		`{"@context":"c","@id":"r","name":null,"representations":[]}`:                                                                lacks("name"),
@@ -105,7 +107,7 @@ func TestWhatATypeOfASchemaRequiresIsItsSchemas(t *testing.T) {
 }
 
 // faultsAs holds the JSON text to the shape written as the table writes one.
-func faultsAs(t *testing.T, written string, text string, want Fault) {
+func faultsAs(t *testing.T, written string, text string, want api.Fault) {
 	t.Helper()
 	var s shape
 	var value any
@@ -220,7 +222,7 @@ func TestAnObjectsMembersAreHeldTogether(t *testing.T) {
 }
 
 // readsAs reads the JSON text as the shape written as the table writes one.
-func readsAs(t *testing.T, written string, text string) (string, Fault, bool) {
+func readsAs(t *testing.T, written string, text string) (string, api.Fault, bool) {
 	t.Helper()
 	var s shape
 	var value any
@@ -288,7 +290,7 @@ func TestATypeWrappingOneOfASchemaHoldsItToTheSchema(t *testing.T) {
 }
 
 func TestEveryFaultIsSaidAsEverySDKSaysIt(t *testing.T) {
-	for fault, said := range map[Fault]string{
+	for fault, said := range map[api.Fault]string{
 		lacks("representations.mediaType"): "it has no `representations.mediaType`",
 		malformed("representations"):       "its `representations` is malformed",
 		Undecoded:                          "it is malformed",

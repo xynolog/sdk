@@ -170,7 +170,7 @@ var lifecycle = []bus.Channel{bus.JobReportProgress.Channel(), bus.JobComplete.C
 // refusal of one, which names no job.
 type heard struct {
 	channel  bus.Channel
-	refusal  *FrameRefusal
+	refusal  *api.FrameRefusal
 	jobID    api.JobId
 	jobType  api.JobType
 	progress api.JobReportProgressCommand
@@ -187,7 +187,7 @@ type heard struct {
 // verb it states, its result that verb's.
 func hear(one arrival) (heard, bool) {
 	if one.refusal != nil {
-		return heard{channel: one.refusal.Channel, refusal: one.refusal}, true
+		return heard{channel: bus.Channel(one.refusal.Channel), refusal: one.refusal}, true
 	}
 	frame := one.frame
 	said := heard{channel: frame.Channel}
@@ -410,7 +410,7 @@ func followed[C any](ctx context.Context, l *links, create api.JobCreateCommand,
 			if one.refusal != nil {
 				// It names no job, and is no word of this one: neither deadline starts again.
 				var event JobRefused
-				event.Data.Channel, event.Data.Member, event.Data.Reason = one.refusal.Channel, one.refusal.Member, one.refusal.Reason
+				event.Data.Channel, event.Data.Member, event.Data.Reason = bus.Channel(one.refusal.Channel), one.refusal.Member, one.refusal.Reason
 				report(event)
 				continue
 			}

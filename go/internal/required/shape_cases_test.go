@@ -47,7 +47,7 @@ func TestShapeCases(t *testing.T) {
 			}
 			want := none
 			if c.Refused {
-				want = Fault{Member: c.Member, Reason: c.Reason}
+				want = api.Fault{Member: c.Member, Reason: c.Reason}
 			}
 			fault, _, faulty := faultOf(&shape{Ref: c.Schema}, value, "")
 			if faulty != c.Refused || fault != want {

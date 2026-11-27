@@ -212,8 +212,12 @@ func (f *FaultyTransport) Deliver(frame xynolog.Frame) {
 // correlation id it carries, and to whoever listens on its channel. A
 // refusal of a frame its stream does not carry is dropped, as the frame
 // would be.
-func (f *FaultyTransport) DeliverRefusal(refusal *xynolog.FrameRefusal) {
-	if !f.carries(refusal.Channel, refusal.Scope) {
+func (f *FaultyTransport) DeliverRefusal(refusal *api.FrameRefusal) {
+	var scope api.ResourceId
+	if refusal.Scope != nil {
+		scope = *refusal.Scope
+	}
+	if !f.carries(bus.Channel(refusal.Channel), scope) {
 		return
 	}
 	f.router.RouteRefusal(refusal)

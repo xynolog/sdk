@@ -45,6 +45,9 @@ the coming release's, and gathers its changes as they land.
   type of its own schema, read from the table as Protocol holds it.
 - `ArchivistRoute`: each operation of the Archivist's HTTP surface, its method
   and its path (`ArchivistRouteGetHealth`, `ArchivistRouteStoreResource`, …).
+- `api.Fault.String()`: what every SDK says of a fault, as a refused frame's
+  error says it (``it has no `member` ``, ``its `member` is malformed``, or
+  `it is malformed`).
 
 ### Changed
 
@@ -156,6 +159,15 @@ the coming release's, and gathers its changes as they land.
   `ThresholdMs`, whole milliseconds, in place of `SilentFor` and `Threshold`.
   A failure's `CompletedUnits` and `UnitCursors` are pointers, nil when it
   states none, as `api.JobFailCommand`'s are.
+- A refused frame is an `*api.FrameRefusal`, the type of Protocol's
+  `client/types/FrameRefusal.json`, in place of the package's own
+  `FrameRefusal`: it is the error a channel's readers are given in the
+  frame's place, and what `FrameSink.DeliverRefusal`,
+  `ReplyRouter.RouteRefusal` and `PendingReply.Refused` take and give. Its
+  `Channel` is the channel's name as text, where it was a `bus.Channel`. Its
+  scope and correlation id are `Scope` and `CorrelationId`, nil when it names
+  none, in place of its embedded `Envelope`. Its `Payload` is the frame's
+  payload as it came, a `json.RawMessage`, nil when it carried none.
 - A trace is `*api.TraceCarrier`, the type Protocol states, in place of
   `TraceContext`, which is gone: `Frame.Trace`, `Delivered.Trace` and
   `HeldJob.Trace` are nil for none, where they were the zero `TraceContext`,
