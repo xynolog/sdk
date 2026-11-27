@@ -75,35 +75,26 @@ import Xynolog.Internal.Schema (validateProperty)
 import Xynolog.Internal.StateValue qualified as State
 import Xynolog.Internal.Telemetry (traceCarrier)
 import Xynolog.Transport.Facts
-import Xynolog.Types (BusFrame (..), BusFramePayload (..), ConnectionState (..), ResourceId, TraceCarrier)
+import Xynolog.Types (BusFrame (..), BusFramePayload (..), ConnectionState (..), FrameRefusal (..), ResourceId, TraceCarrier)
 
 data Frame = Frame {wireFrame :: BusFrame, frameTrace :: Maybe TraceCarrier} deriving (Eq, Show)
-
-data FrameRefusal = FrameRefusal
-  { refusedChannel :: Text,
-    refusedPayload :: Maybe Value,
-    refusedScope :: Maybe ResourceId,
-    refusedCorrelationId :: Maybe Text,
-    fault :: Fault
-  }
-  deriving (Eq, Show)
 
 data Carried = Arrived Frame | FrameRejected FrameRefusal deriving (Eq, Show)
 
 carriedChannel :: Carried -> Text
 carriedChannel (Arrived frame) = busFrameChannel (wireFrame frame)
-carriedChannel (FrameRejected refused) = refusedChannel refused
+carriedChannel (FrameRejected refused) = frameRefusalChannel refused
 
 carriedScope :: Carried -> Maybe ResourceId
 carriedScope (Arrived frame) = busFrameScope (wireFrame frame)
-carriedScope (FrameRejected refused) = refusedScope refused
+carriedScope (FrameRejected refused) = frameRefusalScope refused
 
 carriedCorrelationId :: Carried -> Maybe Text
 carriedCorrelationId (Arrived frame) = busFrameCorrelationId (wireFrame frame)
-carriedCorrelationId (FrameRejected refused) = refusedCorrelationId refused
+carriedCorrelationId (FrameRejected refused) = frameRefusalCorrelationId refused
 
 refusalSaid :: FrameRefusal -> Text
-refusalSaid refused = "a frame on " <> refusedChannel refused <> " is not that channel's: " <> faultSaid (fault refused)
+refusalSaid refused = "a frame on " <> frameRefusalChannel refused <> " is not that channel's: " <> faultSaid (Fault (frameRefusalMember refused) (frameRefusalReason refused))
 
 data EventBus = EventBus (Delivery.Hub Carried) (TVar (Maybe Context.Context)) deriving (Eq)
 

@@ -54,6 +54,14 @@ the coming release's, and gathers its changes as they land.
 
 ### Changed
 
+- A frame's refusal is Protocol's `FrameRefusal` and a refusal's fault its
+  `Fault`, the types `Xynolog.Types` carries, where the SDK wrote its own. A
+  refusal's members are `frameRefusalChannel`, `frameRefusalMember`,
+  `frameRefusalReason`, `frameRefusalPayload`, `frameRefusalScope` and
+  `frameRefusalCorrelationId`, where they were `refusedChannel`,
+  `refusedPayload`, `refusedScope`, `refusedCorrelationId` and a `fault`; a
+  fault's are `faultMember` and `faultReason`, where they were `member` and
+  `reason`.
 - A map whose schema names its keys by a schema of their own is keyed by that
   schema's type: `inferenceSpecProviders` is a
   `Map InferenceProvider Provider`, and `serviceTelemetryTelemetrySdk` is

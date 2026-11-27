@@ -7,7 +7,7 @@ import Data.Aeson.KeyMap qualified as KM
 import Data.Text (Text)
 import Data.Text qualified as Text
 import Data.Text.Encoding (encodeUtf8)
-import Xynolog.Internal.Required (Fault, faultOf, undecoded)
+import Xynolog.Internal.Required (Fault (..), faultOf, undecoded)
 import Xynolog.Internal.Transport (FrameRefusal (..))
 import Xynolog.Types (BusFrame)
 
@@ -29,11 +29,13 @@ readFrame text = case eitherDecodeStrict' (encodeUtf8 text) of
         Just scope <- readScope (KM.lookup "scope" fields) =
           Refused
             ( FrameRefusal
-                channel
-                (KM.lookup "payload" fields)
-                scope
-                (nonempty (KM.lookup "correlationId" fields))
-                issue
+                { frameRefusalChannel = channel,
+                  frameRefusalMember = faultMember issue,
+                  frameRefusalReason = faultReason issue,
+                  frameRefusalPayload = KM.lookup "payload" fields,
+                  frameRefusalScope = scope,
+                  frameRefusalCorrelationId = nonempty (KM.lookup "correlationId" fields)
+                }
             )
     refuse _ issue = Rejected issue
     readScope Nothing = Just Nothing

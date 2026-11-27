@@ -96,14 +96,16 @@ decoded channel (Transport.Arrived frame) =
           let issue = case Required.faultChannel (channelName channel) (Object raw) of
                 Just value -> value
                 Nothing -> case identity of Left () -> Fault userField FrameRefusalReasonMalformed; Right _ -> Required.undecoded
-              way = if Required.member issue == "" then "payload" else "payload." <> Required.member issue
+              way = if faultMember issue == "" then "payload" else "payload." <> faultMember issue
            in Refused
                 ( FrameRefusal
-                    (channelName channel)
-                    (Just (Object raw))
-                    (busFrameScope (Transport.wireFrame frame))
-                    (busFrameCorrelationId (Transport.wireFrame frame))
-                    (issue {Required.member = way})
+                    { frameRefusalChannel = channelName channel,
+                      frameRefusalMember = way,
+                      frameRefusalReason = faultReason issue,
+                      frameRefusalPayload = Just (Object raw),
+                      frameRefusalScope = busFrameScope (Transport.wireFrame frame),
+                      frameRefusalCorrelationId = busFrameCorrelationId (Transport.wireFrame frame)
+                    }
                 )
 
 frames :: Bus -> Channel scope payload -> ScopeArg scope -> (Stream (Of (Heard payload)) IO () -> IO result) -> IO result
@@ -127,9 +129,11 @@ request bus operation input timeoutMs = deliveredPayload <$> requestDelivered bu
 payloadRefusalSaid :: FrameRefusal -> Text
 payloadRefusalSaid refusal =
   "a payload on "
-    <> refusedChannel refusal
+    <> frameRefusalChannel refusal
     <> " is not that channel's: "
-    <> Required.faultSaid ((fault refusal) {Required.member = if Required.member (fault refusal) == "payload" then "" else Text.drop 8 (Required.member (fault refusal))})
+    <> Required.faultSaid (Fault (if way == "payload" then "" else Text.drop 8 way) (frameRefusalReason refusal))
+  where
+    way = frameRefusalMember refusal
 
 -- A refused reply is told to the request awaiting it and to no one else: the
 -- transport's failure report is for a refused frame that names no reader.

@@ -19,10 +19,9 @@ import Data.Text (Text)
 import Data.Text qualified as Text
 import Data.Text.Encoding (encodeUtf8)
 import Data.Vector qualified as Vector
+import Xynolog.Internal.Generated.Models.Fault (Fault (..))
 import Xynolog.Internal.Generated.Models.FrameRefusalReason (FrameRefusalReason (..))
 import Xynolog.Internal.Generated.Required (shapesJSON)
-
-data Fault = Fault {member :: Text, reason :: FrameRefusalReason} deriving (Eq, Show)
 
 undecoded :: Fault
 undecoded = Fault "" FrameRefusalReasonMalformed

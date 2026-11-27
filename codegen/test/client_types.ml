@@ -155,7 +155,7 @@ let reconciled_union quality : M.shape =
 
 let cases =
   [
-    case "a refused frame's report is stated by the transport's FrameRefusal"
+    case "a refused frame's report is stated by Protocol's FrameRefusal"
       (fun () ->
         match
           W.operation_reports
@@ -170,17 +170,11 @@ let cases =
         with
         | Ok file ->
             Alcotest.(check bool)
-              "the reason is the generated FrameRefusalReason" true
-              (contains "\"reason\" .= reason (fault value0)" (text file))
+              "the reason is the generated FrameRefusal's" true
+              (contains "\"reason\" .= frameRefusalReason value0" (text file))
         | Error errors ->
             Alcotest.failf "refused: %s"
               (String.concat "; " (List.map Decode.error_to_string errors)));
-    case
-      "a refused frame's report of a member no FrameRefusal states is refused"
-      (fun () ->
-        refused
-          (W.operation_reports
-             ~shape:(refused_frame [ member "payload" (Scalar String) ])));
     case "a record's optional member is refused" (fun () ->
         refused
           (W.pending_annotation
