@@ -1,7 +1,7 @@
 (* The testing kit's facts as the OCaml SDK reads them
    (ocaml/sdk/lib/testing_facts.ml): the faults, each drawn as likely as the
-   others and a delay of the table's bounds, the delivery steps, the schedule's
-   length and the slack. *)
+   others and a delay of the table's bounds, the delivery steps, each step's
+   word and every step, the schedule's length and the slack. *)
 
 module O = Ocaml_syntax
 module T = Tables.Client_testing
@@ -31,6 +31,19 @@ let file (s : T.t) =
               (List.map
                  (fun op -> O.constructor (String.capitalize_ascii op))
                  s.delivery_ops.ops)));
+      O.let_ "delivery_op_name"
+        (O.function_
+           (List.map
+              (fun op ->
+                O.case
+                  (O.Pattern.construct (String.capitalize_ascii op))
+                  (O.string op))
+              s.delivery_ops.ops));
+      O.let_ "every_delivery_op"
+        (O.list
+           (List.map
+              (fun op -> O.construct (String.capitalize_ascii op))
+              s.delivery_ops.ops));
       O.let_ "fault_actions"
         (O.fun_
            [ O.Pattern.var "random" ]

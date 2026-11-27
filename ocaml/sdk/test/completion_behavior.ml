@@ -365,8 +365,10 @@ let testing () =
   in
   check broken "silent output violates L1";
   let random = Random.State.make [| 9 |] in
+  let drawn = ref [] in
   for _ = 1 to 20 do
     let operations = Testing.delivery_ops random ~max_length:8 in
+    drawn := operations @ !drawn;
     check
       (List.length operations <= 8 && List.mem Testing.Write operations)
       "generated delivery schedule";
@@ -375,6 +377,13 @@ let testing () =
       (schedule <> [] && List.length schedule <= 8)
       "generated fault schedule"
   done;
+  let steps = List.sort_uniq compare !drawn in
+  check
+    (List.mem Testing.Transition steps
+    && List.length
+         (List.sort_uniq compare (List.map Testing.delivery_op_name steps))
+       = List.length steps)
+    "every step drawn, each by its own word";
   let setup ~duplicate run =
     let events = ref [] in
     run

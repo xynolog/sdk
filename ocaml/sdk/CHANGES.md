@@ -11,6 +11,8 @@ the coming release's, and gathers its changes as they land.
 - `Client_timing.client` and `Client_timing.transport`, the records of what a
   caller may override of the timing a client and its transport keep, with the
   protocol's values of them, `client_defaults` and `transport_defaults`.
+- `Testing.delivery_op_name`: a delivery step as Protocol's word for it
+  (`"write"`, `"transition"`), as the other SDKs carry it.
 - `Records.Engine_with_limits` and `Records.Engines_with_limits`, the types of
   Protocol's `client/types/EngineWithLimits.json` and
   `client/types/EnginesWithLimits.json`.

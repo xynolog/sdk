@@ -25,7 +25,12 @@ public struct BusRequestError: Error, Sendable, CustomStringConvertible {
   }
 }
 extension ConnectionState {
-  func mayBecome(_ next: Self) -> Bool { connectionStateMoves[self]!.contains(next) }
+  func mayBecome(_ next: Self) -> Bool {
+    guard let moves = connectionStateMoves[self] else {
+      preconditionFailure("connectionStateMoves states no moves from \(self)")
+    }
+    return moves.contains(next)
+  }
 }
 
 /// The four retry rules of `retryRules`, each asked whether it retries an answer: its status, or
