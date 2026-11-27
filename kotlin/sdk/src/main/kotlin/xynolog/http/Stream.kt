@@ -101,7 +101,7 @@ private fun unscoped(carried: Carried, place: Place?): Carried = if (carried.sco
 } else {
     when (carried) {
         is Frame -> carried.unscoped(place)
-        is Refused -> carried.copy(refusal = carried.refusal.copy(scope = null))
+        is Refused -> Refused(carried.refusal.copy(scope = null))
     }
 }
 
@@ -398,8 +398,7 @@ internal class Stream(
         val read = when (val line = lineOf(data)) {
             is Line.Allowed -> line.frame
             is Line.Refused -> {
-                // This class's own Refused, a report, is not the transport's.
-                val refused = xynolog.transport.Refused(line.refusal)
+                val refused = Refused(line.refusal)
                 router.route(refused)
                 hub.deliver(refused, null)
                 return
@@ -619,16 +618,7 @@ internal fun lineOf(data: String): Line {
         null -> null
         else -> (held as? JsonPrimitive)?.takeIf { it.isString }?.let { ResourceId.parse(it.content) } ?: return Line.Unaddressed(fault)
     }
-    return Line.Refused(
-        FrameRefusal(
-            channel = channel,
-            member = fault.member,
-            reason = fault.reason,
-            payload = stated[BUS_FRAME_PAYLOAD],
-            scope = scope,
-            correlationId = correlationIdOf(channel, stated[BUS_FRAME_CORRELATION_ID]),
-        ),
-    )
+    return Line.Refused(FrameRefusal(channel = channel, member = fault.member, reason = fault.reason, payload = stated[BUS_FRAME_PAYLOAD], scope = scope, correlationId = correlationIdOf(channel, stated[BUS_FRAME_CORRELATION_ID])))
 }
 
 /** The correlation id a frame on `channel` carries as `held`, when BusFrame allows it, whatever the frame's other faults. */

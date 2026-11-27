@@ -299,11 +299,16 @@ public data class Delivered<P>(
     override val status: String get() = "delivered"
 }
 
-/** A frame refused, in its place: BusFrame does not allow it, or its payload is not its channel's. */
-public data class Refused(
-    /** Why the frame was refused. */
-    public val refusal: FrameRefusal,
-) : Heard<Nothing>,
+/**
+ * A frame refused, in its place: BusFrame does not allow it, or its payload
+ * is not its channel's. `refusal` is the refusal as Protocol states it: the
+ * frame's channel, the way to its first fault and why, its payload as it
+ * came, the scope it was delivered on, and its correlation id, when it
+ * carries one BusFrame allows. A request awaiting the reply it names fails
+ * with it at once.
+ */
+public data class Refused(public val refusal: FrameRefusal) :
+    Heard<Nothing>,
     Carried {
     override val channel: String get() = refusal.channel
     override val correlationId: String? get() = refusal.correlationId

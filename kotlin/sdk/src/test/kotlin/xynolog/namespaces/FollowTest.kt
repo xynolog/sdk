@@ -369,7 +369,7 @@ class FollowTest {
         queue.until("job:create")
         val created = queue.asked("job:create").single()
         // Before the job has its id: held, as the job's own frames are.
-        client.bus.deliver(Refused(FrameRefusal("job:fail", "payload.error", FrameRefusalReason.Lacks, json("""{"jobId":"job-1"}"""))))
+        client.bus.deliver(Refused(FrameRefusal(channel = "job:fail", member = "payload.error", reason = FrameRefusalReason.Lacks, payload = json("""{"jobId":"job-1"}"""))))
         client.say("job:report-progress", "job-1", "mark", *progress(10))
         delay(100)
         assertFalse(read.words.isCompleted)
@@ -391,7 +391,7 @@ class FollowTest {
         val read = following(client.highlighting())
         queue.until("job:create")
         delay(SILENCE * 3 / 4)
-        client.bus.deliver(Refused(FrameRefusal("job:complete", "payload.jobId", FrameRefusalReason.Lacks, json("""{"resourceId":"res-1","jobType":"mark"}"""))))
+        client.bus.deliver(Refused(FrameRefusal(channel = "job:complete", member = "payload.jobId", reason = FrameRefusalReason.Lacks, payload = json("""{"resourceId":"res-1","jobType":"mark"}"""))))
         assertEquals(listOf("created job-1", "refused job:complete payload.jobId lacks", "complete"), soon(read.words))
         // Asked once the job has been silent since its creation, not since the refusal.
         val silent = queue.asked("job:status-requested").single().atMs - queue.asked("job:create").single().atMs
@@ -635,7 +635,7 @@ class FollowTest {
         queue.until("job:create")
         val created = queue.asked("job:create").single().atMs
         delay(STALL * 2 / 3)
-        client.bus.deliver(Refused(FrameRefusal("job:report-progress", "payload.jobId", FrameRefusalReason.Lacks, json("""{"resourceId":"res-1","jobType":"yield"}"""))))
+        client.bus.deliver(Refused(FrameRefusal(channel = "job:report-progress", member = "payload.jobId", reason = FrameRefusalReason.Lacks, payload = json("""{"resourceId":"res-1","jobType":"yield"}"""))))
         val ended = assertInstanceOf(JobError::class.java, failedWith(stalled))
         assertEquals("job.stalled", ended.code)
         queue.until("job:cancel-requested")

@@ -66,8 +66,9 @@ the coming release's, and gathers its changes as they land.
 ### Changed
 
 - The sign-in store reads each entry with `readAs(SignIn.self, …)`, held to
-  the Required table's `SignIn`, as every SDK does: an entry with a fault as Protocol's `SignIn` states it, such as an empty
-  access token (an `AccessToken` is at least one character), is no sign-in.
+  the Required table's `SignIn`, as every SDK does: an entry with a fault as
+  Protocol's `SignIn` states it, such as an empty access token (an
+  `AccessToken` is at least one character), is no sign-in.
 - A map whose schema names its keys by a schema of their own is keyed by that
   schema's type: `InferenceSpec.providers` is a
   `[InferenceProvider: Provider]`, and `ServiceTelemetryTelemetry.sdk` is

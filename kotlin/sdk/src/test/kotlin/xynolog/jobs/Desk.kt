@@ -87,7 +87,7 @@ internal class Desk(clock: CoroutineContext, channels: Collection<String>, wire:
 
     /** A broadcast this worker's transport refuses, its payload being no object. */
     fun relayRefused(channel: String, payload: JsonElement): Unit =
-        transport.deliver(Refused(FrameRefusal(channel, "payload", FrameRefusalReason.Malformed, payload)))
+        transport.deliver(Refused(FrameRefusal(channel = channel, member = "payload", reason = FrameRefusalReason.Malformed, payload = payload)))
 
     /** What was said on `channel`, in order. */
     fun sent(channel: String): List<JsonObject> = transport.emitted.filter { it.channel == channel }.map { it.payload }

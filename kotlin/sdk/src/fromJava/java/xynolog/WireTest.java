@@ -35,6 +35,7 @@ import xynolog.transport.Upload;
 import xynolog.types.BeckonFocusEvent;
 import xynolog.types.EmptyObject;
 import xynolog.types.FrameAddEntityTypeCommand;
+import xynolog.types.FrameRefusal;
 import xynolog.types.FrameRefusalReason;
 import xynolog.types.PutBinaryRequest;
 import xynolog.types.ResourceRepresentation;
@@ -85,10 +86,10 @@ final class WireTest {
                 List<Heard<BeckonFocusEvent>> read = both.get(10, SECONDS);
                 // Java tells a refusal from a frame by its status, or by its type.
                 assertEquals(List.of("refused", "delivered"), read.stream().map(Heard::getStatus).toList());
-                Refused refused = assertInstanceOf(Refused.class, read.get(0));
+                FrameRefusal refused = assertInstanceOf(Refused.class, read.get(0)).getRefusal();
                 assertEquals("beckon:focus", refused.getChannel());
-                assertEquals("payload.resourceId", refused.getRefusal().getMember());
-                assertEquals(FrameRefusalReason.Lacks, refused.getRefusal().getReason());
+                assertEquals("payload.resourceId", refused.getMember());
+                assertEquals(FrameRefusalReason.Lacks, refused.getReason());
                 if (!(read.get(1) instanceof Delivered<BeckonFocusEvent> delivered)) {
                     throw new AssertionError("refused: " + read.get(1));
                 }

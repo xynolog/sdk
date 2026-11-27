@@ -219,16 +219,7 @@ private fun <P> heard(payload: KSerializer<P>, stamps: Set<String>, carried: Car
         is Refused -> return carried
     }
     return reading<P, Heard<P>>(payload, stamps, frame.payload, { delivered(frame, it) }) { fault ->
-        Refused(
-            FrameRefusal(
-                channel = frame.channel,
-                member = inPayload(fault.member),
-                reason = fault.reason,
-                payload = frame.payload,
-                scope = frame.scope,
-                correlationId = frame.correlationId,
-            ),
-        )
+        Refused(FrameRefusal(channel = frame.channel, member = inPayload(fault.member), reason = fault.reason, payload = frame.payload, scope = frame.scope, correlationId = frame.correlationId))
     }
 }
 

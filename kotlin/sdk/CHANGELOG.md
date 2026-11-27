@@ -53,13 +53,9 @@ the coming release's, and gathers its changes as they land.
 ### Changed
 
 - The sign-in store holds each entry to the Required table's `SignIn`, as
-  every SDK does: an entry with a fault as Protocol's `SignIn` states it, such as an empty
-  access token (an `AccessToken` is at least one character), is no sign-in.
-- A frame's refusal is Protocol's `xynolog.types.FrameRefusal`, where the SDK
-  wrote its own `xynolog.transport.FrameRefusal`. A transport and a typed read
-  carry it as `Refused`, the `Carried` and `Heard` beside `Frame` and
-  `Delivered`, which holds it as `refusal`. Java reads its member as
-  `refused.getRefusal().getMember()`.
+  every SDK does: an entry with a fault as Protocol's `SignIn` states it, such
+  as an empty access token (an `AccessToken` is at least one character), is no
+  sign-in.
 - A map whose schema names its keys by a schema of their own is keyed by that
   schema's type: `InferenceSpec.providers` is a
   `Map<InferenceProvider, Provider>`, and `ServiceTelemetryTelemetry.sdk` is
@@ -69,6 +65,13 @@ the coming release's, and gathers its changes as they land.
 - A value's first fault is read as `xynolog.types.Fault`, the type of
   Protocol's `client/types/Fault.json`, where the SDK held a copy of its own;
   what it says of a fault is unchanged.
+- A frame refused is a `xynolog.transport.Refused`, `Heard` and `Carried`,
+  that holds the refusal as `xynolog.types.FrameRefusal`, the type of
+  Protocol's `client/types/FrameRefusal.json`, where `xynolog.transport`
+  declared a `FrameRefusal` of its own. Kotlin matches `is Refused` and reads
+  `refusal.member`; Java reads `getRefusal().getMember()`. A refusal is made
+  as `Refused(FrameRefusal(channel = …, member = …, reason = …))`, its
+  payload, scope and correlation id named when it has them.
 - A schema a `$ref` names at a place within a file is one type, named where
   that place is stated, wherever it is referred to: the Archivist layout's
   trees are all `ArchivistLayoutEventStreamTree`, every error vocabulary
