@@ -129,5 +129,5 @@ let methods ~ids ~view ~schema (namespaces : S.namespaces_item list) =
 
 let derive (spec : Spec.t) =
   let bundle = D.bundle spec in
-  methods ~ids:spec.ids ~view:bundle.view ~schema:bundle.definitions.schema
-    spec.tables.client_surface.namespaces
+  methods ~ids:spec.ids ~view:(bundle.view ~at:None)
+    ~schema:bundle.definitions.schema spec.tables.client_surface.namespaces

@@ -8,8 +8,8 @@ namespace Xynolog.Types;
 public sealed record SdkTelemetryTelemetryMetricsItem
 {
     [global::Xynolog.Serialization.Wire("name")] public required string Name { get; init; }
-    [global::Xynolog.Serialization.Wire("transport")] public required global::Xynolog.Types.SdkTelemetryTelemetryMetricsItemTransport Transport { get; init; }
-    [global::Xynolog.Serialization.Wire("instrument")] public required global::Xynolog.Types.SdkTelemetryTelemetryMetricsItemInstrument Instrument { get; init; }
+    [global::Xynolog.Serialization.Wire("transport")] public required global::Xynolog.Types.SdkTelemetryTelemetrySpansItemTransport Transport { get; init; }
+    [global::Xynolog.Serialization.Wire("instrument")] public required global::Xynolog.Types.ServiceTelemetryTelemetryMetricsItemInstrument Instrument { get; init; }
     [global::Xynolog.Serialization.Wire("meaning")] public required string Meaning { get; init; }
     [global::Xynolog.Serialization.Wire("attributes")] public required global::System.Collections.Generic.IReadOnlyList<global::Xynolog.Types.SdkTelemetryTelemetryMetricsItemAttributesItem> Attributes { get; init; }
 }

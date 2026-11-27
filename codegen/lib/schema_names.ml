@@ -52,11 +52,14 @@ exception Refused of string
 
 let refuse fmt = Printf.ksprintf (fun message -> raise (Refused message)) fmt
 
-(* [s] with each [$ref] to a file, or to a place within one, that [named]
-   names none of written in its place, from [schemas]. What is said beside such a [$ref] is said of what
-   is written there, in place of what that says of itself. A file written in
-   place that reaches itself would be written in place without end. *)
-let files_in_place ~ids ~schemas ~named s =
+(* [s] with each [$ref] to a file that [named] names none of written in its
+   place, from [schemas], and, when [places], each to a place within one too;
+   when not, a [$ref] to a place is left to the view
+   ([Definitions.view]), which names the place once. What is said beside
+   such a [$ref] is said of what is written there, in place of what that
+   says of itself. A file written in place that reaches itself would be
+   written in place without end. *)
+let files_in_place ~ids ~schemas ~named ~places s =
   let rec files trail = function
     | Schema.Boolean_schema _ as b -> b
     | Schema.Schema l -> (
@@ -70,6 +73,7 @@ let files_in_place ~ids ~schemas ~named s =
             match Decode.resolve ids r with
             | (file, pointer) as place
               when Option.is_none (named (key place))
+                   && (places || pointer = "")
                    && not (String.starts_with ~prefix:"/$defs/" pointer) -> (
                 let at = key place in
                 if List.mem at trail then
@@ -106,9 +110,61 @@ let files_in_place ~ids ~schemas ~named s =
   match files [] s with s -> Ok s | exception Refused message -> Error message
 
 (* A schema of [spec] with each [$ref] to a file no generation names
-   ([named]) written in its place ([files_in_place]). *)
-let in_place (spec : Spec.t) =
+   ([named]) written in its place, and, when [places], each to a place
+   within one ([files_in_place]). *)
+let in_place (spec : Spec.t) ~places =
   let schemas = Hashtbl.of_seq (List.to_seq spec.schemas) in
   match named spec with
   | Error message -> fun _ -> Error message
-  | Ok named -> files_in_place ~ids:spec.ids ~schemas ~named
+  | Ok named -> files_in_place ~ids:spec.ids ~schemas ~named ~places
+
+(* A schema of [spec] with each [$ref] to a place within a file that no
+   generation names written in its place, and each to a whole file left as
+   it is: what a validator reads where the models name a place once
+   ([referred_places]). *)
+let places_in_place (spec : Spec.t) =
+  let schemas = Hashtbl.of_seq (List.to_seq spec.schemas) in
+  match named spec with
+  | Error message -> fun _ -> Error message
+  | Ok named ->
+      files_in_place ~ids:spec.ids ~schemas ~places:true ~named:(fun key ->
+          if String.contains key '#' then named key else Some key)
+
+(* A place's key ([Table_records.key]) as Protocol's one flat namespace of
+   files names it: its file's name, and its pointer within it. *)
+let place_key key =
+  match String.index_opt key '#' with
+  | Some at ->
+      Filename.basename (String.sub key 0 at)
+      ^ String.sub key at (String.length key - at)
+  | None -> Filename.basename key
+
+(* Each place within a file that a [$ref] of [spec] names, by its key
+   ([place_key]), that no generation names ([named]) and that is no member
+   of a file's [$defs]: a schema each writer names once, where it is stated
+   ([Definitions.view]). *)
+let referred_places (spec : Spec.t) =
+  match named spec with
+  | Error message -> Error message
+  | Ok named ->
+      let found = Hashtbl.create 64 in
+      List.iter
+        (fun (_, s) ->
+          Schema.cata
+            ~boolean:(fun _ -> ())
+            ~schema:(fun (l : unit Schema.layer) ->
+              Option.iter
+                (fun r ->
+                  match Decode.resolve spec.ids r with
+                  | _, "" -> ()
+                  | _, pointer when String.starts_with ~prefix:"/$defs/" pointer
+                    ->
+                      ()
+                  | _ ->
+                      let key = Table_records.key spec.ids r in
+                      if Option.is_none (named key) then
+                        Hashtbl.replace found (place_key key) ())
+                l.ref_)
+            s)
+        spec.schemas;
+      Ok (Hashtbl.mem found)

@@ -7,7 +7,7 @@ namespace Xynolog.Types;
 [global::Xynolog.Serialization.WireObject]
 public sealed record Root
 {
-    [global::Xynolog.Serialization.Wire("placement")] public required global::Xynolog.Types.RootPlacement Placement { get; init; }
+    [global::Xynolog.Serialization.Wire("placement")] public required global::Xynolog.Types.DiscoveredKBPlacement Placement { get; init; }
     [global::Xynolog.Serialization.Wire("path")] public string? Path { get; init; }
     [global::Xynolog.Serialization.Wire("present")] public bool? Present { get; init; }
     [global::Xynolog.Serialization.Wire("current")] public global::Xynolog.Types.RootCurrent? Current { get; init; }

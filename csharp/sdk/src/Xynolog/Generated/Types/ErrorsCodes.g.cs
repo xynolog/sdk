@@ -11,9 +11,9 @@ public sealed record ErrorsCodes
     [global::Xynolog.Serialization.Wire("busRequest")] public required global::Xynolog.Types.ErrorsCodesBusRequest BusRequest { get; init; }
     [global::Xynolog.Serialization.Wire("transport")] public required global::Xynolog.Types.ErrorsCodesTransport Transport { get; init; }
     [global::Xynolog.Serialization.Wire("job")] public required global::Xynolog.Types.ErrorsCodesJob Job { get; init; }
-    [global::Xynolog.Serialization.Wire("session")] public required global::Xynolog.Types.ErrorsCodesSession Session { get; init; }
-    [global::Xynolog.Serialization.Wire("signIn")] public required global::Xynolog.Types.ErrorsCodesSignIn SignIn { get; init; }
-    [global::Xynolog.Serialization.Wire("kbIdentity")] public required global::Xynolog.Types.ErrorsCodesKbIdentity KbIdentity { get; init; }
-    [global::Xynolog.Serialization.Wire("spanRefusal")] public required global::Xynolog.Types.ErrorsCodesSpanRefusal SpanRefusal { get; init; }
-    [global::Xynolog.Serialization.Wire("control")] public required global::Xynolog.Types.ErrorsCodesControl Control { get; init; }
+    [global::Xynolog.Serialization.Wire("session")] public required global::Xynolog.Types.ErrorsCodesJob Session { get; init; }
+    [global::Xynolog.Serialization.Wire("signIn")] public required global::Xynolog.Types.ErrorsCodesJob SignIn { get; init; }
+    [global::Xynolog.Serialization.Wire("kbIdentity")] public required global::Xynolog.Types.ErrorsCodesJob KbIdentity { get; init; }
+    [global::Xynolog.Serialization.Wire("spanRefusal")] public required global::Xynolog.Types.ErrorsCodesJob SpanRefusal { get; init; }
+    [global::Xynolog.Serialization.Wire("control")] public required global::Xynolog.Types.ErrorsCodesJob Control { get; init; }
 }

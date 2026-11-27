@@ -10,7 +10,7 @@ public data class ServiceEnvironmentVariablesVariablesItem(
     /** The variable's name. */
     public val name: String,
     /** The services that read it. */
-    public val services: kotlin.collections.List<ServiceEnvironmentVariablesVariablesItemServicesItem>,
+    public val services: kotlin.collections.List<ServiceTelemetryTelemetrySpansItemServicesItem>,
     /** What reads it: the service's own code, or the OpenTelemetry SDK. */
     public val readBy: ServiceEnvironmentVariablesVariablesItemReadBy,
     /** What sets it where the launcher runs the service. */
@@ -23,7 +23,7 @@ public data class ServiceEnvironmentVariablesVariablesItem(
     /** How Java makes a `ServiceEnvironmentVariablesVariablesItem`: `builder` takes what it must state, a setter each thing it may, and `build` makes it. */
     public class Builder internal constructor(
         private val name: String,
-        private val services: kotlin.collections.List<ServiceEnvironmentVariablesVariablesItemServicesItem>,
+        private val services: kotlin.collections.List<ServiceTelemetryTelemetrySpansItemServicesItem>,
         private val readBy: ServiceEnvironmentVariablesVariablesItemReadBy,
         private val providedBy: ServiceEnvironmentVariablesVariablesItemProvidedBy,
         private val required: Boolean,
@@ -35,6 +35,6 @@ public data class ServiceEnvironmentVariablesVariablesItem(
     public companion object {
         /** A builder of a `ServiceEnvironmentVariablesVariablesItem` that states these, and what its setters add. */
         @JvmStatic
-        public fun builder(name: String, services: kotlin.collections.List<ServiceEnvironmentVariablesVariablesItemServicesItem>, readBy: ServiceEnvironmentVariablesVariablesItemReadBy, providedBy: ServiceEnvironmentVariablesVariablesItemProvidedBy, required: Boolean, effect: String): Builder = Builder(name, services, readBy, providedBy, required, effect)
+        public fun builder(name: String, services: kotlin.collections.List<ServiceTelemetryTelemetrySpansItemServicesItem>, readBy: ServiceEnvironmentVariablesVariablesItemReadBy, providedBy: ServiceEnvironmentVariablesVariablesItemProvidedBy, required: Boolean, effect: String): Builder = Builder(name, services, readBy, providedBy, required, effect)
     }
 }

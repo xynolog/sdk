@@ -9,7 +9,7 @@ import Data.Aeson.KeyMap qualified as KM
 import Data.Text (Text)
 import Xynolog.Internal.Codec
 import Xynolog.Internal.Generated.Models.AnnotationId
-import Xynolog.Internal.Generated.Models.CommandError
+import Xynolog.Internal.Generated.Models.ArchivistMessages
 
 data GatherFailed = GatherFailed
   { gatherFailedCode :: Maybe CommandErrorCode,

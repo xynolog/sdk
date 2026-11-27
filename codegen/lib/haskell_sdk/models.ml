@@ -63,6 +63,9 @@ type state = {
   mutable owner : string;
   mutable dependencies : Names.t Named.t;
   ids : Decode.ids;  (** Each schema's [$id]: what a reference names. *)
+  sources : (string * Schema.t) list;
+      (** Every schema file of Protocol, which a reference to a place within one
+          names. *)
   identifiers : Names.t;
   keys : Names.t;  (** The identifiers a named map's members are named by. *)
   mutable enumerations : (string * Schema.literal list) list;
@@ -79,10 +82,27 @@ let find state name =
   | Some s -> Ok s
   | None -> Error ("unknown schema reference: " ^ name)
 
+(* The schema a reference to a place within a file names: the place in the
+   definition of its file, or in the file itself where no definition is
+   named as it is; any other schema as it is. *)
+let rec placed state = function
+  | Schema.Schema { ref_ = Some r; _ } as s when r.pointer <> "" -> (
+      let file, pointer = Decode.resolve state.ids r in
+      let whole =
+        match find state (Definitions.stem file) with
+        | Ok whole -> Some whole
+        | Error _ ->
+            Option.map Normalize.shape_only (List.assoc_opt file state.sources)
+      in
+      match Option.bind whole (fun whole -> Pointer.schema whole pointer) with
+      | Some place -> placed state place
+      | None -> s)
+  | s -> s
+
 let normalize state schema =
   Normalize.normalize state.ids
     ~find:(fun r -> find state (Definitions.referenced r))
-    schema
+    (placed state schema)
 
 let checked name = H.Apply (Name "checked", [ Str name ])
 
@@ -834,8 +854,10 @@ let imports body dependencies =
 
 (* What [Typing] makes of [definitions]: each schema under its name's file
    and under every key a reference to it resolves to, a reference naming the
-   schema of its file's base name ([Definitions.referenced]). *)
-let typing ~ids ~identifiers ~keys definitions =
+   schema of its file's base name ([Definitions.referenced]), and each place
+   within a file of [sources] that is [referred]
+   ([Schema_names.referred_places]) named once, where its file states it. *)
+let typing ~ids ~sources ~referred ~identifiers ~keys definitions =
   let by_name = Hashtbl.create 512 in
   List.iter
     (fun (name, s) -> Hashtbl.replace by_name name (Normalize.shape_only s))
@@ -851,7 +873,14 @@ let typing ~ids ~identifiers ~keys definitions =
     (fun (name, s) ->
       keep (name ^ ".json");
       List.iter
-        (fun r -> keep (Table_records.key ids r))
+        (fun r ->
+          keep (Table_records.key ids r);
+          let file = fst (Decode.resolve ids r) in
+          keep file;
+          if not (Hashtbl.mem schemas file) then
+            Option.iter
+              (fun s -> Hashtbl.replace schemas file (Normalize.shape_only s))
+              (List.assoc_opt file sources))
         (Schema.cata
            ~boolean:(fun _ -> [])
            ~schema:(fun l ->
@@ -861,20 +890,22 @@ let typing ~ids ~identifiers ~keys definitions =
   let named key =
     if Hashtbl.mem by_name (stem key) then Some (stem key) else None
   in
-  let view = T.D.view ~ids ~named ~schemas in
+  let view = T.D.view ~ids ~named ~schemas ~referred in
   match
     T.make
       {
         names = List.map fst definitions;
-        schema = (fun name -> view (Hashtbl.find by_name name));
+        schema =
+          (fun name ->
+            view ~at:(Some (name ^ ".json")) (Hashtbl.find by_name name));
       }
       ~roots:(List.map fst definitions) ~identifiers ~keys
   with
   | typing -> Ok typing
   | exception T.D.Refused message -> Error message
 
-let generate ~banner ~ids ~identifiers ~keys definitions =
-  let* typing = typing ~ids ~identifiers ~keys definitions in
+let generate ~banner ~ids ~sources ~referred ~identifiers ~keys definitions =
+  let* typing = typing ~ids ~sources ~referred ~identifiers ~keys definitions in
   let state =
     {
       definitions = Named.of_list definitions;
@@ -882,6 +913,7 @@ let generate ~banner ~ids ~identifiers ~keys definitions =
       owner = "";
       dependencies = Named.empty;
       ids;
+      sources;
       identifiers = Names.of_list identifiers;
       keys = Names.of_list (List.map snd keys);
       enumerations = [];

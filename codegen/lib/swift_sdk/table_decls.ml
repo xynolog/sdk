@@ -1320,13 +1320,12 @@ let control models (spec : Spec.t) =
 let declarations models ~(spec : Spec.t) ~view ~shapes ~timing ~codes
     ~user_field =
   let tables = spec.tables in
-  (match
-     List.assoc_opt "client/types/GatherResourceOptions.json" spec.schemas
-   with
+  let options = "client/types/GatherResourceOptions.json" in
+  (match List.assoc_opt options spec.schemas with
   | Some s ->
       ignore
         (M.inline models ~modifiers:[ "public" ] "" "GatherResourceOptions"
-           (view s))
+           (view ~at:(Some options) s))
   | None -> refuse "Protocol states no client type GatherResourceOptions");
   let frame = M.schema models "BusFrame" in
   let metadata =

@@ -14,14 +14,14 @@ public data class IdentifiersKindsKindsItem(
     /** Strings the kind's rule takes. */
     public val accepts: kotlin.collections.List<IdentifiersKindsKindsItemAcceptsItem>,
     /** Strings the kind's rule does not take. */
-    public val refuses: kotlin.collections.List<IdentifiersKindsKindsItemRefusesItem>,
+    public val refuses: kotlin.collections.List<IdentifiersKindsKindsItemAcceptsItem>,
 ) {
     /** How Java makes a `IdentifiersKindsKindsItem`: `builder` takes what it must state, a setter each thing it may, and `build` makes it. */
     public class Builder internal constructor(
         private val schema: String,
         private val properties: kotlin.collections.List<String>,
         private val accepts: kotlin.collections.List<IdentifiersKindsKindsItemAcceptsItem>,
-        private val refuses: kotlin.collections.List<IdentifiersKindsKindsItemRefusesItem>,
+        private val refuses: kotlin.collections.List<IdentifiersKindsKindsItemAcceptsItem>,
     ) {
         public fun build(): IdentifiersKindsKindsItem = IdentifiersKindsKindsItem(schema = schema, properties = properties, accepts = accepts, refuses = refuses)
     }
@@ -29,6 +29,6 @@ public data class IdentifiersKindsKindsItem(
     public companion object {
         /** A builder of a `IdentifiersKindsKindsItem` that states these, and what its setters add. */
         @JvmStatic
-        public fun builder(schema: String, properties: kotlin.collections.List<String>, accepts: kotlin.collections.List<IdentifiersKindsKindsItemAcceptsItem>, refuses: kotlin.collections.List<IdentifiersKindsKindsItemRefusesItem>): Builder = Builder(schema, properties, accepts, refuses)
+        public fun builder(schema: String, properties: kotlin.collections.List<String>, accepts: kotlin.collections.List<IdentifiersKindsKindsItemAcceptsItem>, refuses: kotlin.collections.List<IdentifiersKindsKindsItemAcceptsItem>): Builder = Builder(schema, properties, accepts, refuses)
     }
 }

@@ -14,7 +14,7 @@ internal static class SdkTelemetry
     private static readonly Meter Meter = new("xynolog");
     private static readonly Dictionary<string, Counter<long>> Counters = Table.Metrics.ToDictionary(
         row => row.Name,
-        row => row.Instrument == SdkTelemetryTelemetryMetricsItemInstrument.Counter
+        row => row.Instrument == ServiceTelemetryTelemetryMetricsItemInstrument.Counter
             ? Meter.CreateCounter<long>(row.Name)
             : throw new InvalidOperationException("Unsupported metric instrument"));
 
@@ -22,7 +22,7 @@ internal static class SdkTelemetry
     {
         var row = Table.Spans.Single(row => row.Name == name);
         Validate(row.Attributes.ToDictionary(attribute => attribute.Key, attribute => attribute.Only is not null), attributes);
-        var kind = Enum.Parse<ActivityKind>(WireEnumConverter<SdkTelemetryTelemetrySpansItemKind>.Wire(row.Kind), ignoreCase: true);
+        var kind = Enum.Parse<ActivityKind>(WireEnumConverter<ServiceTelemetryTelemetrySpansItemKind>.Wire(row.Kind), ignoreCase: true);
         return Activities.StartActivity(name.Replace(TelemetrySpans.Channel, channel ?? "", StringComparison.Ordinal), kind, parent, attributes);
     }
 

@@ -10,7 +10,7 @@ public sealed record KnowledgeBaseStatus
     [global::Xynolog.Serialization.Wire("name")] public required string Name { get; init; }
     [global::Xynolog.Serialization.Wire("key")] public required string Key { get; init; }
     [global::Xynolog.Serialization.Wire("recorded")] public required bool Recorded { get; init; }
-    [global::Xynolog.Serialization.Wire("placement")] public required global::Xynolog.Types.KnowledgeBaseStatusPlacement Placement { get; init; }
+    [global::Xynolog.Serialization.Wire("placement")] public required global::Xynolog.Types.DiscoveredKBPlacement Placement { get; init; }
     [global::Xynolog.Serialization.Wire("root")] public string? Root { get; init; }
     [global::Xynolog.Serialization.Wire("repo")] public string? Repo { get; init; }
     [global::Xynolog.Serialization.Wire("did")] public string? Did { get; init; }

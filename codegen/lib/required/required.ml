@@ -24,7 +24,7 @@ let refusal file pointer message = { Decode.file; pointer; message }
    within it that closes what it composes read as the one object it means
    ([Normalize.closed_within]). *)
 let whole (spec : Spec.t) =
-  let in_place = Schema_names.in_place spec in
+  let in_place = Schema_names.in_place spec ~places:true in
   let find =
     Definitions.schema_of ~ids:spec.ids
       ~schemas:(Hashtbl.of_seq (List.to_seq spec.schemas))

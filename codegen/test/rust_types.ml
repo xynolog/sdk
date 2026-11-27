@@ -543,7 +543,11 @@ let cases =
     case "a file written in place that reaches itself is refused"
       (refused "reaches itself" (fun () ->
            ignore
-             (D.view ~ids ~named:(fun _ -> None) ~schemas:looped looped_schema);
+             (D.view ~ids
+                ~named:(fun _ -> None)
+                ~schemas:looped
+                ~referred:(fun _ -> false)
+                ~at:None looped_schema);
            ""));
     case "a file written in place that reaches itself has no references"
       (refused "reaches itself" (fun () ->

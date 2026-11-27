@@ -8,5 +8,5 @@ namespace Xynolog.Types;
 public sealed record ConformanceImplementationsSdksValueLive
 {
     [global::Xynolog.Serialization.Wire("command")] public required global::System.Collections.Generic.IReadOnlyList<string> Command { get; init; }
-    [global::Xynolog.Serialization.Wire("tier")] public required global::Xynolog.Types.ConformanceImplementationsSdksValueLiveTier Tier { get; init; }
+    [global::Xynolog.Serialization.Wire("tier")] public required global::Xynolog.Types.ConformanceCaseTier Tier { get; init; }
 }

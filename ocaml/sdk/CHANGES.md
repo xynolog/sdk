@@ -60,6 +60,14 @@ the coming release's, and gathers its changes as they land.
 
 ### Changed
 
+- A schema a `$ref` names at a place within a file is one record, named
+  where that place is stated, wherever it is referred to: every error
+  vocabulary of `Errors_codes` is `Errors_codes_job.t`, a file's mode and
+  access list in `Sign_in_store_owner_only` are its directory's, and what a
+  kind of id refuses is `Identifiers_kinds_kinds_item_accepts_item.t`. The
+  module each reference was given of its own (`Errors_codes_control`,
+  `Sign_in_store_owner_only_file_mode`,
+  `Identifiers_kinds_kinds_item_refuses_item`, …) is gone.
 - `Browse.resource_representation` answers a
   `Records.Resource_representation.t`, the record of Protocol's
   `client/types/ResourceRepresentation.json`, `{ data; content_type }`, where

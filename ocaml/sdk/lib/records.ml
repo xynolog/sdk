@@ -9418,96 +9418,6 @@ module Errors_codes_job_codes_item = struct
       ]
 end
 
-module Errors_codes_session_codes_item = struct
-  type t = { code : string; docs : string }
-
-  let project fields =
-    let reader = start fields in
-    {
-      code = required reader string "code";
-      docs = required reader string "docs";
-    }
-
-  let to_json (value : t) =
-    write
-      [
-        ("code", Some (json_string value.code));
-        ("docs", Some (json_string value.docs));
-      ]
-end
-
-module Errors_codes_sign_in_codes_item = struct
-  type t = { code : string; docs : string }
-
-  let project fields =
-    let reader = start fields in
-    {
-      code = required reader string "code";
-      docs = required reader string "docs";
-    }
-
-  let to_json (value : t) =
-    write
-      [
-        ("code", Some (json_string value.code));
-        ("docs", Some (json_string value.docs));
-      ]
-end
-
-module Errors_codes_kb_identity_codes_item = struct
-  type t = { code : string; docs : string }
-
-  let project fields =
-    let reader = start fields in
-    {
-      code = required reader string "code";
-      docs = required reader string "docs";
-    }
-
-  let to_json (value : t) =
-    write
-      [
-        ("code", Some (json_string value.code));
-        ("docs", Some (json_string value.docs));
-      ]
-end
-
-module Errors_codes_span_refusal_codes_item = struct
-  type t = { code : string; docs : string }
-
-  let project fields =
-    let reader = start fields in
-    {
-      code = required reader string "code";
-      docs = required reader string "docs";
-    }
-
-  let to_json (value : t) =
-    write
-      [
-        ("code", Some (json_string value.code));
-        ("docs", Some (json_string value.docs));
-      ]
-end
-
-module Errors_codes_control_codes_item = struct
-  type t = { code : string; docs : string }
-
-  let project fields =
-    let reader = start fields in
-    {
-      code = required reader string "code";
-      docs = required reader string "docs";
-    }
-
-  let to_json (value : t) =
-    write
-      [
-        ("code", Some (json_string value.code));
-        ("docs", Some (json_string value.docs));
-      ]
-end
-
 module Gateway_config_identity = struct
   type t = { issuer : string; subject_claim : string }
 
@@ -9583,21 +9493,6 @@ module Gateway_config_capacity = struct
 end
 
 module Identifiers_kinds_kinds_item_accepts_item = struct
-  type t = { id : string; why : string }
-
-  let project fields =
-    let reader = start fields in
-    { id = required reader string "id"; why = required reader string "why" }
-
-  let to_json (value : t) =
-    write
-      [
-        ("id", Some (json_string value.id));
-        ("why", Some (json_string value.why));
-      ]
-end
-
-module Identifiers_kinds_kinds_item_refuses_item = struct
   type t = { id : string; why : string }
 
   let project fields =
@@ -9872,43 +9767,7 @@ module Sign_in_store_owner_only_directory_mode = struct
       ]
 end
 
-module Sign_in_store_owner_only_file_mode = struct
-  type t = { value : string; docs : string }
-
-  let project fields =
-    let reader = start fields in
-    {
-      value = required reader string "value";
-      docs = required reader string "docs";
-    }
-
-  let to_json (value : t) =
-    write
-      [
-        ("value", Some (json_string value.value));
-        ("docs", Some (json_string value.docs));
-      ]
-end
-
 module Sign_in_store_owner_only_directory_access_list = struct
-  type t = { value : string; docs : string }
-
-  let project fields =
-    let reader = start fields in
-    {
-      value = required reader string "value";
-      docs = required reader string "docs";
-    }
-
-  let to_json (value : t) =
-    write
-      [
-        ("value", Some (json_string value.value));
-        ("docs", Some (json_string value.docs));
-      ]
-end
-
-module Sign_in_store_owner_only_file_access_list = struct
   type t = { value : string; docs : string }
 
   let project fields =
@@ -12647,9 +12506,9 @@ module Sign_in_store_owner_only = struct
   type t = {
     field_comment : string;
     directory_mode : Sign_in_store_owner_only_directory_mode.t;
-    file_mode : Sign_in_store_owner_only_file_mode.t;
+    file_mode : Sign_in_store_owner_only_directory_mode.t;
     directory_access_list : Sign_in_store_owner_only_directory_access_list.t;
-    file_access_list : Sign_in_store_owner_only_file_access_list.t;
+    file_access_list : Sign_in_store_owner_only_directory_access_list.t;
   }
 
   let project fields =
@@ -12662,7 +12521,7 @@ module Sign_in_store_owner_only = struct
           "directoryMode";
       file_mode =
         required reader
-          (record Sign_in_store_owner_only_file_mode.project)
+          (record Sign_in_store_owner_only_directory_mode.project)
           "fileMode";
       directory_access_list =
         required reader
@@ -12670,7 +12529,7 @@ module Sign_in_store_owner_only = struct
           "directoryAccessList";
       file_access_list =
         required reader
-          (record Sign_in_store_owner_only_file_access_list.project)
+          (record Sign_in_store_owner_only_directory_access_list.project)
           "fileAccessList";
     }
 
@@ -12686,14 +12545,15 @@ module Sign_in_store_owner_only = struct
             (Sign_in_store_owner_only_directory_mode.to_json
                value.directory_mode) );
         ( "fileMode",
-          Some (Sign_in_store_owner_only_file_mode.to_json value.file_mode) );
+          Some (Sign_in_store_owner_only_directory_mode.to_json value.file_mode)
+        );
         ( "directoryAccessList",
           Some
             (Sign_in_store_owner_only_directory_access_list.to_json
                value.directory_access_list) );
         ( "fileAccessList",
           Some
-            (Sign_in_store_owner_only_file_access_list.to_json
+            (Sign_in_store_owner_only_directory_access_list.to_json
                value.file_access_list) );
       ]
 
@@ -14268,132 +14128,12 @@ module Errors_codes_job = struct
       ]
 end
 
-module Errors_codes_session = struct
-  type t = { docs : string; codes : Errors_codes_session_codes_item.t list }
-
-  let project fields =
-    let reader = start fields in
-    {
-      docs = required reader string "docs";
-      codes =
-        required reader
-          (list (record Errors_codes_session_codes_item.project))
-          "codes";
-    }
-
-  let to_json (value : t) =
-    write
-      [
-        ("docs", Some (json_string value.docs));
-        ( "codes",
-          Some ((json_list Errors_codes_session_codes_item.to_json) value.codes)
-        );
-      ]
-end
-
-module Errors_codes_sign_in = struct
-  type t = { docs : string; codes : Errors_codes_sign_in_codes_item.t list }
-
-  let project fields =
-    let reader = start fields in
-    {
-      docs = required reader string "docs";
-      codes =
-        required reader
-          (list (record Errors_codes_sign_in_codes_item.project))
-          "codes";
-    }
-
-  let to_json (value : t) =
-    write
-      [
-        ("docs", Some (json_string value.docs));
-        ( "codes",
-          Some ((json_list Errors_codes_sign_in_codes_item.to_json) value.codes)
-        );
-      ]
-end
-
-module Errors_codes_kb_identity = struct
-  type t = { docs : string; codes : Errors_codes_kb_identity_codes_item.t list }
-
-  let project fields =
-    let reader = start fields in
-    {
-      docs = required reader string "docs";
-      codes =
-        required reader
-          (list (record Errors_codes_kb_identity_codes_item.project))
-          "codes";
-    }
-
-  let to_json (value : t) =
-    write
-      [
-        ("docs", Some (json_string value.docs));
-        ( "codes",
-          Some
-            ((json_list Errors_codes_kb_identity_codes_item.to_json)
-               value.codes) );
-      ]
-end
-
-module Errors_codes_span_refusal = struct
-  type t = {
-    docs : string;
-    codes : Errors_codes_span_refusal_codes_item.t list;
-  }
-
-  let project fields =
-    let reader = start fields in
-    {
-      docs = required reader string "docs";
-      codes =
-        required reader
-          (list (record Errors_codes_span_refusal_codes_item.project))
-          "codes";
-    }
-
-  let to_json (value : t) =
-    write
-      [
-        ("docs", Some (json_string value.docs));
-        ( "codes",
-          Some
-            ((json_list Errors_codes_span_refusal_codes_item.to_json)
-               value.codes) );
-      ]
-end
-
-module Errors_codes_control = struct
-  type t = { docs : string; codes : Errors_codes_control_codes_item.t list }
-
-  let project fields =
-    let reader = start fields in
-    {
-      docs = required reader string "docs";
-      codes =
-        required reader
-          (list (record Errors_codes_control_codes_item.project))
-          "codes";
-    }
-
-  let to_json (value : t) =
-    write
-      [
-        ("docs", Some (json_string value.docs));
-        ( "codes",
-          Some ((json_list Errors_codes_control_codes_item.to_json) value.codes)
-        );
-      ]
-end
-
 module Identifiers_kinds_kinds_item = struct
   type t = {
     schema : string;
     properties : string list;
     accepts : Identifiers_kinds_kinds_item_accepts_item.t list;
-    refuses : Identifiers_kinds_kinds_item_refuses_item.t list;
+    refuses : Identifiers_kinds_kinds_item_accepts_item.t list;
   }
 
   let project fields =
@@ -14407,7 +14147,7 @@ module Identifiers_kinds_kinds_item = struct
           "accepts";
       refuses =
         required reader
-          (list (record Identifiers_kinds_kinds_item_refuses_item.project))
+          (list (record Identifiers_kinds_kinds_item_accepts_item.project))
           "refuses";
     }
 
@@ -14422,7 +14162,7 @@ module Identifiers_kinds_kinds_item = struct
                value.accepts) );
         ( "refuses",
           Some
-            ((json_list Identifiers_kinds_kinds_item_refuses_item.to_json)
+            ((json_list Identifiers_kinds_kinds_item_accepts_item.to_json)
                value.refuses) );
       ]
 end
@@ -19048,11 +18788,11 @@ module Errors_codes = struct
     bus_request : Errors_codes_bus_request.t;
     transport : Errors_codes_transport.t;
     job : Errors_codes_job.t;
-    session : Errors_codes_session.t;
-    sign_in : Errors_codes_sign_in.t;
-    kb_identity : Errors_codes_kb_identity.t;
-    span_refusal : Errors_codes_span_refusal.t;
-    control : Errors_codes_control.t;
+    session : Errors_codes_job.t;
+    sign_in : Errors_codes_job.t;
+    kb_identity : Errors_codes_job.t;
+    span_refusal : Errors_codes_job.t;
+    control : Errors_codes_job.t;
   }
 
   let project fields =
@@ -19064,13 +18804,13 @@ module Errors_codes = struct
       transport =
         required reader (record Errors_codes_transport.project) "transport";
       job = required reader (record Errors_codes_job.project) "job";
-      session = required reader (record Errors_codes_session.project) "session";
-      sign_in = required reader (record Errors_codes_sign_in.project) "signIn";
+      session = required reader (record Errors_codes_job.project) "session";
+      sign_in = required reader (record Errors_codes_job.project) "signIn";
       kb_identity =
-        required reader (record Errors_codes_kb_identity.project) "kbIdentity";
+        required reader (record Errors_codes_job.project) "kbIdentity";
       span_refusal =
-        required reader (record Errors_codes_span_refusal.project) "spanRefusal";
-      control = required reader (record Errors_codes_control.project) "control";
+        required reader (record Errors_codes_job.project) "spanRefusal";
+      control = required reader (record Errors_codes_job.project) "control";
     }
 
   let of_model (model : [ `ErrorsCodes ] Models.t) =
@@ -19083,12 +18823,11 @@ module Errors_codes = struct
         ("busRequest", Some (Errors_codes_bus_request.to_json value.bus_request));
         ("transport", Some (Errors_codes_transport.to_json value.transport));
         ("job", Some (Errors_codes_job.to_json value.job));
-        ("session", Some (Errors_codes_session.to_json value.session));
-        ("signIn", Some (Errors_codes_sign_in.to_json value.sign_in));
-        ("kbIdentity", Some (Errors_codes_kb_identity.to_json value.kb_identity));
-        ( "spanRefusal",
-          Some (Errors_codes_span_refusal.to_json value.span_refusal) );
-        ("control", Some (Errors_codes_control.to_json value.control));
+        ("session", Some (Errors_codes_job.to_json value.session));
+        ("signIn", Some (Errors_codes_job.to_json value.sign_in));
+        ("kbIdentity", Some (Errors_codes_job.to_json value.kb_identity));
+        ("spanRefusal", Some (Errors_codes_job.to_json value.span_refusal));
+        ("control", Some (Errors_codes_job.to_json value.control));
       ]
 
   let to_model value =

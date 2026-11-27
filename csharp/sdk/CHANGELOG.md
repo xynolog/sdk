@@ -48,6 +48,14 @@ the coming release's, and gathers its changes as they land.
 
 ### Changed
 
+- A schema a `$ref` names at a place within a file is one type, named where
+  that place is stated, wherever it is referred to: the Archivist layout's
+  trees are all `ArchivistLayoutEventStreamTree`, a placement is
+  `DiscoveredKBPlacement`, every error vocabulary is `ErrorsCodesJob`, the
+  SDK's telemetry instruments are `ServiceTelemetryTelemetryMetricsItemInstrument`,
+  and the rest. The type each reference was given of its own
+  (`ArchivistLayoutViewTree`, `RootPlacement`, `ErrorsCodesControl`, …) is
+  gone.
 - The testing kit's `DeliveryOp` is written and read as Protocol's words for
   the steps, `"write"` and `"transition"`, as the other SDKs carry them.
 - An upload is a `PutBinaryRequest` (`Xynolog.Types`), the type of

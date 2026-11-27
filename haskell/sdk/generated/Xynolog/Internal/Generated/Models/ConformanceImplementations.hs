@@ -2,12 +2,13 @@
 -- Regenerate: make generate (codegen/lib/haskell_sdk/haskell_sdk.ml)
 {-# LANGUAGE OverloadedStrings #-}
 
-module Xynolog.Internal.Generated.Models.ConformanceImplementations (ConformanceImplementations (..), ConformanceImplementationsSdksValue (..), ConformanceImplementationsSdksValueLive (..), ConformanceImplementationsSdksValueLiveTier (..), conformanceImplementationsSdksValueLiveTierText) where
+module Xynolog.Internal.Generated.Models.ConformanceImplementations (ConformanceImplementations (..), ConformanceImplementationsSdksValue (..), ConformanceImplementationsSdksValueLive (..)) where
 
 import Data.Aeson (FromJSON (..), ToJSON (..), Value (..), withObject, (.:))
 import Data.Aeson.KeyMap qualified as KM
 import Data.Text (Text)
 import Xynolog.Internal.Codec
+import Xynolog.Internal.Generated.Models.ConformanceCase
 import Xynolog.Internal.Generated.Models.LocalTarget
 
 data ConformanceImplementations = ConformanceImplementations
@@ -36,22 +37,10 @@ instance ToJSON ConformanceImplementationsSdksValue where toJSON value = Object 
 
 data ConformanceImplementationsSdksValueLive = ConformanceImplementationsSdksValueLive
   { conformanceImplementationsSdksValueLiveCommand :: [Text],
-    conformanceImplementationsSdksValueLiveTier :: ConformanceImplementationsSdksValueLiveTier
+    conformanceImplementationsSdksValueLiveTier :: ConformanceCaseTier
   }
   deriving (Eq, Show)
 
 instance FromJSON ConformanceImplementationsSdksValueLive where parseJSON = checked "ConformanceImplementationsSdksValueLive" $ withObject "ConformanceImplementationsSdksValueLive" (\fields -> ConformanceImplementationsSdksValueLive <$> (fields .: "command") <*> (fields .: "tier"))
 
 instance ToJSON ConformanceImplementationsSdksValueLive where toJSON value = Object (KM.fromList (concat [[("command", toJSON (conformanceImplementationsSdksValueLiveCommand value))], [("tier", toJSON (conformanceImplementationsSdksValueLiveTier value))]]))
-
-data ConformanceImplementationsSdksValueLiveTier = ConformanceImplementationsSdksValueLiveTierFleet | ConformanceImplementationsSdksValueLiveTierParity deriving (Eq, Show)
-
-instance FromJSON ConformanceImplementationsSdksValueLiveTier where parseJSON = checked "ConformanceImplementationsSdksValueLiveTier" $ \value -> if value == String "fleet" then pure ConformanceImplementationsSdksValueLiveTierFleet else if value == String "parity" then pure ConformanceImplementationsSdksValueLiveTierParity else fail "unknown enumeration member"
-
-instance ToJSON ConformanceImplementationsSdksValueLiveTier where
-  toJSON ConformanceImplementationsSdksValueLiveTierFleet = String "fleet"
-  toJSON ConformanceImplementationsSdksValueLiveTierParity = String "parity"
-
-conformanceImplementationsSdksValueLiveTierText :: ConformanceImplementationsSdksValueLiveTier -> Text
-conformanceImplementationsSdksValueLiveTierText ConformanceImplementationsSdksValueLiveTierFleet = "fleet"
-conformanceImplementationsSdksValueLiveTierText ConformanceImplementationsSdksValueLiveTierParity = "parity"

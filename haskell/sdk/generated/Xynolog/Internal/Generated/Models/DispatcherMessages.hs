@@ -2,12 +2,13 @@
 -- Regenerate: make generate (codegen/lib/haskell_sdk/haskell_sdk.ml)
 {-# LANGUAGE OverloadedStrings #-}
 
-module Xynolog.Internal.Generated.Models.DispatcherMessages (DispatcherMessages (..), DispatcherMessagesErrorsItem (..), DispatcherMessagesRefusalsItem (..), DispatcherMessagesRefusalsItemCode (..), dispatcherMessagesRefusalsItemCodeText) where
+module Xynolog.Internal.Generated.Models.DispatcherMessages (DispatcherMessages (..), DispatcherMessagesErrorsItem (..), DispatcherMessagesRefusalsItem (..)) where
 
 import Data.Aeson (FromJSON (..), ToJSON (..), Value (..), withObject, (.:))
 import Data.Aeson.KeyMap qualified as KM
 import Data.Text (Text)
 import Xynolog.Internal.Codec
+import Xynolog.Internal.Generated.Models.ArchivistMessages
 import Xynolog.Internal.Generated.Models.FailureClass
 
 data DispatcherMessages = DispatcherMessages
@@ -36,7 +37,7 @@ instance ToJSON DispatcherMessagesErrorsItem where toJSON value = Object (KM.fro
 data DispatcherMessagesRefusalsItem = DispatcherMessagesRefusalsItem
   { dispatcherMessagesRefusalsItemName :: Text,
     dispatcherMessagesRefusalsItemOperation :: Text,
-    dispatcherMessagesRefusalsItemCode :: Maybe DispatcherMessagesRefusalsItemCode,
+    dispatcherMessagesRefusalsItemCode :: Maybe CommandErrorCode,
     dispatcherMessagesRefusalsItemSituation :: Text,
     dispatcherMessagesRefusalsItemMessage :: Text
   }
@@ -45,19 +46,3 @@ data DispatcherMessagesRefusalsItem = DispatcherMessagesRefusalsItem
 instance FromJSON DispatcherMessagesRefusalsItem where parseJSON = checked "DispatcherMessagesRefusalsItem" $ withObject "DispatcherMessagesRefusalsItem" (\fields -> DispatcherMessagesRefusalsItem <$> (fields .: "name") <*> (fields .: "operation") <*> optional fields "code" <*> (fields .: "situation") <*> (fields .: "message"))
 
 instance ToJSON DispatcherMessagesRefusalsItem where toJSON value = Object (KM.fromList (concat [[("name", toJSON (dispatcherMessagesRefusalsItemName value))], [("operation", toJSON (dispatcherMessagesRefusalsItemOperation value))], optionalPair "code" (dispatcherMessagesRefusalsItemCode value), [("situation", toJSON (dispatcherMessagesRefusalsItemSituation value))], [("message", toJSON (dispatcherMessagesRefusalsItemMessage value))]]))
-
-data DispatcherMessagesRefusalsItemCode = DispatcherMessagesRefusalsItemCodePeerUnavailable | DispatcherMessagesRefusalsItemCodeNotFound | DispatcherMessagesRefusalsItemCodeUnauthorized | DispatcherMessagesRefusalsItemCodeNonePending deriving (Eq, Show)
-
-instance FromJSON DispatcherMessagesRefusalsItemCode where parseJSON = checked "DispatcherMessagesRefusalsItemCode" $ \value -> if value == String "peer-unavailable" then pure DispatcherMessagesRefusalsItemCodePeerUnavailable else if value == String "not-found" then pure DispatcherMessagesRefusalsItemCodeNotFound else if value == String "unauthorized" then pure DispatcherMessagesRefusalsItemCodeUnauthorized else if value == String "none-pending" then pure DispatcherMessagesRefusalsItemCodeNonePending else fail "unknown enumeration member"
-
-instance ToJSON DispatcherMessagesRefusalsItemCode where
-  toJSON DispatcherMessagesRefusalsItemCodePeerUnavailable = String "peer-unavailable"
-  toJSON DispatcherMessagesRefusalsItemCodeNotFound = String "not-found"
-  toJSON DispatcherMessagesRefusalsItemCodeUnauthorized = String "unauthorized"
-  toJSON DispatcherMessagesRefusalsItemCodeNonePending = String "none-pending"
-
-dispatcherMessagesRefusalsItemCodeText :: DispatcherMessagesRefusalsItemCode -> Text
-dispatcherMessagesRefusalsItemCodeText DispatcherMessagesRefusalsItemCodePeerUnavailable = "peer-unavailable"
-dispatcherMessagesRefusalsItemCodeText DispatcherMessagesRefusalsItemCodeNotFound = "not-found"
-dispatcherMessagesRefusalsItemCodeText DispatcherMessagesRefusalsItemCodeUnauthorized = "unauthorized"
-dispatcherMessagesRefusalsItemCodeText DispatcherMessagesRefusalsItemCodeNonePending = "none-pending"

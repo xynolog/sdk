@@ -298,7 +298,7 @@ internal sealed class LiveQueries : IDisposable
     private void Refresh(ClientRefreshRefreshItemStreamStream befell)
     {
         foreach (var row in OnStream[befell])
-            foreach (var name in row.Refetches ?? []) queries[name].Refetch(new Subject(), row.Reach == ClientRefreshRefreshItemStreamReach.Held);
+            foreach (var name in row.Refetches ?? []) queries[name].Refetch(new Subject(), row.Reach == ClientRefreshRefreshItemOnReach.Held);
     }
 
     public void Dispose()

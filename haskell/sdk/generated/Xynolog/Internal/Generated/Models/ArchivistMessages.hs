@@ -2,7 +2,7 @@
 -- Regenerate: make generate (codegen/lib/haskell_sdk/haskell_sdk.ml)
 {-# LANGUAGE OverloadedStrings #-}
 
-module Xynolog.Internal.Generated.Models.ArchivistMessages (ArchivistMessages (..), ArchivistMessagesBootItem (..), ArchivistMessagesHttpItem (..), ArchivistMessagesHttpItemMethod (..), archivistMessagesHttpItemMethodText, ArchivistMessagesLoggedItem (..), ArchivistMessagesRefusalsItem (..), ArchivistMessagesRefusalsItemCode (..), archivistMessagesRefusalsItemCodeText, ArchivistMessagesUnauthorized (..), ArchivistMessagesUnsentItem (..)) where
+module Xynolog.Internal.Generated.Models.ArchivistMessages (ArchivistMessages (..), ArchivistMessagesBootItem (..), ArchivistMessagesHttpItem (..), ArchivistMessagesHttpItemMethod (..), archivistMessagesHttpItemMethodText, ArchivistMessagesLoggedItem (..), ArchivistMessagesRefusalsItem (..), ArchivistMessagesUnauthorized (..), ArchivistMessagesUnsentItem (..), CommandErrorCode (..), commandErrorCodeText) where
 
 import Data.Aeson (FromJSON (..), ToJSON (..), Value (..), withObject, (.:))
 import Data.Aeson.KeyMap qualified as KM
@@ -82,7 +82,7 @@ instance ToJSON ArchivistMessagesLoggedItem where toJSON value = Object (KM.from
 data ArchivistMessagesRefusalsItem = ArchivistMessagesRefusalsItem
   { archivistMessagesRefusalsItemName :: Text,
     archivistMessagesRefusalsItemOperations :: [Text],
-    archivistMessagesRefusalsItemCode :: Maybe ArchivistMessagesRefusalsItemCode,
+    archivistMessagesRefusalsItemCode :: Maybe CommandErrorCode,
     archivistMessagesRefusalsItemSituation :: Text,
     archivistMessagesRefusalsItemMessage :: Text
   }
@@ -91,22 +91,6 @@ data ArchivistMessagesRefusalsItem = ArchivistMessagesRefusalsItem
 instance FromJSON ArchivistMessagesRefusalsItem where parseJSON = checked "ArchivistMessagesRefusalsItem" $ withObject "ArchivistMessagesRefusalsItem" (\fields -> ArchivistMessagesRefusalsItem <$> (fields .: "name") <*> (fields .: "operations") <*> optional fields "code" <*> (fields .: "situation") <*> (fields .: "message"))
 
 instance ToJSON ArchivistMessagesRefusalsItem where toJSON value = Object (KM.fromList (concat [[("name", toJSON (archivistMessagesRefusalsItemName value))], [("operations", toJSON (archivistMessagesRefusalsItemOperations value))], optionalPair "code" (archivistMessagesRefusalsItemCode value), [("situation", toJSON (archivistMessagesRefusalsItemSituation value))], [("message", toJSON (archivistMessagesRefusalsItemMessage value))]]))
-
-data ArchivistMessagesRefusalsItemCode = ArchivistMessagesRefusalsItemCodePeerUnavailable | ArchivistMessagesRefusalsItemCodeNotFound | ArchivistMessagesRefusalsItemCodeUnauthorized | ArchivistMessagesRefusalsItemCodeNonePending deriving (Eq, Show)
-
-instance FromJSON ArchivistMessagesRefusalsItemCode where parseJSON = checked "ArchivistMessagesRefusalsItemCode" $ \value -> if value == String "peer-unavailable" then pure ArchivistMessagesRefusalsItemCodePeerUnavailable else if value == String "not-found" then pure ArchivistMessagesRefusalsItemCodeNotFound else if value == String "unauthorized" then pure ArchivistMessagesRefusalsItemCodeUnauthorized else if value == String "none-pending" then pure ArchivistMessagesRefusalsItemCodeNonePending else fail "unknown enumeration member"
-
-instance ToJSON ArchivistMessagesRefusalsItemCode where
-  toJSON ArchivistMessagesRefusalsItemCodePeerUnavailable = String "peer-unavailable"
-  toJSON ArchivistMessagesRefusalsItemCodeNotFound = String "not-found"
-  toJSON ArchivistMessagesRefusalsItemCodeUnauthorized = String "unauthorized"
-  toJSON ArchivistMessagesRefusalsItemCodeNonePending = String "none-pending"
-
-archivistMessagesRefusalsItemCodeText :: ArchivistMessagesRefusalsItemCode -> Text
-archivistMessagesRefusalsItemCodeText ArchivistMessagesRefusalsItemCodePeerUnavailable = "peer-unavailable"
-archivistMessagesRefusalsItemCodeText ArchivistMessagesRefusalsItemCodeNotFound = "not-found"
-archivistMessagesRefusalsItemCodeText ArchivistMessagesRefusalsItemCodeUnauthorized = "unauthorized"
-archivistMessagesRefusalsItemCodeText ArchivistMessagesRefusalsItemCodeNonePending = "none-pending"
 
 data ArchivistMessagesUnauthorized = ArchivistMessagesUnauthorized
   { archivistMessagesUnauthorizedStatus :: HttpStatus,
@@ -130,3 +114,19 @@ data ArchivistMessagesUnsentItem = ArchivistMessagesUnsentItem
 instance FromJSON ArchivistMessagesUnsentItem where parseJSON = checked "ArchivistMessagesUnsentItem" $ withObject "ArchivistMessagesUnsentItem" (\fields -> ArchivistMessagesUnsentItem <$> (fields .: "name") <*> (fields .: "situation") <*> (fields .: "message"))
 
 instance ToJSON ArchivistMessagesUnsentItem where toJSON value = Object (KM.fromList (concat [[("name", toJSON (archivistMessagesUnsentItemName value))], [("situation", toJSON (archivistMessagesUnsentItemSituation value))], [("message", toJSON (archivistMessagesUnsentItemMessage value))]]))
+
+data CommandErrorCode = CommandErrorCodePeerUnavailable | CommandErrorCodeNotFound | CommandErrorCodeUnauthorized | CommandErrorCodeNonePending deriving (Eq, Show)
+
+instance FromJSON CommandErrorCode where parseJSON = checked "CommandErrorCode" $ \value -> if value == String "peer-unavailable" then pure CommandErrorCodePeerUnavailable else if value == String "not-found" then pure CommandErrorCodeNotFound else if value == String "unauthorized" then pure CommandErrorCodeUnauthorized else if value == String "none-pending" then pure CommandErrorCodeNonePending else fail "unknown enumeration member"
+
+instance ToJSON CommandErrorCode where
+  toJSON CommandErrorCodePeerUnavailable = String "peer-unavailable"
+  toJSON CommandErrorCodeNotFound = String "not-found"
+  toJSON CommandErrorCodeUnauthorized = String "unauthorized"
+  toJSON CommandErrorCodeNonePending = String "none-pending"
+
+commandErrorCodeText :: CommandErrorCode -> Text
+commandErrorCodeText CommandErrorCodePeerUnavailable = "peer-unavailable"
+commandErrorCodeText CommandErrorCodeNotFound = "not-found"
+commandErrorCodeText CommandErrorCodeUnauthorized = "unauthorized"
+commandErrorCodeText CommandErrorCodeNonePending = "none-pending"

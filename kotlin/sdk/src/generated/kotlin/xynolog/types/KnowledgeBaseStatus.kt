@@ -15,7 +15,7 @@ public data class KnowledgeBaseStatus(
     /** Whether a stack of it is recorded. When none is, its services are found by name. */
     public val recorded: Boolean,
     /** Where the stack actually runs. "local": containers on this machine. "codespace": a GitHub-hosted VM whose KB is port-forwarded here. */
-    public val placement: KnowledgeBaseStatusPlacement,
+    public val placement: DiscoveredKBPlacement,
     /** Its clone, for a local stack. */
     public val root: String? = null,
     /** owner/name GitHub slug — present for codespace placements, where the repo is the stack's identity */
@@ -51,7 +51,7 @@ public data class KnowledgeBaseStatus(
         private val name: String,
         private val key: String,
         private val recorded: Boolean,
-        private val placement: KnowledgeBaseStatusPlacement,
+        private val placement: DiscoveredKBPlacement,
         private val starting: Boolean,
         private val healthy: Boolean,
         private val services: kotlin.collections.List<ServiceStatus>,
@@ -88,6 +88,6 @@ public data class KnowledgeBaseStatus(
     public companion object {
         /** A builder of a `KnowledgeBaseStatus` that states these, and what its setters add. */
         @JvmStatic
-        public fun builder(name: String, key: String, recorded: Boolean, placement: KnowledgeBaseStatusPlacement, starting: Boolean, healthy: Boolean, services: kotlin.collections.List<ServiceStatus>): Builder = Builder(name, key, recorded, placement, starting, healthy, services)
+        public fun builder(name: String, key: String, recorded: Boolean, placement: DiscoveredKBPlacement, starting: Boolean, healthy: Boolean, services: kotlin.collections.List<ServiceStatus>): Builder = Builder(name, key, recorded, placement, starting, healthy, services)
     }
 }

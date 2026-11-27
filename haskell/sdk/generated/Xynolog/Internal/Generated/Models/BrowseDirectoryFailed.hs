@@ -8,7 +8,7 @@ import Data.Aeson (FromJSON (..), ToJSON (..), Value (..), withObject, (.:))
 import Data.Aeson.KeyMap qualified as KM
 import Data.Text (Text)
 import Xynolog.Internal.Codec
-import Xynolog.Internal.Generated.Models.CommandError
+import Xynolog.Internal.Generated.Models.ArchivistMessages
 
 data BrowseDirectoryFailed = BrowseDirectoryFailed
   { browseDirectoryFailedCode :: Maybe CommandErrorCode,

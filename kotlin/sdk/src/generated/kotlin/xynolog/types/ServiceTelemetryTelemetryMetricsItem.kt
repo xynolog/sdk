@@ -10,13 +10,13 @@ public data class ServiceTelemetryTelemetryMetricsItem(
     /** The row's name; `{channel}` in it is the bus channel, and `{jobType}` the job's type. */
     public val name: String,
     /** The services that export the row. */
-    public val services: kotlin.collections.List<ServiceTelemetryTelemetryMetricsItemServicesItem>,
+    public val services: kotlin.collections.List<ServiceTelemetryTelemetrySpansItemServicesItem>,
     /** The metric's instrument. */
     public val instrument: ServiceTelemetryTelemetryMetricsItemInstrument,
     /** When the row arrives. */
-    public val `when`: ServiceTelemetryTelemetryMetricsItemWhen,
+    public val `when`: ServiceTelemetryTelemetrySpansItemWhen,
     /** The only signal planes a gateway row arrives on. */
-    public val planes: kotlin.collections.List<ServiceTelemetryTelemetryMetricsItemPlanesItem>? = null,
+    public val planes: kotlin.collections.List<GatewayConfigSignalType>? = null,
     /** What the row says. */
     public val meaning: String,
     /** The attributes the span carries. */
@@ -25,15 +25,15 @@ public data class ServiceTelemetryTelemetryMetricsItem(
     /** How Java makes a `ServiceTelemetryTelemetryMetricsItem`: `builder` takes what it must state, a setter each thing it may, and `build` makes it. */
     public class Builder internal constructor(
         private val name: String,
-        private val services: kotlin.collections.List<ServiceTelemetryTelemetryMetricsItemServicesItem>,
+        private val services: kotlin.collections.List<ServiceTelemetryTelemetrySpansItemServicesItem>,
         private val instrument: ServiceTelemetryTelemetryMetricsItemInstrument,
-        private val `when`: ServiceTelemetryTelemetryMetricsItemWhen,
+        private val `when`: ServiceTelemetryTelemetrySpansItemWhen,
         private val meaning: String,
         private val attributes: kotlin.collections.List<ServiceTelemetryTelemetryMetricsItemAttributesItem>,
     ) {
-        private var planes: kotlin.collections.List<ServiceTelemetryTelemetryMetricsItemPlanesItem>? = null
+        private var planes: kotlin.collections.List<GatewayConfigSignalType>? = null
 
-        public fun planes(planes: kotlin.collections.List<ServiceTelemetryTelemetryMetricsItemPlanesItem>?): Builder = apply { this.planes = planes }
+        public fun planes(planes: kotlin.collections.List<GatewayConfigSignalType>?): Builder = apply { this.planes = planes }
 
         public fun build(): ServiceTelemetryTelemetryMetricsItem = ServiceTelemetryTelemetryMetricsItem(name = name, services = services, instrument = instrument, `when` = `when`, planes = planes, meaning = meaning, attributes = attributes)
     }
@@ -41,6 +41,6 @@ public data class ServiceTelemetryTelemetryMetricsItem(
     public companion object {
         /** A builder of a `ServiceTelemetryTelemetryMetricsItem` that states these, and what its setters add. */
         @JvmStatic
-        public fun builder(name: String, services: kotlin.collections.List<ServiceTelemetryTelemetryMetricsItemServicesItem>, instrument: ServiceTelemetryTelemetryMetricsItemInstrument, `when`: ServiceTelemetryTelemetryMetricsItemWhen, meaning: String, attributes: kotlin.collections.List<ServiceTelemetryTelemetryMetricsItemAttributesItem>): Builder = Builder(name, services, instrument, `when`, meaning, attributes)
+        public fun builder(name: String, services: kotlin.collections.List<ServiceTelemetryTelemetrySpansItemServicesItem>, instrument: ServiceTelemetryTelemetryMetricsItemInstrument, `when`: ServiceTelemetryTelemetrySpansItemWhen, meaning: String, attributes: kotlin.collections.List<ServiceTelemetryTelemetryMetricsItemAttributesItem>): Builder = Builder(name, services, instrument, `when`, meaning, attributes)
     }
 }
