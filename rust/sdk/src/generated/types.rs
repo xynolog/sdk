@@ -18832,10 +18832,8 @@ pub struct ServiceTelemetryTelemetry {
     #[serde(rename = "$comment")]
     pub _comment: String,
     /// The services that reach the bus through an SDK, and for each the SDK transports it uses, or of a transport it uses part of, the rows it exports.
-    pub sdk: std::collections::BTreeMap<
-        ServiceTelemetryTelemetrySpansItemServicesItem,
-        Vec<String>,
-    >,
+    pub sdk:
+        std::collections::BTreeMap<ServiceTelemetryTelemetrySpansItemServicesItem, Vec<String>>,
     pub resource: Vec<ServiceTelemetryTelemetryResourceItem>,
     pub spans: Vec<ServiceTelemetryTelemetrySpansItem>,
     pub metrics: Vec<ServiceTelemetryTelemetryMetricsItem>,
