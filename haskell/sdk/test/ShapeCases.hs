@@ -15,7 +15,7 @@ import Data.Text (Text)
 import Data.Text qualified as Text
 import System.FilePath ((</>))
 import Xynolog.Internal.Required qualified as Required
-import Xynolog.Types (FrameRefusalReason)
+import Xynolog.Types (Fault (..), FrameRefusalReason)
 
 require :: String -> Bool -> IO ()
 require label good = unless good (ioError (userError label))
@@ -45,7 +45,7 @@ shapeCases root = do
         value = member "value" row
         refused = case row of Object fields -> KM.lookup "refused" fields == Just (Bool True); _ -> False
         expected
-          | refused = Just (Required.Fault (text (member "member" row)) (reasonNamed (member "reason" row)))
+          | refused = Just (Fault (text (member "member" row)) (reasonNamed (member "reason" row)))
           | otherwise = Nothing
         actual = Required.faultOf name value
     require

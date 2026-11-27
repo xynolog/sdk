@@ -8,7 +8,7 @@
    field names (the type's name, then the member's), an open list's items as
    the record's one type variable, a member that names a union of branches
    as the type variable each operation instantiates at its own branch, the
-   refused frame a report names as the transport's FrameRefusal, and the
+   refused frame a report names as Xynolog.Types' FrameRefusal, and the
    upload's events named UploadEvent, which leaves UploadProgress to be one of
    them. *)
 
@@ -294,21 +294,19 @@ let record_module ~shape name =
 let pending_annotation ~shape = record_module ~shape "PendingAnnotation"
 let search_state ~shape = record_module ~shape "SearchState"
 
-(* How the transport's FrameRefusal states each member of a refused frame's
-   report. *)
-let refused_member value = function
-  | "channel" -> Some (H.Apply (Name "refusedChannel", [ value ]))
-  | "member" ->
-      Some (H.Apply (Name "member", [ Apply (Name "fault", [ value ]) ]))
-  | "reason" ->
-      Some (H.Apply (Name "reason", [ Apply (Name "fault", [ value ]) ]))
-  | _ -> None
+(* Each member of a refused frame's report, as the FrameRefusal of
+   Xynolog.Types holds it: by its field, when it is one of [holds], the
+   members FrameRefusal always holds. *)
+let refused_member ~holds value name =
+  if List.mem name holds then
+    Some (H.Apply (Name (H.field "FrameRefusal" name), [ value ]))
+  else None
 
 (* The reports' sums: each branch a constructor holding its members but the
    tag, in order, an optional one as a Maybe, and written back to the
    branch's JSON, which states an optional member only when it is held; and
    the types of Xynolog.Types they hold. *)
-let report ~shape ~native ~prefix name =
+let report ~shape ~holds ~native ~prefix name =
   let* s = found ~shape name in
   let* tag, branches =
     match s with
@@ -326,7 +324,8 @@ let report ~shape ~native ~prefix name =
     | Inline refused -> (
         let encoded =
           List.map
-            (fun (r : member) -> (r.name, refused_member (H.Name "v") r.name))
+            (fun (r : member) ->
+              (r.name, refused_member ~holds (H.Name "v") r.name))
             refused
         in
         match List.find_opt (fun (_, e) -> e = None) encoded with
@@ -335,7 +334,7 @@ let report ~shape ~native ~prefix name =
               [
                 refusal name
                   (branch ^ "'s " ^ m.name ^ " reports " ^ unknown
-                 ^ ", which no FrameRefusal states");
+                 ^ ", which FrameRefusal does not always hold");
               ]
         | None ->
             Ok
@@ -351,8 +350,8 @@ let report ~shape ~native ~prefix name =
                                  ( Str r.name,
                                    [
                                      ( ".=",
-                                       Option.get (refused_member value r.name)
-                                     );
+                                       Option.get
+                                         (refused_member ~holds value r.name) );
                                    ] ))
                              refused);
                       ] ) ))
@@ -469,12 +468,12 @@ let report ~shape ~native ~prefix name =
              rows);
       ] )
 
-let operation_reports ~shape =
+let operation_reports ~shape ~holds =
   let* jobs_named, jobs =
-    report ~shape ~native:"JobEvent" ~prefix:"" "JobEvent"
+    report ~shape ~holds ~native:"JobEvent" ~prefix:"" "JobEvent"
   in
   let* uploads_named, uploads =
-    report ~shape ~native:"UploadEvent" ~prefix:"Upload" "UploadProgress"
+    report ~shape ~holds ~native:"UploadEvent" ~prefix:"Upload" "UploadProgress"
   in
   Ok
     {
@@ -496,12 +495,10 @@ let operation_reports ~shape =
                 H.import "Data.Text" ~items:[ Plain "Text" ];
                 H.import "Xynolog.Types"
                   ~items:
-                    (List.map
-                       (fun n -> H.Plain n)
-                       (List.sort_uniq compare (jobs_named @ uploads_named)));
-                H.import "Xynolog.Internal.Transport"
-                  ~items:[ All "FrameRefusal" ];
-                H.import "Xynolog.Internal.Required" ~items:[ All "Fault" ];
+                    (H.All "FrameRefusal"
+                    :: List.map
+                         (fun n -> H.Plain n)
+                         (List.sort_uniq compare (jobs_named @ uploads_named)));
               ];
             body = jobs @ uploads;
           };

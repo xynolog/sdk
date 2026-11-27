@@ -724,9 +724,9 @@ addEntityType wire command =
 `Bus.frames` requires `InScope resourceId` for a resource channel and holds that
 scope until its reader leaves. It yields `Heard delivered` or `Refused refusal`
 in order, and continues after a refusal. Deliveries retain their emitter,
-envelope, and trace. A refusal keeps the channel, optional raw payload, scope,
-readable correlation ID, and a `Fault`: its `member`
-path and `Lacks` or `Malformed` reason. Successful HTTP answers and stream
+envelope, and trace. A refusal is the `FrameRefusal` Protocol states: the
+channel, the `member` path and `Lacks` or `Malformed` reason of its first
+fault, and the optional raw payload, scope and readable correlation ID. Successful HTTP answers and stream
 frames are checked against the same generated rules that the other SDKs use;
 a diagnostic never includes the rejected value. The trace field is lifted out
 of the payload.

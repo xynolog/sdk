@@ -61,6 +61,18 @@ the coming release's, and gathers its changes as they land.
 
 ### Changed
 
+- A frame's refusal is `FrameRefusal` of `Xynolog.Types`, the type of
+  Protocol's `client/types/FrameRefusal.json`, where `Xynolog.Transport`
+  declared a record of its own; `Xynolog.Bus` and `Xynolog.Transport` export
+  it as before. Its fields are `frameRefusalChannel`, `frameRefusalMember`,
+  `frameRefusalReason`, `frameRefusalPayload`, `frameRefusalScope` and
+  `frameRefusalCorrelationId`, where they were `refusedChannel`,
+  `refusedPayload`, `refusedScope`, `refusedCorrelationId` and a `fault`
+  that held the member and reason.
+- A value's first fault is `Fault` of `Xynolog.Types`, the type of
+  Protocol's `client/types/Fault.json`, where `Xynolog.Bus` exported a record
+  of its own; `Xynolog.Bus` exports it as before. Its fields are
+  `faultMember` and `faultReason`, where they were `member` and `reason`.
 - A held job keeps the `HeldJobRecord` its claim handed it, and `jobId`,
   `jobType`, `resourceId`, `params`, `completedUnits`, `unitCursors`,
   `retryCount` and `maxRetries` are read from it through

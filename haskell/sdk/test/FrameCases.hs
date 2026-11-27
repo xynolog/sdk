@@ -96,8 +96,8 @@ runCases root = do
         expectedRefusal = KM.lookup "refused" fields == Just (Bool True)
         verify told issue = do
           require "a valid stream frame was refused" expectedRefusal
-          require "a frame refusal named the wrong member" (String (Required.member issue) == member "member" row)
-          require "a frame refusal named the wrong reason" (toJSON (Required.reason issue) == member "reason" row)
+          require "a frame refusal named the wrong member" (String (Bus.faultMember issue) == member "member" row)
+          require "a frame refusal named the wrong reason" (toJSON (Bus.faultReason issue) == member "reason" row)
           require "a frame refusal found the wrong reader" (String told == member "told" row)
         publish input = case parsed of
           Frame.Accepted frame -> Transport.receive input frame
@@ -126,9 +126,9 @@ runCases root = do
               publish input
               heard <- Stream.head_ values
               refusal <- case heard of Just (Bus.Refused value) -> pure value; _ -> ioError (userError "typed reader lost a refused frame")
-              verify "readers" (Bus.fault refusal)
-              require "refusal lost its raw payload" (Transport.refusedPayload refusal == (case raw of Object value -> KM.lookup "payload" value; _ -> Nothing))
-              require "refusal carried the wrong correlation id" (fmap String (Transport.refusedCorrelationId refusal) == KM.lookup "correlationId" fields)
+              verify "readers" (Bus.Fault (Bus.frameRefusalMember refusal) (Bus.frameRefusalReason refusal))
+              require "refusal lost its raw payload" (Transport.frameRefusalPayload refusal == (case raw of Object value -> KM.lookup "payload" value; _ -> Nothing))
+              require "refusal carried the wrong correlation id" (fmap String (Transport.frameRefusalCorrelationId refusal) == KM.lookup "correlationId" fields)
         if channel == String (channelName BeckonFocus)
           then Bus.frames bus BeckonFocus NoScope inspect
           else
@@ -148,7 +148,7 @@ runCases root = do
             case (expected, answer) of
               (String "fails", Left problem) | Just failure <- fromException problem -> do
                 let issue =
-                      Required.Fault
+                      Bus.Fault
                         (case member "member" row of String value -> value; _ -> error "nontext fault")
                         (case fromJSON (member "reason" row) of Success reason -> reason; Error unread -> error unread)
                 require
