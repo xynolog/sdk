@@ -59,6 +59,7 @@ import (
 	"github.com/xynolog/sdk/go/internal/kept"
 	"github.com/xynolog/sdk/go/internal/optional"
 	"github.com/xynolog/sdk/go/internal/required"
+	"github.com/xynolog/sdk/go/internal/timing"
 )
 
 // XynologBrowserConfig is what a registry is made of.
@@ -138,7 +139,7 @@ func NewXynologBrowser(config XynologBrowserConfig) (*XynologBrowser, error) {
 		openResources:     newHeld([]api.OpenResource{}),
 		lastViewed:        xynolog.NewVariable(api.ResourceId{}),
 		identityToken:     xynolog.NewVariable(""),
-		failures:          kept.NewStream[*xynolog.SessionError](xynolog.DefaultTiming().ErrorsKeptForFirstReaderCount),
+		failures:          kept.NewStream[*xynolog.SessionError](timing.ErrorsKeptForFirstReaderCount),
 		bus:               xynolog.NewEventBus(),
 		openByKb:          openByKbOf(storage.Get(OpenResourcesByKbKey)),
 		lastViewedByKb:    lastViewedByKbOf(storage.Get(LastViewedResourceByKbKey)),
@@ -209,8 +210,9 @@ func (b *XynologBrowser) LastViewedResource() xynolog.Watched[api.ResourceId] {
 // each write its storage refused, from this call on, in order, however far
 // behind its reader falls, until ctx is done or the registry is closed; saying
 // never waits for a reader. The first call is given first the latest
-// ErrorsKeptForFirstReaderCount (xynolog.Timing) said before it, the oldest
-// dropped beyond them; a call once the registry has closed, nothing.
+// errorsKeptForFirstReaderCount (protocol/specs/src/client/timing.json) said
+// before it, the oldest dropped beyond them; a call once the registry has
+// closed, nothing.
 func (b *XynologBrowser) Errors(ctx context.Context) iter.Seq[*xynolog.SessionError] {
 	return b.failures.Reported(ctx.Done())
 }
@@ -1021,7 +1023,7 @@ func (b *XynologBrowser) validateOpenResources(session *xynolog.Session) error {
 	var mu sync.Mutex
 	checks := map[api.ResourceId]api.TabCheck{}
 	var lanes sync.WaitGroup
-	for range xynolog.DefaultTiming().ChecksAtOnceCount {
+	for range timing.ChecksAtOnceCount {
 		lanes.Go(func() {
 			for id := range ids {
 				check := checkOpenResource(b.alive, session, id)

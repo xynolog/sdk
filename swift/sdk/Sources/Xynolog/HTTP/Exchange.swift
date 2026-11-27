@@ -77,7 +77,7 @@ extension HttpTransport {
     while true {
       try Task.checkCancellation()
       if lifetime.ended { throw CancellationError() }
-      let deadline = Duration.milliseconds(timing.httpRequestMs)
+      let deadline = Duration.milliseconds(timing.httpRequestTimeoutMs)
       let elapsed = stopwatch(clock)
       var request = HTTPClientRequest(url: baseUrl + path)
       request.method = .RAW(value: method)
@@ -98,7 +98,7 @@ extension HttpTransport {
           return Exchange(response: response, remaining: { deadline - elapsed() })
         }
         let error = await Self.refusal(
-          response, path: path, deadlineMs: timing.httpRequestMs, clock: clock)
+          response, path: path, deadlineMs: timing.httpRequestTimeoutMs, clock: clock)
         if error.reason == .unauthorized {
           if authenticated, !renewed {
             renewed = true
@@ -239,7 +239,7 @@ extension HttpTransport {
     var credential = token
     var renewed = false
     var attempts = 1
-    var cap = timing.emitInitialDelayMs
+    var cap = timing.emitRetry.initialDelayMs
     while true {
       try Task.checkCancellation()
       if lifetime.ended { throw CancellationError() }
@@ -261,7 +261,8 @@ extension HttpTransport {
           let response = try await http.execute(request, deadline: .distantFuture)
           if !(200..<300).contains(Int(response.status.code)) {
             throw await Self.refusal(
-              response, path: GatewayRoute.emitOnBus.path, deadlineMs: self.timing.httpRequestMs,
+              response, path: GatewayRoute.emitOnBus.path,
+              deadlineMs: self.timing.httpRequestTimeoutMs,
               clock: clock)
           }
           var data = Data()
@@ -280,14 +281,14 @@ extension HttpTransport {
           if let replacement = try await renew(refused: credential) {
             credential = replacement
             attempts = 1
-            cap = timing.emitInitialDelayMs
+            cap = timing.emitRetry.initialDelayMs
             continue
           }
         }
         failureEvents.yield(failure)
         throw failure
       }
-      if attempts >= timing.emitAttempts
+      if attempts >= timing.emitRetry.attempts
         || (failure.status != nil
           && !RetryContext.boot.retryable(
             status: failure.status, method: GatewayRoute.emitOnBus.method, keyed: true))
@@ -297,7 +298,7 @@ extension HttpTransport {
       }
       try await sleepMilliseconds(
         max(equalJitter(cap, from: random), failure.retryAfterMs ?? 0), on: clock)
-      cap = min(cap * 2, timing.emitMaxDelayMs)
+      cap = min(cap * 2, timing.emitRetry.maxDelayMs)
       attempts += 1
     }
   }

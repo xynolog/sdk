@@ -11,14 +11,15 @@ the next is read.
 import asyncio
 import os
 import sys
-from collections.abc import Awaitable, Callable, Mapping
-from dataclasses import dataclass
+from collections.abc import Awaitable, Callable, Collection, Mapping
+from dataclasses import dataclass, fields
 from typing import Final, final
 
 from pydantic import JsonValue, TypeAdapter, ValidationError
 
 from xynolog.errors import JobError, XynologError
 from xynolog.model import stated
+from xynolog.timing import ClientTiming, TransportTiming
 from xynolog.types import (
     ConformanceDriverLine,
     ConformanceDriverLineAbandoned,
@@ -31,9 +32,12 @@ from xynolog.types import (
 )
 
 __all__ = [
+    "CLIENT_ROWS",
+    "TRANSPORT_ROWS",
     "Arguments",
     "Misuse",
     "Operation",
+    "client_timing",
     "count",
     "exporting",
     "failure",
@@ -43,6 +47,8 @@ __all__ = [
     "serve",
     "text",
     "texts",
+    "timing_of",
+    "transport_timing",
 ]
 
 type Arguments = Mapping[str, JsonValue]
@@ -114,6 +120,49 @@ def texts(args: Arguments, name: str) -> list[str]:
             raise Misuse(f"{name} must be a list of strings")
         found.append(item)
     return found
+
+
+def _row(member: str) -> str:
+    """A timing record's member as `protocol/specs/src/client/timing.json` names its row: `linger_ms` is `lingerMs`."""
+    first, *rest = member.split("_")
+    return first + "".join(word.capitalize() for word in rest)
+
+
+CLIENT_ROWS: Final = {_row(member.name): member.name for member in fields(ClientTiming)}
+"""Each row `ClientTiming` holds, and its member there."""
+
+TRANSPORT_ROWS: Final = {_row(member.name): member.name for member in fields(TransportTiming)}
+"""Each row `TransportTiming` holds, and its member there."""
+
+_CLIENT_TIMING: Final = TypeAdapter(ClientTiming)
+_TRANSPORT_TIMING: Final = TypeAdapter(TransportTiming)
+
+
+def timing_of(args: Arguments, *held: Collection[str]) -> Arguments:
+    """A case's `timing`, empty when it states none. A row it names that none of `held` holds is a misuse."""
+    timed: Arguments = object_of(args, "timing") if "timing" in args else {}
+    for name in timed:
+        if not any(name in rows for rows in held):
+            raise Misuse(f"this driver cannot override {name}")
+    return timed
+
+
+def _timing[T](record: TypeAdapter[T], rows: Mapping[str, str], stated: Arguments) -> T:
+    named = {member: stated[row] for row, member in rows.items() if row in stated}
+    try:
+        return record.validate_json(_LINE.dump_json(named), strict=True)
+    except ValidationError as error:
+        raise Misuse(f"timing: {error}") from error
+
+
+def client_timing(stated: Arguments) -> ClientTiming:
+    """The client's timing for a case: the table's, but for each of its rows the case's `timing` states."""
+    return _timing(_CLIENT_TIMING, CLIENT_ROWS, stated)
+
+
+def transport_timing(stated: Arguments) -> TransportTiming:
+    """The transport's timing for a case: the table's, but for each of its rows the case's `timing` states."""
+    return _timing(_TRANSPORT_TIMING, TRANSPORT_ROWS, stated)
 
 
 def failure(error: BaseException) -> ConformanceFailure:

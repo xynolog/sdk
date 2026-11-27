@@ -99,11 +99,10 @@ type live struct {
 // persistence.
 func newLive(l *links, content ContentTransport) *live {
 	v := &live{links: l, annotationOf: map[api.AnnotationId]api.ResourceId{}, enginesAsked: make(chan struct{})}
-	save := l.timing.SaveDebounce
 	v.resource = NewCache(func(ctx context.Context, id api.ResourceId) (api.ResourceDescriptor, error) {
 		answer, err := ask(ctx, l, bus.BrowseResourceRequested, api.BrowseResourceRequest{ResourceId: id})
 		return answer.Response.Resource, err
-	}, l.run, nil, save)
+	}, l.run, nil)
 	v.resources = NewCache(func(ctx context.Context, key sentKey) (api.ListResourcesResponse, error) {
 		var request api.BrowseResourcesRequest
 		if err := key.into(&request); err != nil {
@@ -111,10 +110,10 @@ func newLive(l *links, content ContentTransport) *live {
 		}
 		answer, err := ask(ctx, l, bus.BrowseResourcesRequested, request)
 		return answer.Response, err
-	}, l.run, nil, 0)
+	}, l.run, nil)
 	v.annotations = NewCache(func(ctx context.Context, id api.ResourceId) (api.GetAnnotationsResponse, error) {
 		return content.GetAnnotations(ctx, id)
-	}, l.run, nil, save)
+	}, l.run, nil)
 	v.annotation = NewCache(func(ctx context.Context, id api.AnnotationId) (api.Annotation, error) {
 		v.annotationMu.Lock()
 		resource, named := v.annotationOf[id]
@@ -124,30 +123,30 @@ func newLive(l *links, content ContentTransport) *live {
 		}
 		answer, err := ask(ctx, l, bus.BrowseAnnotationRequested, api.BrowseAnnotationRequest{ResourceId: resource, AnnotationId: id})
 		return answer.Response.Annotation, err
-	}, l.run, nil, save)
+	}, l.run, nil)
 	v.entityTypes = NewCache(func(ctx context.Context, _ whole) ([]string, error) {
 		answer, err := ask(ctx, l, bus.BrowseEntityTypesRequested, api.BrowseEntityTypesRequest{})
 		return answer.Response.EntityTypes, err
-	}, l.run, nil, save)
+	}, l.run, nil)
 	v.tagSchemas = NewCache(func(ctx context.Context, _ whole) ([]api.TagSchema, error) {
 		answer, err := ask(ctx, l, bus.BrowseTagSchemasRequested, api.BrowseTagSchemasRequest{})
 		return answer.Response.TagSchemas, err
-	}, l.run, nil, save)
+	}, l.run, nil)
 	v.engines = NewCache(func(ctx context.Context, _ whole) ([]api.EngineEntry, error) {
 		answer, err := requestAsking(ctx, l.wire, bus.BrowseEnginesRequested, api.BrowseEnginesRequest{}, l.timing.BusRequestTimeout, v.askedForTheEngines)
 		return answer.Response.Engines, err
-	}, l.run, nil, 0)
+	}, l.run, nil)
 	v.limits = NewCache(func(ctx context.Context, holder bus.Channel) ([]api.EngineLimits, error) {
 		return v.limitsOf(ctx, holder), nil
-	}, l.run, nil, 0)
+	}, l.run, nil)
 	v.events = NewCache(func(ctx context.Context, id api.ResourceId) ([]api.AttributedEvent, error) {
 		answer, err := ask(ctx, l, bus.BrowseEventsRequested, api.BrowseEventsRequest{ResourceId: id})
 		return answer.Response.Events, err
-	}, l.run, nil, 0)
+	}, l.run, nil)
 	v.referencedBy = NewCache(func(ctx context.Context, id api.ResourceId) ([]api.GetReferencedByResponseReferencedByItem, error) {
 		answer, err := ask(ctx, l, bus.GatherReferencedByRequested, api.GatherReferencedByRequest{ResourceId: id})
 		return answer.Response.ReferencedBy, err
-	}, l.run, nil, 0)
+	}, l.run, nil)
 	v.matchedResources = NewCache(func(ctx context.Context, key searchKey) (api.MatchResourcesResponse, error) {
 		request := api.MatchResourcesRequest{Search: key.search}
 		if err := key.filters.into(&request); err != nil {
@@ -155,14 +154,14 @@ func newLive(l *links, content ContentTransport) *live {
 		}
 		answer, err := ask(ctx, l, bus.MatchResourcesRequested, request)
 		return answer.Response, err
-	}, l.run, nil, 0)
+	}, l.run, nil)
 	return v
 }
 
 // keepIn attaches cache to a persister of what it holds, under query's key,
 // telling persistence's refused each write its storage refuses.
-func keepIn[K comparable, V any](cache *Cache[K, V], persistence *CachePersistence, query CacheQuery, timing Timing) {
-	cache.attach(NewStoragePersister[K, V](persistence.Storage, CacheKey(persistence.KbID, persistence.PersonKey, query), timing.MaxStoredBytesCount), persistence.refused)
+func keepIn[K comparable, V any](cache *Cache[K, V], persistence *CachePersistence, query CacheQuery) {
+	cache.attach(NewStoragePersister[K, V](persistence.Storage, CacheKey(persistence.KbID, persistence.PersonKey, query)), persistence.refused)
 }
 
 // limitsOf is the engines one key holder reports the limits of. A holder

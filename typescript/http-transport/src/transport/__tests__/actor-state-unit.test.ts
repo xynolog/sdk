@@ -287,7 +287,9 @@ describe('createActorStateUnit', () => {
       baseUrl: 'http://localhost:4000',
       token: 'tok',
       channels: [],
-      emitRetry: { attempts: 2, initialDelayMs: 1, maxDelayMs: 1 },
+      timing: {
+        emitRetry: { attempts: 2, initialDelayMs: 1, maxDelayMs: 1 },
+      },
     });
 
     await expect(
@@ -313,7 +315,9 @@ describe('createActorStateUnit', () => {
       baseUrl: 'http://localhost:4000',
       token: 'tok',
       channels: [],
-      emitRetry: { attempts: 2, initialDelayMs: 1, maxDelayMs: 1 },
+      timing: {
+        emitRetry: { attempts: 2, initialDelayMs: 1, maxDelayMs: 1 },
+      },
     });
 
     await expect(
@@ -350,7 +354,9 @@ describe('createActorStateUnit', () => {
       baseUrl: 'http://localhost:4000',
       token: 'tok',
       channels: [],
-      emitRetry: { attempts: 2, initialDelayMs: 1, maxDelayMs: 1 },
+      timing: {
+        emitRetry: { attempts: 2, initialDelayMs: 1, maxDelayMs: 1 },
+      },
     });
 
     const failure: unknown = await stateUnit
@@ -489,7 +495,7 @@ describe('createActorStateUnit', () => {
       baseUrl: 'http://localhost:4000',
       token: () => token,
       channels: ['beckon:hover'],
-      reconnectMs: 5_000,
+      timing: { reconnectMs: 5_000 },
     });
     let lastState = '';
     stateUnit.state$.subscribe((s) => {
@@ -530,7 +536,7 @@ describe('createActorStateUnit', () => {
       baseUrl: 'http://localhost:4000',
       token: 'fine-tok',
       channels: ['beckon:hover'],
-      reconnectMs: 5_000,
+      timing: { reconnectMs: 5_000 },
     });
     let lastState = '';
     stateUnit.state$.subscribe((s) => {
@@ -583,7 +589,7 @@ describe('createActorStateUnit', () => {
       baseUrl: 'http://localhost:4000',
       token: () => token,
       channels: ['beckon:hover'],
-      reconnectMs: 5_000,
+      timing: { reconnectMs: 5_000 },
       tokenRefresher: refresher,
     });
     let lastState = '';
@@ -626,7 +632,7 @@ describe('createActorStateUnit', () => {
       baseUrl: 'http://localhost:4000',
       token: 'revoked-tok',
       channels: ['beckon:hover'],
-      reconnectMs: 5_000,
+      timing: { reconnectMs: 5_000 },
       tokenRefresher: refresher,
     });
     let lastState = '';
@@ -661,7 +667,7 @@ describe('createActorStateUnit', () => {
       baseUrl: 'http://localhost:4000',
       token: () => token,
       channels: ['beckon:hover'],
-      reconnectMs: 5_000,
+      timing: { reconnectMs: 5_000 },
       tokenRefresher: refresher,
     });
     let lastState = '';
@@ -1239,7 +1245,7 @@ describe('createActorStateUnit', () => {
       baseUrl: 'http://localhost:4000',
       token: 'tok',
       channels: ['beckon:hover'],
-      reconnectMs: 100,
+      timing: { reconnectMs: 100 },
     });
 
     stateUnit.start();
@@ -1268,8 +1274,7 @@ describe('createActorStateUnit', () => {
       baseUrl: 'http://localhost:4000',
       token: 'tok',
       channels: ['beckon:hover'],
-      lazyRemoveMs: 150,
-      lingerMs: 20,
+      timing: { lazyRemoveMs: 150, lingerMs: 20 },
     });
 
     stateUnit.start();
@@ -1298,7 +1303,7 @@ describe('createActorStateUnit', () => {
       baseUrl: 'http://localhost:4000',
       token: 'tok',
       channels: ['beckon:hover'],
-      reconnectMs: 20,
+      timing: { reconnectMs: 20 },
     });
     const states: string[] = [];
     const failures: XynologError[] = [];
@@ -1337,7 +1342,7 @@ describe('createActorStateUnit', () => {
       baseUrl: 'http://localhost:4000',
       token: 'tok',
       channels: ['beckon:hover'],
-      reconnectMs: 10_000,
+      timing: { reconnectMs: 10_000 },
     });
     const states: string[] = [];
     stateUnit.state$.subscribe((s) => states.push(s));
@@ -1376,7 +1381,7 @@ describe('createActorStateUnit', () => {
       baseUrl: 'http://localhost:4000',
       token: 'tok',
       channels: ['beckon:hover'],
-      reconnectMs: 100,
+      timing: { reconnectMs: 100 },
     });
 
     stateUnit.start();
@@ -1429,7 +1434,7 @@ describe('createActorStateUnit', () => {
         channels: ['beckon:hover'],
         // Long enough that the retry timer doesn't fire during the wait;
         // we want to stay in `reconnecting`.
-        reconnectMs: 10_000,
+        timing: { reconnectMs: 10_000 },
       });
 
       const states: string[] = [];
@@ -1469,7 +1474,7 @@ describe('createActorStateUnit', () => {
         channels: ['beckon:hover'],
         // Long, so the retry timer doesn't fire during the wait — we want to
         // sit in `reconnecting` long enough to cross the degraded threshold.
-        reconnectMs: 10_000,
+        timing: { reconnectMs: 10_000 },
       });
 
       const states: string[] = [];
@@ -1979,7 +1984,7 @@ describe('multi-scope subscription matrix', () => {
       baseUrl: 'http://localhost:4000',
       token: 'tok',
       channels: ['global:ch'],
-      lazyRemoveMs: 300,
+      timing: { lazyRemoveMs: 300 },
     });
     su.start();
     await vi.waitFor(() => expect(mockFetch).toHaveBeenCalledTimes(1));
@@ -2012,7 +2017,7 @@ describe('multi-scope subscription matrix', () => {
       baseUrl: 'http://localhost:4000',
       token: 'tok',
       channels: ['global:ch'],
-      lazyRemoveMs: 5_000, // far away — the fast flush must carry the removal
+      timing: { lazyRemoveMs: 5_000 }, // far away — the fast flush must carry the removal
     });
     su.start();
     await vi.waitFor(() => expect(mockFetch).toHaveBeenCalledTimes(1));

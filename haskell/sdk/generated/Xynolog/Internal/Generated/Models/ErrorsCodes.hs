@@ -2,12 +2,13 @@
 -- Regenerate: make generate (codegen/lib/haskell_sdk/haskell_sdk.ml)
 {-# LANGUAGE OverloadedStrings #-}
 
-module Xynolog.Internal.Generated.Models.ErrorsCodes (ErrorsCodes (..), ErrorsCodesBusRequest (..), ErrorsCodesBusRequestCodesItem (..), ErrorsCodesBusRequestCodesItemWire (..), errorsCodesBusRequestCodesItemWireText, ErrorsCodesControl (..), ErrorsCodesControlCodesItem (..), ErrorsCodesJob (..), ErrorsCodesJobCodesItem (..), ErrorsCodesKbIdentity (..), ErrorsCodesKbIdentityCodesItem (..), ErrorsCodesSession (..), ErrorsCodesSessionCodesItem (..), ErrorsCodesSignIn (..), ErrorsCodesSignInCodesItem (..), ErrorsCodesSpanRefusal (..), ErrorsCodesSpanRefusalCodesItem (..), ErrorsCodesTransport (..), ErrorsCodesTransportCodesItem (..), ErrorsCodesTransportCodesItemNoStatus (..), ErrorsCodesTransportCodesItemStatus (..), ErrorsCodesTransportCodesItemStatusFrom (..), ErrorsCodesTransportCodesItemStatusLimitRefusalsItem (..), ErrorsCodesTransportCodesItemStatusLimitRefusalsItemCode (..), errorsCodesTransportCodesItemStatusLimitRefusalsItemCodeText) where
+module Xynolog.Internal.Generated.Models.ErrorsCodes (ErrorsCodes (..), ErrorsCodesBusRequest (..), ErrorsCodesBusRequestCodesItem (..), ErrorsCodesControl (..), ErrorsCodesControlCodesItem (..), ErrorsCodesJob (..), ErrorsCodesJobCodesItem (..), ErrorsCodesTransport (..), ErrorsCodesTransportCodesItem (..), ErrorsCodesTransportCodesItemNoStatus (..), ErrorsCodesTransportCodesItemStatus (..), ErrorsCodesTransportCodesItemStatusFrom (..), ErrorsCodesTransportCodesItemStatusLimitRefusalsItem (..), LimitRefusalValueCode (..), limitRefusalValueCodeText) where
 
 import Data.Aeson (FromJSON (..), ToJSON (..), Value (..), withObject, (.:))
 import Data.Aeson.KeyMap qualified as KM
 import Data.Text (Text)
 import Xynolog.Internal.Codec
+import Xynolog.Internal.Generated.Models.ArchivistMessages
 import Xynolog.Internal.Generated.Models.HttpStatus
 
 data ErrorsCodes = ErrorsCodes
@@ -15,10 +16,10 @@ data ErrorsCodes = ErrorsCodes
     errorsCodesBusRequest :: ErrorsCodesBusRequest,
     errorsCodesTransport :: ErrorsCodesTransport,
     errorsCodesJob :: ErrorsCodesJob,
-    errorsCodesSession :: ErrorsCodesSession,
-    errorsCodesSignIn :: ErrorsCodesSignIn,
-    errorsCodesKbIdentity :: ErrorsCodesKbIdentity,
-    errorsCodesSpanRefusal :: ErrorsCodesSpanRefusal,
+    errorsCodesSession :: ErrorsCodesJob,
+    errorsCodesSignIn :: ErrorsCodesJob,
+    errorsCodesKbIdentity :: ErrorsCodesJob,
+    errorsCodesSpanRefusal :: ErrorsCodesJob,
     errorsCodesControl :: ErrorsCodesControl
   }
   deriving (Eq, Show)
@@ -41,29 +42,13 @@ instance ToJSON ErrorsCodesBusRequest where toJSON value = Object (KM.fromList (
 data ErrorsCodesBusRequestCodesItem = ErrorsCodesBusRequestCodesItem
   { errorsCodesBusRequestCodesItemCode :: Text,
     errorsCodesBusRequestCodesItemDocs :: Text,
-    errorsCodesBusRequestCodesItemWire :: Maybe ErrorsCodesBusRequestCodesItemWire
+    errorsCodesBusRequestCodesItemWire :: Maybe CommandErrorCode
   }
   deriving (Eq, Show)
 
 instance FromJSON ErrorsCodesBusRequestCodesItem where parseJSON = checked "ErrorsCodesBusRequestCodesItem" $ withObject "ErrorsCodesBusRequestCodesItem" (\fields -> ErrorsCodesBusRequestCodesItem <$> (fields .: "code") <*> (fields .: "docs") <*> optional fields "wire")
 
 instance ToJSON ErrorsCodesBusRequestCodesItem where toJSON value = Object (KM.fromList (concat [[("code", toJSON (errorsCodesBusRequestCodesItemCode value))], [("docs", toJSON (errorsCodesBusRequestCodesItemDocs value))], optionalPair "wire" (errorsCodesBusRequestCodesItemWire value)]))
-
-data ErrorsCodesBusRequestCodesItemWire = ErrorsCodesBusRequestCodesItemWirePeerUnavailable | ErrorsCodesBusRequestCodesItemWireNotFound | ErrorsCodesBusRequestCodesItemWireUnauthorized | ErrorsCodesBusRequestCodesItemWireNonePending deriving (Eq, Show)
-
-instance FromJSON ErrorsCodesBusRequestCodesItemWire where parseJSON = checked "ErrorsCodesBusRequestCodesItemWire" $ \value -> if value == String "peer-unavailable" then pure ErrorsCodesBusRequestCodesItemWirePeerUnavailable else if value == String "not-found" then pure ErrorsCodesBusRequestCodesItemWireNotFound else if value == String "unauthorized" then pure ErrorsCodesBusRequestCodesItemWireUnauthorized else if value == String "none-pending" then pure ErrorsCodesBusRequestCodesItemWireNonePending else fail "unknown enumeration member"
-
-instance ToJSON ErrorsCodesBusRequestCodesItemWire where
-  toJSON ErrorsCodesBusRequestCodesItemWirePeerUnavailable = String "peer-unavailable"
-  toJSON ErrorsCodesBusRequestCodesItemWireNotFound = String "not-found"
-  toJSON ErrorsCodesBusRequestCodesItemWireUnauthorized = String "unauthorized"
-  toJSON ErrorsCodesBusRequestCodesItemWireNonePending = String "none-pending"
-
-errorsCodesBusRequestCodesItemWireText :: ErrorsCodesBusRequestCodesItemWire -> Text
-errorsCodesBusRequestCodesItemWireText ErrorsCodesBusRequestCodesItemWirePeerUnavailable = "peer-unavailable"
-errorsCodesBusRequestCodesItemWireText ErrorsCodesBusRequestCodesItemWireNotFound = "not-found"
-errorsCodesBusRequestCodesItemWireText ErrorsCodesBusRequestCodesItemWireUnauthorized = "unauthorized"
-errorsCodesBusRequestCodesItemWireText ErrorsCodesBusRequestCodesItemWireNonePending = "none-pending"
 
 data ErrorsCodesControl = ErrorsCodesControl
   { errorsCodesControlDocs :: Text,
@@ -106,86 +91,6 @@ data ErrorsCodesJobCodesItem = ErrorsCodesJobCodesItem
 instance FromJSON ErrorsCodesJobCodesItem where parseJSON = checked "ErrorsCodesJobCodesItem" $ withObject "ErrorsCodesJobCodesItem" (\fields -> ErrorsCodesJobCodesItem <$> (fields .: "code") <*> (fields .: "docs"))
 
 instance ToJSON ErrorsCodesJobCodesItem where toJSON value = Object (KM.fromList (concat [[("code", toJSON (errorsCodesJobCodesItemCode value))], [("docs", toJSON (errorsCodesJobCodesItemDocs value))]]))
-
-data ErrorsCodesKbIdentity = ErrorsCodesKbIdentity
-  { errorsCodesKbIdentityDocs :: Text,
-    errorsCodesKbIdentityCodes :: [ErrorsCodesKbIdentityCodesItem]
-  }
-  deriving (Eq, Show)
-
-instance FromJSON ErrorsCodesKbIdentity where parseJSON = checked "ErrorsCodesKbIdentity" $ withObject "ErrorsCodesKbIdentity" (\fields -> ErrorsCodesKbIdentity <$> (fields .: "docs") <*> (fields .: "codes"))
-
-instance ToJSON ErrorsCodesKbIdentity where toJSON value = Object (KM.fromList (concat [[("docs", toJSON (errorsCodesKbIdentityDocs value))], [("codes", toJSON (errorsCodesKbIdentityCodes value))]]))
-
-data ErrorsCodesKbIdentityCodesItem = ErrorsCodesKbIdentityCodesItem
-  { errorsCodesKbIdentityCodesItemCode :: Text,
-    errorsCodesKbIdentityCodesItemDocs :: Text
-  }
-  deriving (Eq, Show)
-
-instance FromJSON ErrorsCodesKbIdentityCodesItem where parseJSON = checked "ErrorsCodesKbIdentityCodesItem" $ withObject "ErrorsCodesKbIdentityCodesItem" (\fields -> ErrorsCodesKbIdentityCodesItem <$> (fields .: "code") <*> (fields .: "docs"))
-
-instance ToJSON ErrorsCodesKbIdentityCodesItem where toJSON value = Object (KM.fromList (concat [[("code", toJSON (errorsCodesKbIdentityCodesItemCode value))], [("docs", toJSON (errorsCodesKbIdentityCodesItemDocs value))]]))
-
-data ErrorsCodesSession = ErrorsCodesSession
-  { errorsCodesSessionDocs :: Text,
-    errorsCodesSessionCodes :: [ErrorsCodesSessionCodesItem]
-  }
-  deriving (Eq, Show)
-
-instance FromJSON ErrorsCodesSession where parseJSON = checked "ErrorsCodesSession" $ withObject "ErrorsCodesSession" (\fields -> ErrorsCodesSession <$> (fields .: "docs") <*> (fields .: "codes"))
-
-instance ToJSON ErrorsCodesSession where toJSON value = Object (KM.fromList (concat [[("docs", toJSON (errorsCodesSessionDocs value))], [("codes", toJSON (errorsCodesSessionCodes value))]]))
-
-data ErrorsCodesSessionCodesItem = ErrorsCodesSessionCodesItem
-  { errorsCodesSessionCodesItemCode :: Text,
-    errorsCodesSessionCodesItemDocs :: Text
-  }
-  deriving (Eq, Show)
-
-instance FromJSON ErrorsCodesSessionCodesItem where parseJSON = checked "ErrorsCodesSessionCodesItem" $ withObject "ErrorsCodesSessionCodesItem" (\fields -> ErrorsCodesSessionCodesItem <$> (fields .: "code") <*> (fields .: "docs"))
-
-instance ToJSON ErrorsCodesSessionCodesItem where toJSON value = Object (KM.fromList (concat [[("code", toJSON (errorsCodesSessionCodesItemCode value))], [("docs", toJSON (errorsCodesSessionCodesItemDocs value))]]))
-
-data ErrorsCodesSignIn = ErrorsCodesSignIn
-  { errorsCodesSignInDocs :: Text,
-    errorsCodesSignInCodes :: [ErrorsCodesSignInCodesItem]
-  }
-  deriving (Eq, Show)
-
-instance FromJSON ErrorsCodesSignIn where parseJSON = checked "ErrorsCodesSignIn" $ withObject "ErrorsCodesSignIn" (\fields -> ErrorsCodesSignIn <$> (fields .: "docs") <*> (fields .: "codes"))
-
-instance ToJSON ErrorsCodesSignIn where toJSON value = Object (KM.fromList (concat [[("docs", toJSON (errorsCodesSignInDocs value))], [("codes", toJSON (errorsCodesSignInCodes value))]]))
-
-data ErrorsCodesSignInCodesItem = ErrorsCodesSignInCodesItem
-  { errorsCodesSignInCodesItemCode :: Text,
-    errorsCodesSignInCodesItemDocs :: Text
-  }
-  deriving (Eq, Show)
-
-instance FromJSON ErrorsCodesSignInCodesItem where parseJSON = checked "ErrorsCodesSignInCodesItem" $ withObject "ErrorsCodesSignInCodesItem" (\fields -> ErrorsCodesSignInCodesItem <$> (fields .: "code") <*> (fields .: "docs"))
-
-instance ToJSON ErrorsCodesSignInCodesItem where toJSON value = Object (KM.fromList (concat [[("code", toJSON (errorsCodesSignInCodesItemCode value))], [("docs", toJSON (errorsCodesSignInCodesItemDocs value))]]))
-
-data ErrorsCodesSpanRefusal = ErrorsCodesSpanRefusal
-  { errorsCodesSpanRefusalDocs :: Text,
-    errorsCodesSpanRefusalCodes :: [ErrorsCodesSpanRefusalCodesItem]
-  }
-  deriving (Eq, Show)
-
-instance FromJSON ErrorsCodesSpanRefusal where parseJSON = checked "ErrorsCodesSpanRefusal" $ withObject "ErrorsCodesSpanRefusal" (\fields -> ErrorsCodesSpanRefusal <$> (fields .: "docs") <*> (fields .: "codes"))
-
-instance ToJSON ErrorsCodesSpanRefusal where toJSON value = Object (KM.fromList (concat [[("docs", toJSON (errorsCodesSpanRefusalDocs value))], [("codes", toJSON (errorsCodesSpanRefusalCodes value))]]))
-
-data ErrorsCodesSpanRefusalCodesItem = ErrorsCodesSpanRefusalCodesItem
-  { errorsCodesSpanRefusalCodesItemCode :: Text,
-    errorsCodesSpanRefusalCodesItemDocs :: Text
-  }
-  deriving (Eq, Show)
-
-instance FromJSON ErrorsCodesSpanRefusalCodesItem where parseJSON = checked "ErrorsCodesSpanRefusalCodesItem" $ withObject "ErrorsCodesSpanRefusalCodesItem" (\fields -> ErrorsCodesSpanRefusalCodesItem <$> (fields .: "code") <*> (fields .: "docs"))
-
-instance ToJSON ErrorsCodesSpanRefusalCodesItem where toJSON value = Object (KM.fromList (concat [[("code", toJSON (errorsCodesSpanRefusalCodesItemCode value))], [("docs", toJSON (errorsCodesSpanRefusalCodesItemDocs value))]]))
 
 data ErrorsCodesTransport = ErrorsCodesTransport
   { errorsCodesTransportDocs :: Text,
@@ -242,7 +147,7 @@ instance ToJSON ErrorsCodesTransportCodesItemStatusFrom where toJSON value = Obj
 
 data ErrorsCodesTransportCodesItemStatusLimitRefusalsItem = ErrorsCodesTransportCodesItemStatusLimitRefusalsItem
   { errorsCodesTransportCodesItemStatusLimitRefusalsItemStatus :: HttpStatus,
-    errorsCodesTransportCodesItemStatusLimitRefusalsItemCode :: ErrorsCodesTransportCodesItemStatusLimitRefusalsItemCode
+    errorsCodesTransportCodesItemStatusLimitRefusalsItemCode :: LimitRefusalValueCode
   }
   deriving (Eq, Show)
 
@@ -250,20 +155,20 @@ instance FromJSON ErrorsCodesTransportCodesItemStatusLimitRefusalsItem where par
 
 instance ToJSON ErrorsCodesTransportCodesItemStatusLimitRefusalsItem where toJSON value = Object (KM.fromList (concat [[("status", toJSON (errorsCodesTransportCodesItemStatusLimitRefusalsItemStatus value))], [("code", toJSON (errorsCodesTransportCodesItemStatusLimitRefusalsItemCode value))]]))
 
-data ErrorsCodesTransportCodesItemStatusLimitRefusalsItemCode = ErrorsCodesTransportCodesItemStatusLimitRefusalsItemCodeStreams | ErrorsCodesTransportCodesItemStatusLimitRefusalsItemCodeEmitRate | ErrorsCodesTransportCodesItemStatusLimitRefusalsItemCodeUnansweredRequests | ErrorsCodesTransportCodesItemStatusLimitRefusalsItemCodeCapacity | ErrorsCodesTransportCodesItemStatusLimitRefusalsItemCodeRefusalRate deriving (Eq, Show)
+data LimitRefusalValueCode = LimitRefusalValueCodeStreams | LimitRefusalValueCodeEmitRate | LimitRefusalValueCodeUnansweredRequests | LimitRefusalValueCodeCapacity | LimitRefusalValueCodeRefusalRate deriving (Eq, Show)
 
-instance FromJSON ErrorsCodesTransportCodesItemStatusLimitRefusalsItemCode where parseJSON = checked "ErrorsCodesTransportCodesItemStatusLimitRefusalsItemCode" $ \value -> if value == String "streams" then pure ErrorsCodesTransportCodesItemStatusLimitRefusalsItemCodeStreams else if value == String "emit-rate" then pure ErrorsCodesTransportCodesItemStatusLimitRefusalsItemCodeEmitRate else if value == String "unanswered-requests" then pure ErrorsCodesTransportCodesItemStatusLimitRefusalsItemCodeUnansweredRequests else if value == String "capacity" then pure ErrorsCodesTransportCodesItemStatusLimitRefusalsItemCodeCapacity else if value == String "refusal-rate" then pure ErrorsCodesTransportCodesItemStatusLimitRefusalsItemCodeRefusalRate else fail "unknown enumeration member"
+instance FromJSON LimitRefusalValueCode where parseJSON = checked "LimitRefusalValueCode" $ \value -> if value == String "streams" then pure LimitRefusalValueCodeStreams else if value == String "emit-rate" then pure LimitRefusalValueCodeEmitRate else if value == String "unanswered-requests" then pure LimitRefusalValueCodeUnansweredRequests else if value == String "capacity" then pure LimitRefusalValueCodeCapacity else if value == String "refusal-rate" then pure LimitRefusalValueCodeRefusalRate else fail "unknown enumeration member"
 
-instance ToJSON ErrorsCodesTransportCodesItemStatusLimitRefusalsItemCode where
-  toJSON ErrorsCodesTransportCodesItemStatusLimitRefusalsItemCodeStreams = String "streams"
-  toJSON ErrorsCodesTransportCodesItemStatusLimitRefusalsItemCodeEmitRate = String "emit-rate"
-  toJSON ErrorsCodesTransportCodesItemStatusLimitRefusalsItemCodeUnansweredRequests = String "unanswered-requests"
-  toJSON ErrorsCodesTransportCodesItemStatusLimitRefusalsItemCodeCapacity = String "capacity"
-  toJSON ErrorsCodesTransportCodesItemStatusLimitRefusalsItemCodeRefusalRate = String "refusal-rate"
+instance ToJSON LimitRefusalValueCode where
+  toJSON LimitRefusalValueCodeStreams = String "streams"
+  toJSON LimitRefusalValueCodeEmitRate = String "emit-rate"
+  toJSON LimitRefusalValueCodeUnansweredRequests = String "unanswered-requests"
+  toJSON LimitRefusalValueCodeCapacity = String "capacity"
+  toJSON LimitRefusalValueCodeRefusalRate = String "refusal-rate"
 
-errorsCodesTransportCodesItemStatusLimitRefusalsItemCodeText :: ErrorsCodesTransportCodesItemStatusLimitRefusalsItemCode -> Text
-errorsCodesTransportCodesItemStatusLimitRefusalsItemCodeText ErrorsCodesTransportCodesItemStatusLimitRefusalsItemCodeStreams = "streams"
-errorsCodesTransportCodesItemStatusLimitRefusalsItemCodeText ErrorsCodesTransportCodesItemStatusLimitRefusalsItemCodeEmitRate = "emit-rate"
-errorsCodesTransportCodesItemStatusLimitRefusalsItemCodeText ErrorsCodesTransportCodesItemStatusLimitRefusalsItemCodeUnansweredRequests = "unanswered-requests"
-errorsCodesTransportCodesItemStatusLimitRefusalsItemCodeText ErrorsCodesTransportCodesItemStatusLimitRefusalsItemCodeCapacity = "capacity"
-errorsCodesTransportCodesItemStatusLimitRefusalsItemCodeText ErrorsCodesTransportCodesItemStatusLimitRefusalsItemCodeRefusalRate = "refusal-rate"
+limitRefusalValueCodeText :: LimitRefusalValueCode -> Text
+limitRefusalValueCodeText LimitRefusalValueCodeStreams = "streams"
+limitRefusalValueCodeText LimitRefusalValueCodeEmitRate = "emit-rate"
+limitRefusalValueCodeText LimitRefusalValueCodeUnansweredRequests = "unanswered-requests"
+limitRefusalValueCodeText LimitRefusalValueCodeCapacity = "capacity"
+limitRefusalValueCodeText LimitRefusalValueCodeRefusalRate = "refusal-rate"

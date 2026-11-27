@@ -34,6 +34,7 @@ import (
 	"time"
 
 	"github.com/xynolog/sdk/go/api"
+	"github.com/xynolog/sdk/go/internal/timing"
 )
 
 // Credential is a service account at an issuer, by how it proves itself: a
@@ -190,9 +191,9 @@ func (s *ServiceToken) token(ctx context.Context, renewed bool) (string, error) 
 	}
 	// Used until it is due for renewal, and never past its expiry.
 	lifetime, hasLifetime := answered.seconds("expires_in")
-	renewIn, scheduled := RefreshDelay(token, time.Now(), s.issuer.Timing)
+	renewIn, scheduled := RefreshDelay(token, time.Now())
 	if !scheduled && hasLifetime {
-		renewIn, scheduled = RenewalDelay(lifetime, lifetime, s.issuer.Timing), true
+		renewIn, scheduled = RenewalDelay(lifetime, lifetime), true
 	}
 	s.held, s.until = "", time.Time{}
 	if scheduled {
@@ -211,8 +212,10 @@ type AgentConfig struct {
 	// Service is the agent's account at its issuer.
 	Service *ServiceToken
 	// HTTP is the client the gateway is asked over.
-	HTTP   *http.Client
-	Timing Timing
+	HTTP *http.Client
+	// Timing is the timing of the sign-in's requests: the gateway is asked
+	// within its HttpRequestTimeout.
+	Timing TransportTiming
 	// Random is what the jitter of a renewal tried again is drawn from, as
 	// EqualJitter draws it.
 	Random *rand.Rand
@@ -264,7 +267,7 @@ func SignInAgent(ctx context.Context, config AgentConfig) (*AgentToken, error) {
 	a.work.Add(1)
 	go func() {
 		defer a.work.Done()
-		renewWhenDue(alive, a.token, config.Timing, a.renewWithinBudget)
+		renewWhenDue(alive, a.token, a.renewWithinBudget)
 	}()
 	return a, nil
 }
@@ -344,7 +347,7 @@ func (a *AgentToken) renew(renewing string) (string, error) {
 // the token is left as it is and the next is due an interval later, by the
 // schedule's floor.
 func (a *AgentToken) renewWithinBudget(due string) {
-	_, _ = RetryWithBackoff(a.alive, a.config.Timing.RefreshRetry, a.config.Random,
+	_, _ = RetryWithBackoff(a.alive, timing.RefreshRetry, a.config.Random,
 		func(context.Context) (string, error) { return a.renew(due) }, transientRenewal,
 		func(error) (time.Duration, bool) { return 0, false })
 }

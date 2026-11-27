@@ -56,3 +56,39 @@ let hover_delay_ms = 150
 let search_debounce_ms = 250
 let discovery_interval_ms = 5000
 let checks_at_once_count = 4
+
+type client = {
+  bus_request_timeout_ms : int;
+  invalidation_window_ms : int;
+  job_silence_ms : int;
+  job_status_poll_ms : int;
+}
+
+let client_defaults : client =
+  {
+    bus_request_timeout_ms;
+    invalidation_window_ms;
+    job_silence_ms;
+    job_status_poll_ms;
+  }
+
+type transport = {
+  emit_retry : Records.Retry_budget.t;
+  http_request_timeout_ms : int;
+  stream_open_timeout_ms : int;
+  reconnect_ms : int;
+  linger_ms : int;
+  seen_event_ids_count : int;
+  lazy_remove_ms : int;
+}
+
+let transport_defaults : transport =
+  {
+    emit_retry;
+    http_request_timeout_ms;
+    stream_open_timeout_ms;
+    reconnect_ms;
+    linger_ms;
+    seen_event_ids_count;
+    lazy_remove_ms;
+  }

@@ -55,6 +55,13 @@ the coming release's, and gathers its changes as they land.
 
 ### Changed
 
+- A schema a `$ref` names at a place within a file is one type, named where
+  that place is stated, wherever it is referred to: the Archivist layout's
+  trees are all `ArchivistLayoutEventStreamTree`, every error vocabulary
+  whose codes state only their docs is `ErrorsCodesJob`, the SDK's telemetry
+  instruments are `ServiceTelemetryTelemetryMetricsItemInstrument`, and the
+  rest. The type each reference was given of its own
+  (`ArchivistLayoutViewTree`, `ErrorsCodesSession`, …) is gone.
 - An upload is an `api.PutBinaryRequest`, the type of Protocol's
   `client/types/PutBinaryRequest.json`, where it was the SDK's own
   `PutBinaryRequest`: `ContentTransport.PutBinary` and
@@ -77,8 +84,8 @@ the coming release's, and gathers its changes as they land.
   own `EngineWithLimits`: an engine's `Engine` and `Jobs` are its own fields,
   where they were its `Entry`'s.
 - A retry budget is `api.RetryBudget`, the type of Protocol's
-  `client/RetryBudget.json`, where it was `RetryPolicy`: `Timing.EmitRetry`
-  and `Timing.RefreshRetry` are one, and `RetryWithBackoff` takes one. Its
+  `client/RetryBudget.json`, where it was `RetryPolicy`:
+  `TransportTiming.EmitRetry` is one, and `RetryWithBackoff` takes one. Its
   delays are whole milliseconds, `InitialDelayMs` and `MaxDelayMs`, as
   Protocol states them, where they were `time.Duration`s, `InitialDelay` and
   `MaxDelay`.
@@ -206,6 +213,38 @@ the coming release's, and gathers its changes as they land.
   `*int`: a source of unstated length states none. Every upload today holds
   its bytes whole, and states its total.
 - `api.StoredSession`'s `Access` is an `api.AccessToken`, which is a `string`.
+- A caller sets only the timing Protocol's `client/timing.json` lets one set.
+  `Timing` and `DefaultTiming()` are removed for two records of those rows:
+  `ClientTiming` (`BusRequestTimeout`, `InvalidationWindow`, `JobSilence`,
+  `JobStatusPoll`), whose values `DefaultClientTiming()` gives, and
+  `TransportTiming` (`EmitRetry`, `HttpRequestTimeout`, `StreamOpenTimeout`,
+  `Reconnect`, `Linger`, `SeenEventIdsCount`, `LazyRemove`), whose values
+  `DefaultTransportTiming()` gives. Every other timing is the table's, and
+  nothing sets it; a claim's and a job poll's waits are stated in
+  `api.ClaimOptions` and `api.JobPollOptions`, as before.
+- `ClientConfig.Timing` and `xynologtest.TestClientConfig.Timing` are a
+  `ClientTiming`; `HTTPTransportConfig.Timing`, `Issuer.Timing`,
+  `AgentConfig.Timing`, `SessionConfig.Timing` and `ResumeConfig.Timing` are a
+  `TransportTiming`. `SessionFromKeptConfig` and `registry.HttpSessionFactory`
+  take a `ClientTiming` and a `TransportTiming`, in members of those names,
+  where they took `Timing`.
+- `DescribeConnection` takes a `ClientTiming` and a `TransportTiming` where it
+  took a `Timing`: `DescribeConnection(ctx, target, access, client,
+  clientTiming, transportTiming, random)`. `registry.CompleteSignIn` takes the
+  `ClientTiming` of the client it asks the knowledge base with, as a last
+  argument.
+- `RenewalDelay` and `RefreshDelay` take no timing: `RenewalDelay(lifetime,
+  remaining)` and `RefreshDelay(token, now)`.
+- `NewCache` takes no save wait: a cache saves `saveDebounceMs` after its
+  values last changed.
+- `NewStoragePersister` takes no size: `NewStoragePersister(storage, key)`. A
+  document larger than `maxStoredBytesCount` loses the entries that have gone
+  longest without a new value, until it fits.
+- `state.HoverDelay` and `state.SearchDebounce` hold the table's
+  `hoverDelayMs` and `searchDebounceMs`, which `DefaultTiming()` held:
+  `state.NewHoverDwell` and `state.NewSearchPipeline` take the delay and the
+  debounce their caller states.
+- `discovery.DiscoveryInterval` is a constant, where it was a variable.
 
 ## 0.8.1
 

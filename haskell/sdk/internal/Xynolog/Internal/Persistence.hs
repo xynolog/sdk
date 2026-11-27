@@ -12,7 +12,6 @@ import Xynolog.Internal.Generated.CachePersistence (KeptQuery)
 import Xynolog.Internal.Kept (cacheKey)
 import Xynolog.SessionStorage qualified as Storage
 import Xynolog.StoragePersister qualified as Stored
-import Xynolog.Timing.Settings qualified as Timing
 
 -- | What a client keeps for one person on one knowledge base, under the
 -- keys session/stored.json gives the knowledge base's id and the person's key.
@@ -29,16 +28,14 @@ persister ::
   (ToJSON key, ToJSON value, FromJSON value) =>
   CachePersistence ->
   Coupled.Coupled ->
-  Timing.Settings ->
   KeptQuery ->
   (Value -> value -> Parser key) ->
   IO (Cache.CachePersister key value)
-persister options coupled timing query =
+persister options coupled query =
   Stored.newStoragePersister
     ( Stored.StoragePersister
         (cacheStorage options)
         (cacheKey (cacheKbId options) (cachePersonKey options) query)
-        (Timing.maxStoredBytesCount timing)
         (cacheWallNow options)
         (Coupled.written coupled)
     )

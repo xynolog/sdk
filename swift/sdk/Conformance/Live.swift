@@ -124,41 +124,18 @@ actor LiveDriver {
 
   private func open(_ args: [String: JSONValue]) async throws {
     guard closed else { throw Misuse(description: "A client is already open") }
-    var transportTiming = TransportTiming()
-    var busRequest: Int?
-    var window: Int?
-    var silence: Int?
-    var statusPoll: Int?
-    if args["timing"] != nil {
-      let timing = try args.object("timing")
-      for name in timing.keys {
-        let value = try timing.integer(name)
-        guard value >= 0 else { throw Misuse(description: "Negative timing \(name)") }
-        switch name {
-        case "reconnectMs": transportTiming.reconnectMs = value
-        case "lazyRemoveMs": transportTiming.lazyRemoveMs = value
-        case "lingerMs": transportTiming.lingerMs = value
-        case "busRequestTimeoutMs": busRequest = value
-        case "invalidationWindowMs": window = value
-        case "jobSilenceMs": silence = value
-        case "jobStatusPollMs": statusPoll = value
-        default: throw Misuse(description: "Unknown timing override \(name)")
-        }
-      }
-    }
+    let timing = try timings(args.timingRows())
     let driver = try UserId("did:web:conformance.example:users:driver")
     let persistence =
       try args.optionalBool("persist") == true
       ? CachePersistence(storage: storage, kbId: "conformance", personKey: personKey(driver)) : nil
     let transport = HttpTransport(
       baseUrl: try args.text("baseUrl"), httpClient: http, token: try args.text("token"),
-      channels: bridgedChannels, timing: transportTiming)
+      channels: bridgedChannels, timing: timing.transport)
     let (failures, telling) = failuresTold(by: transport)
     do {
       client = try await XynologClient(
-        transport: transport, gateway: transport,
-        followTiming: FollowTiming(silenceMs: silence, statusPollMs: statusPoll),
-        persistence: persistence, invalidationWindowMs: window, busRequestTimeoutMs: busRequest)
+        transport: transport, gateway: transport, timing: timing.client, persistence: persistence)
     } catch {
       transport.dispose()
       throw error

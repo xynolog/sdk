@@ -12,29 +12,6 @@ type snapshot = {
   pending_replies : string list;
 }
 
-type timing = {
-  stream_open_timeout_ms : int;
-  reconnect_ms : int;
-  max_reconnect_ms : int;
-  degraded_threshold_ms : int;
-  reconnect_debounce_ms : int;
-  lazy_remove_ms : int;
-  linger_ms : int;
-  bus_request_timeout_ms : int;
-}
-
-let default_timing =
-  {
-    stream_open_timeout_ms = Client_timing.stream_open_timeout_ms;
-    reconnect_ms = Client_timing.reconnect_ms;
-    max_reconnect_ms = Client_timing.max_reconnect_ms;
-    degraded_threshold_ms = Client_timing.degraded_threshold_ms;
-    reconnect_debounce_ms = Client_timing.reconnect_debounce_ms;
-    lazy_remove_ms = Client_timing.lazy_remove_ms;
-    linger_ms = Client_timing.linger_ms;
-    bus_request_timeout_ms = Client_timing.bus_request_timeout_ms;
-  }
-
 type open_error = Retry | Retry_after of int | No_credential
 
 type credential_error =
@@ -90,7 +67,7 @@ type request_error =
 
 type t = {
   clock : Clock.t;
-  timing : timing;
+  timing : Client_timing.transport;
   telemetry : Telemetry.t option;
   client_id : string;
   global : Bus_registry.packed_channel list;
@@ -205,7 +182,8 @@ let sleep t milliseconds = Clock.sleep_until t.clock (deadline t milliseconds)
 
 let schedule_scope_change t ~addition =
   let delay =
-    if addition then t.timing.reconnect_debounce_ms else t.timing.lazy_remove_ms
+    if addition then Client_timing.reconnect_debounce_ms
+    else t.timing.lazy_remove_ms
   in
   let due = deadline t (float delay) in
   let due =
@@ -278,7 +256,7 @@ let first_delivery t = function
       else (
         Hashtbl.add t.seen id ();
         Queue.add id t.recent;
-        if Queue.length t.recent > Client_timing.seen_event_ids_count then
+        if Queue.length t.recent > t.timing.seen_event_ids_count then
           Hashtbl.remove t.seen (Queue.take t.recent);
         true)
   | _ -> true
@@ -432,7 +410,9 @@ let run t =
       set_state t Enums.Connection_state.Reconnecting;
       let restored, restore = Promise.create () in
       recovered := Some restore;
-      let degraded_at = deadline t (float t.timing.degraded_threshold_ms) in
+      let degraded_at =
+        deadline t (float Client_timing.degraded_threshold_ms)
+      in
       Fiber.fork_daemon ~sw:lifetime (fun () ->
           Fiber.first
             (fun () ->
@@ -450,7 +430,7 @@ let run t =
   let backoff ?(minimum = 0) step =
     let delay = float step *. (0.5 +. (Clock.jitter t.clock *. 0.5)) in
     sleep t (max (float minimum) delay);
-    min (step * 2) t.timing.max_reconnect_ms
+    min (step * 2) Client_timing.max_reconnect_ms
   in
   let rec connect step =
     let stream = spawn_stream t lifetime in
@@ -521,8 +501,9 @@ let run t =
   set_state t Enums.Connection_state.Connecting;
   connect t.timing.reconnect_ms
 
-let start ?(timing = default_timing) ?telemetry ?(positions = []) ~sw ~clock
-    ~client_id ~global ~scopes ~connect ~on_event () =
+let start ?(timing = Client_timing.transport_defaults) ?telemetry
+    ?(positions = []) ~sw ~clock ~client_id ~global ~scopes ~connect ~on_event
+    () =
   let closing, close_now = Promise.create () in
   let closed, mark_closed = Promise.create () in
   let t =
@@ -538,7 +519,7 @@ let start ?(timing = default_timing) ?telemetry ?(positions = []) ~sw ~clock
       connect;
       on_event;
       positions = Hashtbl.of_seq (List.to_seq positions);
-      seen = Hashtbl.create Client_timing.seen_event_ids_count;
+      seen = Hashtbl.create timing.seen_event_ids_count;
       recent = Queue.create ();
       pending = Hashtbl.create 8;
       closing;
@@ -574,8 +555,8 @@ let rec await_open t =
         Promise.await (fst t.changed);
         await_open t
 
-let request t ?(timeout_ms = t.timing.bus_request_timeout_ms)
-    ?(normalize_refusals = false) ~correlation_id operation ~send =
+let request t ~timeout_ms ?(normalize_refusals = false) ~correlation_id
+    operation ~send =
   let result = Bus_registry.result operation in
   let failure = Bus_registry.failure operation in
   let result_name = Bus_registry.name result in

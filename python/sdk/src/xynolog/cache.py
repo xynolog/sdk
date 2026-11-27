@@ -160,7 +160,7 @@ class Cache[K: Hashable, V](StateUnit):
     `fetch` asks for a key's value, and whatever it fails with is the key's
     failure. `tasks` runs the fetches. With a `persister`, the cache begins
     with what it kept, and saves its values there once they have stopped
-    changing for `save_debounce_ms`. One made without is given its persister
+    changing for `SAVE_DEBOUNCE_MS`. One made without is given its persister
     later with `attach`.
     """
 
@@ -170,12 +170,10 @@ class Cache[K: Hashable, V](StateUnit):
         *,
         tasks: Runs,
         persister: CachePersister[K, V] | None = None,
-        save_debounce_ms: int = SAVE_DEBOUNCE_MS,
     ) -> None:
         self._fetch: Final = fetch
         self._tasks: Final = tasks
         self._persister: CachePersister[K, V] | None = None
-        self._save_debounce_ms: Final = save_debounce_ms
         self._disposed = False
         self._fetches = 0
         self._saving: asyncio.TimerHandle | None = None
@@ -228,7 +226,7 @@ class Cache[K: Hashable, V](StateUnit):
         self._owed = True
         if self._saving is not None:
             self._saving.cancel()
-        self._saving = asyncio.get_running_loop().call_later(self._save_debounce_ms / 1000, self._save)
+        self._saving = asyncio.get_running_loop().call_later(SAVE_DEBOUNCE_MS / 1000, self._save)
 
     def _save(self) -> None:
         """Give the persister the values. One it refuses is still owed, and its refusal is raised."""

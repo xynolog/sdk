@@ -18,6 +18,7 @@ import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.jsonPrimitive
 import xynolog.Timings
+import xynolog.TransportTiming
 import xynolog.bus.BusLog
 import xynolog.bus.Fault
 import xynolog.bus.Logged
@@ -142,7 +143,7 @@ internal class Stream(
     private val refresher: TokenRefresher?,
     private val clientId: String,
     private val global: List<String>,
-    private val timing: Timing,
+    private val timing: TransportTiming,
     private val hub: FrameHub,
     private val router: ReplyRouter,
     private val failures: Broadcast<XynologError>,
@@ -537,7 +538,7 @@ internal class Stream(
                 .header("Content-Type", SUBSCRIBE_TO_BUS_SENDS)
                 .header("Accept", SUBSCRIBE_TO_BUS_ANSWERS)
                 .build()
-            val response = withTimeoutOrNull(timing.streamOpenMs) { http.exchange(request, HttpResponse.BodyHandlers.ofPublisher()) }
+            val response = withTimeoutOrNull(timing.streamOpenTimeoutMs) { http.exchange(request, HttpResponse.BodyHandlers.ofPublisher()) }
             if (response == null) {
                 // No answer by the deadline: the stream's end, as no answer at all is.
                 reports.send(Ended(conn))
@@ -547,7 +548,7 @@ internal class Stream(
             if (status !in 200..299) {
                 // A refusal's body is read within the request deadline, as any other answer is: one not read by then says nothing.
                 val read = try {
-                    withTimeoutOrNull(timing.httpRequestMs) { readAll(response.body()) }
+                    withTimeoutOrNull(timing.httpRequestTimeoutMs) { readAll(response.body()) }
                 } catch (_: IOException) {
                     null
                 }

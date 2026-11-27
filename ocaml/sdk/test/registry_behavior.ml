@@ -1579,8 +1579,7 @@ let registry_closing (row : Errors_cases.closing_item) () =
       ()
   in
   let persister =
-    Storage_persister.make ~storage:refusing ~key:"kept" ~version:1
-      ~max_bytes:8192 ~clock
+    Storage_persister.make ~storage:refusing ~key:"kept" ~version:1 ~clock
   in
   let handed = ref [] in
   let built = ref None in

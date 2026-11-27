@@ -83,7 +83,10 @@ describe('BrowseNamespace cache rehydration (B17)', () => {
       inertTransport(emit),
       new EventBus(),
       {} as unknown as IContentTransport,
-      { busTimeoutMs: 50, cachePersistence: { storage, ...KEPT_FOR } },
+      {
+        timing: { busRequestTimeoutMs: 50 },
+        cachePersistence: { storage, ...KEPT_FOR },
+      },
     );
 
     const seen = await firstValueFrom(
@@ -116,7 +119,10 @@ describe('BrowseNamespace cache rehydration (B17)', () => {
       inertTransport(async () => 1),
       new EventBus(),
       {} as unknown as IContentTransport,
-      { busTimeoutMs: 50, cachePersistence: { storage, ...KEPT_FOR } },
+      {
+        timing: { busRequestTimeoutMs: 50 },
+        cachePersistence: { storage, ...KEPT_FOR },
+      },
     );
     // Write-through (B13b) stands in for a fetch result reaching the store.
     first.resource(RID); // materialize the per-key observable
@@ -129,7 +135,10 @@ describe('BrowseNamespace cache rehydration (B17)', () => {
       inertTransport(emit),
       new EventBus(),
       {} as unknown as IContentTransport,
-      { busTimeoutMs: 50, cachePersistence: { storage, ...KEPT_FOR } },
+      {
+        timing: { busRequestTimeoutMs: 50 },
+        cachePersistence: { storage, ...KEPT_FOR },
+      },
     );
     const seen = await firstValueFrom(
       second.resource(RID).pipe(
@@ -166,7 +175,7 @@ describe('BrowseNamespace cache rehydration (B17)', () => {
       inertTransport(emit),
       new EventBus(),
       {} as unknown as IContentTransport,
-      { busTimeoutMs: 50 },
+      { timing: { busRequestTimeoutMs: 50 } },
     );
     browse.resource(HELD);
     write(browse, String(HELD), mockResource(HELD, { name: 'Held' }));

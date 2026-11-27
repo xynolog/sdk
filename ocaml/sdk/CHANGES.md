@@ -8,6 +8,9 @@ the coming release's, and gathers its changes as they land.
 
 ### Added
 
+- `Client_timing.client` and `Client_timing.transport`, the records of what a
+  caller may override of the timing a client and its transport keep, with the
+  protocol's values of them, `client_defaults` and `transport_defaults`.
 - `Testing.delivery_op_name`: a delivery step as Protocol's word for it
   (`"write"`, `"transition"`), as the other SDKs carry it.
 - `Records.Engine_with_limits` and `Records.Engines_with_limits`, the types of
@@ -67,6 +70,15 @@ the coming release's, and gathers its changes as they land.
 
 ### Changed
 
+- A schema a `$ref` names at a place within a file is one record, named
+  where that place is stated, wherever it is referred to: every error
+  vocabulary of `Errors_codes` whose codes state only their docs is
+  `Errors_codes_job.t`, a file's mode and
+  access list in `Sign_in_store_owner_only` are its directory's, and what a
+  kind of id refuses is `Identifiers_kinds_kinds_item_accepts_item.t`. The
+  module each reference was given of its own (`Errors_codes_session`,
+  `Sign_in_store_owner_only_file_mode`,
+  `Identifiers_kinds_kinds_item_refuses_item`, …) is gone.
 - `Browse.resource_representation` answers a
   `Records.Resource_representation.t`, the record of Protocol's
   `client/types/ResourceRepresentation.json`, `{ data; content_type }`, where
@@ -232,6 +244,34 @@ the coming release's, and gathers its changes as they land.
   `total_bytes` as an `int option`, as does
   `Records.Conformance_driver_line_progress_progress`: the total is stated
   when the source states its length, as every upload's does today.
+- `Client.connect` takes `?client_timing`, a `Client_timing.client`, and
+  `?transport_timing`, a `Client_timing.transport`, in place of `?timing`,
+  `?http_timing`, `?delegation_silence_ms`, `?delegation_poll_ms` and
+  `?invalidation_window_ms`.
+- `Subscription.start`'s and `Http_wire.make`'s `?timing` is a
+  `Client_timing.transport`. Its `emit_retry` is a `Records.Retry_budget.t`,
+  in place of `emit_attempts`, `emit_initial_delay_ms` and
+  `emit_max_delay_ms`, and `http_request_timeout_ms` is what
+  `request_timeout_ms` was. A subscription remembers as many event ids as
+  `seen_event_ids_count` states.
+- `Delegation.make` takes `?timing`, a `Client_timing.client`, in place of
+  `?silence_ms` and `?poll_ms`, and its requests wait its
+  `bus_request_timeout_ms`.
+- `Subscription.request` takes `~timeout_ms`, which it no longer defaults: a
+  subscription holds no client's timing. `Client.request` still waits the
+  client's `bus_request_timeout_ms` when none is stated.
+
+### Removed
+
+- `Subscription.timing`, `Subscription.default_timing`, `Http_wire.timing` and
+  `Http_wire.default_timing`. `max_reconnect_ms`, `degraded_threshold_ms`,
+  `reconnect_debounce_ms` and `emit_timeout_ms` cannot be set: each is
+  `Client_timing`'s.
+- `Mark_state.make`'s `?silence_ms`: a quiet job is said after
+  `Client_timing.delegate_silence_ms`.
+- `Storage_persister.make`'s `~max_bytes`: a document larger than
+  `Client_timing.max_stored_bytes_count` bytes loses the entries written
+  longest ago, until it fits.
 
 ## 0.8.1
 

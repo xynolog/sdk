@@ -1,4 +1,4 @@
-// Generated from the services' tables of protocol/specs/src; do not edit.
+// Generated from the tables of protocol/specs/src; do not edit.
 // Regenerate: make generate (codegen/lib/kotlin_sdk/service_tables.ml)
 
 package xynolog.services

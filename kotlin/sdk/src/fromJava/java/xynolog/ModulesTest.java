@@ -242,7 +242,7 @@ final class ModulesTest {
     void aCachesValuesAreKeptFromJava() {
         MemoryStorage storage = new MemoryStorage();
         StoragePersister<String, String> persister = new StoragePersister<>(storage, "a-cache",
-                BuiltinSerializersKt.serializer(StringCompanionObject.INSTANCE), BuiltinSerializersKt.serializer(StringCompanionObject.INSTANCE), 1, 1_000_000);
+                BuiltinSerializersKt.serializer(StringCompanionObject.INSTANCE), BuiltinSerializersKt.serializer(StringCompanionObject.INSTANCE), 1);
         persister.save(Map.of("res-1", "its value"));
         assertEquals(Map.of("res-1", "its value"), persister.load());
     }

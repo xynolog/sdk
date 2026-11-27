@@ -36,6 +36,7 @@ import Xynolog.Internal.StreamFrame qualified as StreamFrame
 import Xynolog.Internal.Telemetry qualified as Telemetry
 import Xynolog.Internal.Transport qualified as Transport
 import Xynolog.Retry qualified as Retry
+import Xynolog.Timing qualified as Timing
 import Xynolog.Timing.Settings qualified as Settings
 import Xynolog.Types
 
@@ -140,9 +141,9 @@ runActor http = do
                       case active of { Nothing -> transition ConnectionStateReconnecting; Just _ -> pure () }
                       started <- maybe now pure outage
                       elapsed <- now
-                      when (isNothing active && elapsed - started >= (Settings.degradedThresholdMs (httpTiming (options http))) * 1000000) (transition ConnectionStateDegraded)
+                      when (isNothing active && elapsed - started >= Timing.degradedThresholdMs * 1000000) (transition ConnectionStateDegraded)
                       (nextLive, nextOutage) <- recover active cap (retryAfterMs (failure problem)) (if isNothing active then Just started else Nothing)
-                      loop seen nextLive retiring (min (Settings.maxReconnectMs (httpTiming (options http))) (cap * 2)) nextOutage renewedOutage
+                      loop seen nextLive retiring (min Timing.maxReconnectMs (cap * 2)) nextOutage renewedOutage
                 Right () -> do
                   forM_ retiring cancel
                   draining <- case live of
@@ -155,14 +156,14 @@ runActor http = do
                         pure actual
                       waitForChange = do
                         actual <- changed
-                        pause http (if any (`notElem` scopes) actual then (Settings.reconnectDebounceMs (httpTiming (options http))) else (Settings.lazyRemoveMs (httpTiming (options http))))
+                        pause http (if any (`notElem` scopes) actual then Timing.reconnectDebounceMs else (Settings.lazyRemoveMs (httpTiming (options http))))
                   result <- raceOwned http (atomically (done connection)) waitForChange
                   case result of
                     Left () -> do
                       transition ConnectionStateReconnecting
                       started <- now
                       _ <- recover Nothing (Settings.reconnectMs (httpTiming (options http))) Nothing (Just started)
-                      loop seen Nothing draining (min (Settings.maxReconnectMs (httpTiming (options http))) ((Settings.reconnectMs (httpTiming (options http))) * 2)) (Just started) False
+                      loop seen Nothing draining (min Timing.maxReconnectMs ((Settings.reconnectMs (httpTiming (options http))) * 2)) (Just started) False
                     Right () -> loop seen (Just connection) draining (Settings.reconnectMs (httpTiming (options http))) Nothing False
 
     recover live cap floorDelay outage = do
@@ -172,7 +173,7 @@ runActor http = do
       let due = began + 1000000 * max (ceiling (fromInteger cap * (1 + toRational draw) / 2)) (maybe 0 id floorDelay)
           waitUntil = Retry.retryWaitUntil (httpTime (options http))
           withoutLive started = do
-            elapsed <- raceOwned http (waitUntil due) (waitUntil (started + (Settings.degradedThresholdMs (httpTiming (options http))) * 1000000))
+            elapsed <- raceOwned http (waitUntil due) (waitUntil (started + Timing.degradedThresholdMs * 1000000))
             case elapsed of { Left () -> pure (); Right () -> transition ConnectionStateDegraded >> waitUntil due }
             pure (Nothing, Just started)
       case live of

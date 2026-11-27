@@ -63,6 +63,7 @@ import Xynolog.ErrorCodes qualified as Code
 import Xynolog.Errors (BusRequestError (..))
 import Xynolog.Internal.Lifetime qualified as Lifetime
 import Xynolog.Internal.StateValue qualified as State
+import Xynolog.Timing (saveDebounceMs)
 
 data CacheState value = Pending | Ready value | Failed SomeException deriving (Show)
 
@@ -82,7 +83,6 @@ data CachePersister key value = CachePersister
 data CacheOptions key value = CacheOptions
   { cacheNow :: IO Integer,
     cacheWaitUntil :: Integer -> IO (),
-    cacheSaveDebounceMs :: Integer,
     cachePersister :: Maybe (CachePersister key value),
     cacheScope :: key -> IO (IO ())
   }
@@ -190,7 +190,6 @@ newEntry key value restored = Entry <$> newTVar key <*> State.newStateValue valu
 
 newCache :: (ToJSON key, Eq value) => (key -> IO value) -> CacheOptions key value -> IO (Cache key value)
 newCache reader options = do
-  when (cacheSaveDebounceMs options < 0) (ioError (userError "negative cache save debounce"))
   initial <- maybe (pure []) load (cachePersister options)
   let render = decodeUtf8 . Lazy.toStrict . canonical . toJSON
   restored <- atomically $ Map.fromList <$> traverse (\(key, value) -> (,) (render key) <$> newEntry key (Ready value) True) initial
@@ -508,7 +507,7 @@ saveLater cache epoch =
       ( \persister -> do
           now <- cacheNow (configuration cache)
           startOwned cache $ do
-            cacheWaitUntil (configuration cache) (now + cacheSaveDebounceMs (configuration cache) * 1000000)
+            cacheWaitUntil (configuration cache) (now + saveDebounceMs * 1000000)
             eligible <- atomically $ do
               version <- readTVar (saveVersion cache)
               over <- readTVar (disposed cache)

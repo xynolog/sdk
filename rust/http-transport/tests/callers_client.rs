@@ -22,7 +22,7 @@ use xynolog::testing::as_id;
 use xynolog::transport::{ContentTransport, Envelope, GatewayOperations, Transport};
 use xynolog::types::ConnectionState;
 use xynolog_http_transport::content::HttpContentTransport;
-use xynolog_http_transport::transport::{HttpTransport, HttpTransportConfig, Timing};
+use xynolog_http_transport::transport::{HttpTransport, HttpTransportConfig, TransportTiming};
 
 const MARK: &str = "x-callers-client";
 
@@ -76,7 +76,7 @@ async fn a_transport_makes_its_stream_its_emits_its_requests_and_its_content_wit
         refresher: None,
         channels: vec!["beckon:focus".to_owned()],
         http: callers,
-        timing: Timing::default(),
+        timing: TransportTiming::default(),
         random: None,
     });
 

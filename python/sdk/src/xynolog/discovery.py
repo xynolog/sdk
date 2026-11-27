@@ -46,7 +46,7 @@ from xynolog.types import (
 )
 
 __all__ = [
-    "DISCOVERY_INTERVAL",
+    "DISCOVERY_INTERVAL_MS",
     "DISCOVERY_URL_PATH",
     "DiscoveryAbsentReason",
     "DiscoveryTransport",
@@ -54,9 +54,6 @@ __all__ = [
     "subscribe_discovery",
     "text_discovery",
 ]
-
-DISCOVERY_INTERVAL: Final = DISCOVERY_INTERVAL_MS / 1000
-"""How often a launcher's document is read again, in seconds, unless a caller says otherwise."""
 
 
 def _version() -> int:
@@ -184,8 +181,8 @@ def _diff(last: DiscoveryState | None, next_state: DiscoveryState) -> DiscoveryD
     return DiscoveryDiff(state=next_state, added=added, updated=updated, removed=removed, duplicated=duplicated)
 
 
-async def subscribe_discovery(transport: DiscoveryTransport, interval: float) -> AsyncGenerator[DiscoveryDiff]:
-    """Read a launcher's document now and then every `interval` seconds, and tell of each change.
+async def subscribe_discovery(transport: DiscoveryTransport, interval_ms: int = DISCOVERY_INTERVAL_MS) -> AsyncGenerator[DiscoveryDiff]:
+    """Read a launcher's document now and then every `interval_ms`, and tell of each change.
 
     The first read is always told of. After it, a read that changed nothing
     is not: only an entry added, changed or removed, and a change of state,
@@ -203,4 +200,4 @@ async def subscribe_discovery(transport: DiscoveryTransport, interval: float) ->
                 if change is not None:
                     last = change.state
                     yield change
-        await asyncio.sleep(interval)
+        await asyncio.sleep(interval_ms / 1000)

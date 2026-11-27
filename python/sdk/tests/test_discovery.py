@@ -12,7 +12,7 @@ from pydantic import JsonValue, TypeAdapter
 from spec import JsonObject
 
 from xynolog.discovery import (
-    DISCOVERY_INTERVAL,
+    DISCOVERY_INTERVAL_MS,
     DISCOVERY_URL_PATH,
     DiscoveryAbsentReason,
     DiscoveryTransport,
@@ -161,11 +161,11 @@ async def changes(script: Script, polls: int) -> list[DiscoveryDiff]:
     told: list[DiscoveryDiff] = []
 
     async def listen() -> None:
-        async for diff in subscribe_discovery(script, DISCOVERY_INTERVAL):
+        async for diff in subscribe_discovery(script, DISCOVERY_INTERVAL_MS):
             told.append(diff)
 
     listening = asyncio.create_task(listen())
-    await pass_time(DISCOVERY_INTERVAL * polls - 0.001)
+    await pass_time(DISCOVERY_INTERVAL_MS * polls / 1000 - 0.001)
     listening.cancel()
     await asyncio.gather(listening, return_exceptions=True)
     return told
@@ -280,15 +280,15 @@ def test_reading_stops_when_nobody_listens() -> None:
         script = Script(parse_discovery_document(document()))
 
         async def listen() -> None:
-            async for _ in subscribe_discovery(script, DISCOVERY_INTERVAL):
+            async for _ in subscribe_discovery(script, DISCOVERY_INTERVAL_MS):
                 pass
 
         listening = asyncio.create_task(listen())
-        await pass_time(DISCOVERY_INTERVAL * 2)
+        await pass_time(DISCOVERY_INTERVAL_MS * 2 / 1000)
         asked = script.asked
         listening.cancel()
         await asyncio.gather(listening, return_exceptions=True)
-        await pass_time(DISCOVERY_INTERVAL * 5)
+        await pass_time(DISCOVERY_INTERVAL_MS * 5 / 1000)
         return asked, script.asked
 
     asked, later = run_still(scenario())

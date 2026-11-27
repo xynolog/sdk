@@ -86,7 +86,7 @@ describe('HttpTransport ky hooks', () => {
     transport = new HttpTransport({
       baseUrl: testBaseUrl,
       channels: BRIDGED_CHANNELS,
-      timeout: 10_000,
+      timing: { httpRequestTimeoutMs: 10_000 },
     });
     hooks = vi.mocked(ky.create).mock.calls.at(-1)![0]!.hooks!;
   });
@@ -339,7 +339,7 @@ describe('HttpTransport shouldRetry — the transport retry rule', () => {
     new HttpTransport({
       baseUrl: testBaseUrl,
       channels: BRIDGED_CHANNELS,
-      timeout: 10_000,
+      timing: { httpRequestTimeoutMs: 10_000 },
       tokenRefresher: async () => 'fresh-token',
     });
     retryConfig = vi.mocked(ky.create).mock.calls.at(-1)![0]!
@@ -463,7 +463,7 @@ describe('HttpTransport shouldRetry — the transport retry rule', () => {
     new HttpTransport({
       baseUrl: testBaseUrl,
       channels: BRIDGED_CHANNELS,
-      timeout: 10_000,
+      timing: { httpRequestTimeoutMs: 10_000 },
     });
     expect(vi.mocked(ky.create).mock.calls.at(-1)![0]!.retry).toBe(retryConfig);
   });
@@ -480,7 +480,7 @@ describe('HttpTransport afterResponse — a refused credential is renewed once, 
     new HttpTransport({
       baseUrl: testBaseUrl,
       channels: BRIDGED_CHANNELS,
-      timeout: 10_000,
+      timing: { httpRequestTimeoutMs: 10_000 },
       tokenRefresher: refresher,
     });
     const hooks = vi.mocked(ky.create).mock.calls.at(-1)![0]!.hooks!;
@@ -626,7 +626,7 @@ describe('HttpTransport errors$ bridge (SSE connect refusals)', () => {
     const transport = new HttpTransport({
       baseUrl: testBaseUrl,
       channels: BRIDGED_CHANNELS,
-      timeout: 10_000,
+      timing: { httpRequestTimeoutMs: 10_000 },
       token$: new BehaviorSubject<AccessToken | null>(
         accessToken('real-but-refused-tok'),
       ),
@@ -658,7 +658,7 @@ describe('HttpTransport errors$ bridge (SSE connect refusals)', () => {
     const transport = new HttpTransport({
       baseUrl: testBaseUrl,
       channels: BRIDGED_CHANNELS,
-      timeout: 10_000,
+      timing: { httpRequestTimeoutMs: 10_000 },
       token$: new BehaviorSubject<AccessToken | null>(
         accessToken('real-but-refused-tok'),
       ),
@@ -693,7 +693,7 @@ describe('HttpTransport errors$ bridge (refused emits)', () => {
     const transport = new HttpTransport({
       baseUrl: testBaseUrl,
       channels: BRIDGED_CHANNELS,
-      timeout: 10_000,
+      timing: { httpRequestTimeoutMs: 10_000 },
     });
     const seen: XynologError[] = [];
     transport.errors$.subscribe((e) => seen.push(e));
@@ -720,7 +720,7 @@ describe('HttpTransport after dispose', () => {
     const transport = new HttpTransport({
       baseUrl: testBaseUrl,
       channels: BRIDGED_CHANNELS,
-      timeout: 10_000,
+      timing: { httpRequestTimeoutMs: 10_000 },
     });
     // Its bus is made before it is disposed: something asked for the connection's state.
     transport.state$.subscribe().unsubscribe();
@@ -737,7 +737,7 @@ describe('HttpTransport after dispose', () => {
     const transport = new HttpTransport({
       baseUrl: testBaseUrl,
       channels: BRIDGED_CHANNELS,
-      timeout: 10_000,
+      timing: { httpRequestTimeoutMs: 10_000 },
     });
     transport.dispose();
 

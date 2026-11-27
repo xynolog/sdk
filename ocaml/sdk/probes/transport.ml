@@ -511,8 +511,10 @@ let subscription_replay () =
   in
   let pending =
     Fiber.fork_promise ~sw (fun () ->
-        S.request subscription ~correlation_id:"pending"
-          B.Operations.mark_archive ~send:(fun () -> Promise.resolve send ()))
+        S.request subscription
+          ~timeout_ms:Xynolog.Client_timing.bus_request_timeout_ms
+          ~correlation_id:"pending" B.Operations.mark_archive ~send:(fun () ->
+            Promise.resolve send ()))
   in
   Promise.await waiting;
   check "drop leaves open" true

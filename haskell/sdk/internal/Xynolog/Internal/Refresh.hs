@@ -35,11 +35,11 @@ import Xynolog.ErrorCodes qualified as Code
 import Xynolog.Errors (BusRequestError (..), TransportError (..))
 import Xynolog.Internal.Cache qualified as Cache
 import Xynolog.Internal.Generated.CacheRefresh qualified as Fact
+import Xynolog.Internal.Generated.TimingSettings qualified as Timing
 import Xynolog.Internal.Lifetime qualified as Lifetime
 import Xynolog.Internal.Required qualified as Required
 import Xynolog.Internal.StateValue qualified as State
 import Xynolog.Internal.Transport qualified as Transport
-import Xynolog.Timing.Settings qualified as Timing
 import Xynolog.Types (Annotation, AnnotationId, BusFrame (..), BusFramePayload (..), ConnectionState (..), ResourceId)
 
 data SubjectInfo = SubjectInfo

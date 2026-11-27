@@ -23,6 +23,7 @@ import (
 	"github.com/xynolog/sdk/go/api"
 	"github.com/xynolog/sdk/go/bus"
 	"github.com/xynolog/sdk/go/internal/kept"
+	"github.com/xynolog/sdk/go/internal/timing"
 )
 
 // TokenRefresher renews a token the gateway refused. It is asked once for a
@@ -56,7 +57,7 @@ type HTTPTransportConfig struct {
 	// HTTP is what the requests are made with.
 	HTTP *http.Client
 	// Timing is the timing the transport keeps.
-	Timing Timing
+	Timing TransportTiming
 	// Random is what the jitter of the stream's reconnects and of an emit's
 	// retries is drawn from, as EqualJitter draws it.
 	Random *rand.Rand
@@ -73,7 +74,7 @@ type transportShared struct {
 	// same one.
 	clientID string
 	global   []bus.Channel
-	timing   Timing
+	timing   TransportTiming
 	random   *rand.Rand
 	hub      *FrameHub
 	router   *ReplyRouter
@@ -109,7 +110,7 @@ func NewHTTPTransport(config HTTPTransportConfig) *HTTPTransport {
 		random:    config.Random,
 		hub:       NewFrameHub(),
 		router:    NewReplyRouter(),
-		failures:  kept.NewTelling[*TransportError](config.Timing.ErrorsKeptForFirstReaderCount),
+		failures:  kept.NewTelling[*TransportError](timing.ErrorsKeptForFirstReaderCount),
 	}
 	state := NewVariable(api.ConnectionStateInitial)
 	s := newStream(shared, state, config.Bookmarks)
@@ -232,9 +233,9 @@ func (t *HTTPTransport) State() Watched[api.ConnectionState] { return t.state.Re
 // Failures tells told each failure the transport meets from now on: what a
 // server refused, and what the gateway never answered, each before it is
 // returned to its caller, until stop or the transport closes. The first
-// listener is told first the latest ErrorsKeptForFirstReaderCount (Timing)
-// since the transport was made; one who comes after the transport has closed,
-// nothing.
+// listener is told first the latest errorsKeptForFirstReaderCount
+// (protocol/specs/src/client/timing.json) since the transport was made; one who
+// comes after the transport has closed, nothing.
 func (t *HTTPTransport) Failures(told func(*TransportError)) (stop func()) {
 	return t.shared.failures.Listen(told)
 }
@@ -330,7 +331,7 @@ func (s *transportShared) emit(ctx context.Context, body api.BusEmitRequest) (in
 
 // emitOnce is one attempt of an emit whose Idempotency-Key is key.
 func (s *transportShared) emitOnce(ctx context.Context, token, key string, body []byte) (emitted, error) {
-	attempt, cancel := context.WithTimeout(ctx, s.timing.EmitTimeout)
+	attempt, cancel := context.WithTimeout(ctx, timing.EmitTimeout)
 	defer cancel()
 	request, err := http.NewRequestWithContext(attempt, RouteEmitOnBus.Method, s.baseURL+RouteEmitOnBus.Path, bytes.NewReader(body))
 	if err != nil {

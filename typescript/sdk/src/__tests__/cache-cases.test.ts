@@ -7,8 +7,13 @@
  * protocol/specs/src/session/stored.json.
  */
 
-import { describe, it, expect } from 'vitest';
-import { isObject, type CacheValues, type PersistedQuery } from '@xynolog/core';
+import { afterEach, describe, it, expect, vi } from 'vitest';
+import {
+  SAVE_DEBOUNCE_MS,
+  isObject,
+  type CacheValues,
+  type PersistedQuery,
+} from '@xynolog/core';
 import { createCache, type Cache } from '../cache';
 import {
   KEPT_QUERIES,
@@ -74,7 +79,7 @@ function loaded(query: PersistedQuery, source: string): Entry[] {
 
 /**
  * `query`'s cache, saving through its persister to `storage`, once it holds `held`: each answer set into
- * the cache by its own path. Its save runs on the next turn of the event loop, or when it is disposed.
+ * the cache by its own path. Its save runs `SAVE_DEBOUNCE_MS` after, or when it is disposed.
  */
 function holding<Q extends PersistedQuery>(
   query: Q,
@@ -88,7 +93,6 @@ function holding<Q extends PersistedQuery>(
     },
     {
       persister: keptPersister(query, { storage, ...KEPT_FOR }),
-      saveDebounceMs: 0,
     },
   );
   for (const { key, value } of held) {
@@ -183,6 +187,10 @@ function expectWritten(
 }
 
 describe("the cache case table (protocol/specs/src/session/cache-cases.json), through this SDK's persisters", () => {
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
   it.each(table.cases)('$name: keeps what the table keeps', (stated) => {
     expect(asMap(loaded(keptQuery(stated.query), text(stated)))).toEqual(
       asMap(stated.kept),
@@ -199,13 +207,14 @@ describe("the cache case table (protocol/specs/src/session/cache-cases.json), th
   it.each(table.refusedWrites)(
     '$name: still owes its save after the refusal, and disposal writes the document the table writes',
     async (stated) => {
+      vi.useFakeTimers();
       const query = keptQuery(stated.query);
       const storage = new RefusingFirstWrite(
         cacheKey(KEPT_FOR.kbId, KEPT_FOR.personKey, query),
       );
       const cache = holding(query, stated.held, storage);
       // The save runs, and the storage refuses it.
-      await new Promise((resolve) => setTimeout(resolve, 0));
+      await vi.advanceTimersByTimeAsync(SAVE_DEBOUNCE_MS);
       expect(storage.refusals, 'the storage refused the save').toBe(1);
       expect(
         cache.persistencePending(),

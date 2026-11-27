@@ -25,7 +25,6 @@ that closes it, after the client.
 """
 
 from collections.abc import Callable
-from dataclasses import dataclass
 from types import TracebackType
 from typing import Final, Self, final, override
 
@@ -46,25 +45,10 @@ from xynolog.namespaces.refresher import Refresher
 from xynolog.namespaces.system import SystemNamespace
 from xynolog.namespaces.yield_ import YieldNamespace
 from xynolog.resume import seal_coupled_places
-from xynolog.timing import BUS_REQUEST_TIMEOUT_MS, INVALIDATION_WINDOW_MS, JOB_SILENCE_MS, JOB_STATUS_POLL_MS
+from xynolog.timing import ClientTiming
 from xynolog.transport import ContentTransport, Frame, FrameRefusal, FrameSink, GatewayOperations, Transport
 
 __all__ = ["CachePersistence", "ClientTiming", "XynologClient"]
-
-
-@final
-@dataclass(frozen=True, slots=True, kw_only=True)
-class ClientTiming:
-    """The waits a client keeps: `protocol/specs/src/client/timing.json`'s, unless a caller that must not wait them out says otherwise."""
-
-    bus_request_ms: int = BUS_REQUEST_TIMEOUT_MS
-    """How long a bus request has, from the call, to be answered: its emit included."""
-    job_silence_ms: int = JOB_SILENCE_MS
-    """How long a followed job may say nothing before its status is asked for."""
-    job_status_poll_ms: int = JOB_STATUS_POLL_MS
-    """How often a silent job's status is asked for after that."""
-    invalidation_window_ms: int = INVALIDATION_WINDOW_MS
-    """How long the refetches events ask of one cached key are one refetch."""
 
 
 @final
@@ -116,7 +100,7 @@ class XynologClient[T: Transport]:
             transport=transport,
             wire=self.wire,
             own=self.bus,
-            bus_request_ms=kept.bus_request_ms,
+            bus_request_timeout_ms=kept.bus_request_timeout_ms,
             job_silence_ms=kept.job_silence_ms,
             job_status_poll_ms=kept.job_status_poll_ms,
         )

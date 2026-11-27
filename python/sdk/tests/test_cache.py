@@ -11,7 +11,7 @@ from collections.abc import AsyncIterable, AsyncIterator, Callable, Coroutine, M
 from typing import final, override
 
 import pytest
-from aio import pass_time, run, soon, turns
+from aio import pass_time, run, run_still, soon, turns
 
 from xynolog.cache import Cache, CachePersister, CacheState, Failed, Pending, Ready, Runs
 from xynolog.errors import BusRequestError, XynologError
@@ -965,20 +965,19 @@ def test_b17_a_fetch_is_in_flight_no_more_by_the_time_its_caller_has_its_value()
     run(scenario())
 
 
-def test_b17_a_cache_saves_after_the_wait_it_was_given() -> None:
+def test_b17_a_cache_saves_after_the_tables_wait_and_not_before() -> None:
     async def scenario() -> None:
-        persister, service, tasks = Kept(), Service(), Tasks()
-        cache = Cache(service.fetch, tasks=tasks, persister=persister, save_debounce_ms=SAVE_DEBOUNCE_MS * 4)
+        persister = Kept()
+        cache, _, tasks = world(persister)
         cache.set("a", 1)
-        # Long past the wait a client's cache keeps, it is still waiting: it waits as long as it was told.
-        await pass_time(SAVE_DEBOUNCE_MS * 3 / 1000, step=0.01)
+        await pass_time((SAVE_DEBOUNCE_MS - 1) / 1000, step=0.01)
         assert persister.saves == []
         assert owing(cache)
-        await pass_time(SAVE_DEBOUNCE_MS * 2 / 1000, step=0.01)
+        await pass_time(0.001)
         assert persister.saves == [{"a": 1}]
         await tasks.close()
 
-    run(scenario())
+    run_still(scenario())
 
 
 def test_b17_disposing_makes_a_save_that_was_owed_at_once_and_none_is_made_after() -> None:

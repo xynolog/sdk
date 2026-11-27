@@ -40,10 +40,10 @@ from xynolog.http.gateway_http import (
     IDEMPOTENCY_KEY,
     RETRY_AFTER,
 )
-from xynolog.http.stream import Bookmarks, Stream, Timing
+from xynolog.http.stream import Bookmarks, Stream
 from xynolog.identifiers import ResourceId
 from xynolog.retry import BOOT, RetryFacts, retry_after_ms, retry_with_backoff
-from xynolog.timing import EMIT_TIMEOUT_MS
+from xynolog.timing import EMIT_TIMEOUT_MS, TransportTiming
 from xynolog.transport import (
     ConnectionState,
     ContentTransport,
@@ -108,14 +108,14 @@ class HttpTransport(Transport, GatewayOperations):
         token: Watched[str | None],
         refresher: TokenRefresher | None = None,
         channels: Sequence[str],
-        timing: Timing | None = None,
+        timing: TransportTiming | None = None,
         bookmarks: Bookmarks | None = None,
         http: httpx.AsyncClient | None = None,
     ) -> None:
         self._base_url: Final = base_url.rstrip("/")
         self._token: Final = token
         self._global: Final = tuple(channels)
-        self._timing: Final = Timing() if timing is None else timing
+        self._timing: Final = TransportTiming() if timing is None else timing
         # This client's address for correlated replies: one per transport, not
         # per connection, so both streams of a handoff present the same one.
         self._client_id: Final = str(uuid.uuid4())
@@ -146,7 +146,7 @@ class HttpTransport(Transport, GatewayOperations):
             token=token,
             refresher=refresher,
             failures=self._failures,
-            deadline_ms=self._timing.http_request_ms,
+            deadline_ms=self._timing.http_request_timeout_ms,
             closing=self._closing,
         )
         self._content: Final = HttpContentTransport(self._exchange)

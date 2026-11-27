@@ -161,7 +161,7 @@ let identifier name =
   && String.for_all is_word name
 
 (* A name, or one qualified by what it is within ([api.Thing],
-   [v.links.timing]). *)
+   [v.links.wire]). *)
 let checked name =
   if List.for_all identifier (String.split_on_char '.' name) then name
   else invalid_arg (Printf.sprintf "Go_syntax: %S is no Go name" name)

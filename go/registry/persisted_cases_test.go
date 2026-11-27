@@ -1,3 +1,9 @@
+//go:build go1.27
+
+// Built by Go 1.27 and later only: rows of it run on bubbledStage, whose
+// network is httptest.NewTestServer's, which is new in 1.27, while the module
+// admits 1.26.
+
 package registry_test
 
 // protocol/specs/src/session/persisted-cases.json: what a client keeps of one
@@ -18,6 +24,7 @@ import (
 	"sync"
 	"sync/atomic"
 	"testing"
+	"testing/synctest"
 	"time"
 
 	xynolog "github.com/xynolog/sdk/go"
@@ -589,54 +596,53 @@ func runPersistedCrossTab(t *testing.T, table persistedCases) {
 	resource := keyOf(t, table, kbA, jo, "resource")
 	for _, row := range table.CrossTab {
 		t.Run(row.Why, func(t *testing.T) {
-			s := newStage(t)
-			s.mu.Lock()
-			s.who = table.WhoAmI
-			s.mu.Unlock()
-			shared := xynologtest.NewSharedStorage()
-			must(t, registry.SaveKnowledgeBases(shared, []api.KnowledgeBase{s.registered(t, kbA)}))
-			must(t, registry.StoreSession(shared, kbA, naming(s.stored(jwt(time.Hour), "r1"), jo)))
-			issuer := s.issuerOf()
-			timing := issuer.Timing
-			// Nothing the client holds is written before it closes.
-			timing.SaveDebounce = time.Hour
-			browser, err := registry.NewXynologBrowser(registry.XynologBrowserConfig{Storage: shared, SessionFactory: registry.HttpSessionFactory{HTTP: issuer.HTTP, Timing: timing}})
-			must(t, err)
-			closedAtTheEnd(t, browser)
-			session := liveOver(t, browser)
-			ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-			defer cancel()
-			held, err := session.Client().Browse.Resource(id("res-1")).Fresh(ctx)
-			must(t, err)
-			if _, written := shared.Get(resource); written || session.Client().PersistenceSettled() {
-				t.Fatal("the client wrote what it holds, or owes no save, before the other context writes")
-			}
-
-			other := shared.Context()
-			switch {
-			case row.Stored == nil:
-				must(t, other.Delete(registry.SessionKey(kbA)))
-			case row.Stored.PersonKey != nil && *row.Stored.PersonKey == jo:
-				renewing := registry.KeptIn(other, kbA)
-				read, _, err := renewing.Held(ctx)
+			synctest.Test(t, func(t *testing.T) {
+				s := bubbledStage(t)
+				s.mu.Lock()
+				s.who = table.WhoAmI
+				s.mu.Unlock()
+				shared := xynologtest.NewSharedStorage()
+				must(t, registry.SaveKnowledgeBases(shared, []api.KnowledgeBase{s.registered(t, kbA)}))
+				must(t, registry.StoreSession(shared, kbA, naming(s.stored(jwt(time.Hour), "r1"), jo)))
+				issuer := s.issuerOf()
+				browser, err := registry.NewXynologBrowser(registry.XynologBrowserConfig{Storage: shared, SessionFactory: registry.HttpSessionFactory{HTTP: issuer.HTTP, ClientTiming: xynolog.DefaultClientTiming(), TransportTiming: issuer.Timing}})
 				must(t, err)
-				if _, renewed, err := renewing.Renewed(ctx, read, jwt(2*time.Hour), "r-other"); err != nil || !renewed {
-					t.Fatalf("the other context's renewal was not kept: %v, %v", renewed, err)
+				closedAtTheEnd(t, browser)
+				session := liveOver(t, browser)
+				ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+				defer cancel()
+				held, err := session.Client().Browse.Resource(id("res-1")).Fresh(ctx)
+				must(t, err)
+				if _, written := shared.Get(resource); written || session.Client().PersistenceSettled() {
+					t.Fatal("the client wrote what it holds, or owes no save, before the other context writes")
 				}
-			default:
-				signIn := s.stored(jwt(2*time.Hour), "r-other")
-				signIn.PersonKey = row.Stored.PersonKey
-				must(t, registry.StoreSession(other, kbA, signIn))
-			}
-			if err := browser.Close(); err != nil {
-				t.Errorf("closing the registry: %v", err)
-			}
 
-			kept := xynolog.NewStoragePersister[api.ResourceId, api.ResourceDescriptor](shared, resource, timing.MaxStoredBytesCount).Load()
-			value, has := kept[id("res-1")]
-			if saved := has && same(t, value, held); saved != row.Saved {
-				t.Errorf("saved: %v; the table's is %v", saved, row.Saved)
-			}
+				other := shared.Context()
+				switch {
+				case row.Stored == nil:
+					must(t, other.Delete(registry.SessionKey(kbA)))
+				case row.Stored.PersonKey != nil && *row.Stored.PersonKey == jo:
+					renewing := registry.KeptIn(other, kbA)
+					read, _, err := renewing.Held(ctx)
+					must(t, err)
+					if _, renewed, err := renewing.Renewed(ctx, read, jwt(2*time.Hour), "r-other"); err != nil || !renewed {
+						t.Fatalf("the other context's renewal was not kept: %v, %v", renewed, err)
+					}
+				default:
+					signIn := s.stored(jwt(2*time.Hour), "r-other")
+					signIn.PersonKey = row.Stored.PersonKey
+					must(t, registry.StoreSession(other, kbA, signIn))
+				}
+				if err := browser.Close(); err != nil {
+					t.Errorf("closing the registry: %v", err)
+				}
+
+				kept := xynolog.NewStoragePersister[api.ResourceId, api.ResourceDescriptor](shared, resource).Load()
+				value, has := kept[id("res-1")]
+				if saved := has && same(t, value, held); saved != row.Saved {
+					t.Errorf("saved: %v; the table's is %v", saved, row.Saved)
+				}
+			})
 		})
 	}
 }
@@ -650,58 +656,58 @@ func runPersistedInProcess(t *testing.T, table persistedCases) {
 	resource := keyOf(t, table, kbA, jo, "resource")
 	for _, row := range table.InProcess {
 		t.Run(row.Why, func(t *testing.T) {
-			s := newStage(t)
-			s.mu.Lock()
-			s.who = table.WhoAmI
-			s.mu.Unlock()
-			ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-			defer cancel()
-			memory := &xynolog.MemorySignIn{}
-			must(t, memory.Keep(ctx, s.heldSignIn(jwt(time.Hour), "r1", &jo)))
-			caches := xynolog.NewMemoryStorage()
-			issuer := s.issuerOf()
-			timing := issuer.Timing
-			// Nothing the client holds is written before it closes.
-			timing.SaveDebounce = time.Hour
-			session, end, err := xynolog.SessionFromKept(ctx, xynolog.SessionFromKeptConfig{
-				Kb:       api.KbTarget{Endpoint: s.registered(t, kbA).Endpoint, Id: kbA, Label: "KB A"},
-				Kept:     memory,
-				HTTP:     issuer.HTTP,
-				Timing:   timing,
-				Channels: bus.BridgedChannels,
-				Storage:  caches,
-			})
-			must(t, err)
-			ended := sync.OnceFunc(end)
-			defer ended()
-			held, err := session.Client().Browse.Resource(id("res-1")).Fresh(ctx)
-			must(t, err)
-			if _, written := caches.Get(resource); written || session.Client().PersistenceSettled() {
-				t.Fatal("the client wrote what it holds, or owes no save, before its sign-in changes")
-			}
-
-			switch {
-			case row.Stored == nil:
-				must(t, memory.Forget(ctx))
-			case row.Stored.PersonKey != nil && *row.Stored.PersonKey == jo:
-				read, has, err := memory.Held(ctx)
+			synctest.Test(t, func(t *testing.T) {
+				s := bubbledStage(t)
+				s.mu.Lock()
+				s.who = table.WhoAmI
+				s.mu.Unlock()
+				ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+				defer cancel()
+				memory := &xynolog.MemorySignIn{}
+				must(t, memory.Keep(ctx, s.heldSignIn(jwt(time.Hour), "r1", &jo)))
+				caches := xynolog.NewMemoryStorage()
+				issuer := s.issuerOf()
+				session, end, err := xynolog.SessionFromKept(ctx, xynolog.SessionFromKeptConfig{
+					Kb:              api.KbTarget{Endpoint: s.registered(t, kbA).Endpoint, Id: kbA, Label: "KB A"},
+					Kept:            memory,
+					HTTP:            issuer.HTTP,
+					ClientTiming:    xynolog.DefaultClientTiming(),
+					TransportTiming: issuer.Timing,
+					Channels:        bus.BridgedChannels,
+					Storage:         caches,
+				})
 				must(t, err)
-				if !has {
-					t.Fatal("the memory sign-in holds nothing to renew")
+				ended := sync.OnceFunc(end)
+				defer ended()
+				held, err := session.Client().Browse.Resource(id("res-1")).Fresh(ctx)
+				must(t, err)
+				if _, written := caches.Get(resource); written || session.Client().PersistenceSettled() {
+					t.Fatal("the client wrote what it holds, or owes no save, before its sign-in changes")
 				}
-				if _, renewed, err := memory.Renewed(ctx, read, jwt(2*time.Hour), "r-renewed"); err != nil || !renewed {
-					t.Fatalf("the renewal was not kept: %v, %v", renewed, err)
-				}
-			default:
-				must(t, memory.Keep(ctx, s.heldSignIn(jwt(2*time.Hour), "r-other", row.Stored.PersonKey)))
-			}
-			ended()
 
-			kept := xynolog.NewStoragePersister[api.ResourceId, api.ResourceDescriptor](caches, resource, timing.MaxStoredBytesCount).Load()
-			value, has := kept[id("res-1")]
-			if saved := has && same(t, value, held); saved != row.Saved {
-				t.Errorf("saved: %v; the table's is %v", saved, row.Saved)
-			}
+				switch {
+				case row.Stored == nil:
+					must(t, memory.Forget(ctx))
+				case row.Stored.PersonKey != nil && *row.Stored.PersonKey == jo:
+					read, has, err := memory.Held(ctx)
+					must(t, err)
+					if !has {
+						t.Fatal("the memory sign-in holds nothing to renew")
+					}
+					if _, renewed, err := memory.Renewed(ctx, read, jwt(2*time.Hour), "r-renewed"); err != nil || !renewed {
+						t.Fatalf("the renewal was not kept: %v, %v", renewed, err)
+					}
+				default:
+					must(t, memory.Keep(ctx, s.heldSignIn(jwt(2*time.Hour), "r-other", row.Stored.PersonKey)))
+				}
+				ended()
+
+				kept := xynolog.NewStoragePersister[api.ResourceId, api.ResourceDescriptor](caches, resource).Load()
+				value, has := kept[id("res-1")]
+				if saved := has && same(t, value, held); saved != row.Saved {
+					t.Errorf("saved: %v; the table's is %v", saved, row.Saved)
+				}
+			})
 		})
 	}
 }
@@ -767,7 +773,7 @@ func runPersistedResumeFrom(t *testing.T, table persistedCases) {
 // heldSignIn is a sign-in of the stage's issuer as a script keeps it, naming
 // the person whose key is personKey, or nobody for nil.
 func (s *stage) heldSignIn(access, refresh string, personKey *string) api.StoredSession {
-	return api.StoredSession{Access: access, Refresh: refresh, ClientId: xynolog.ScriptClientID, TokenEndpoint: s.issuer.URL + "/token", RevocationEndpoint: optional.Text(s.issuer.URL + "/revoke"), PersonKey: personKey}
+	return api.StoredSession{Access: access, Refresh: refresh, ClientId: xynolog.ScriptClientID, TokenEndpoint: s.issuerURL + "/token", RevocationEndpoint: optional.Text(s.issuerURL + "/revoke"), PersonKey: personKey}
 }
 
 // stalledWrite is a storage whose first write of key, once it has begun,
@@ -822,12 +828,10 @@ func TestASaveBeingWrittenDoesNotLandAfterTheSessionForgetsItsSignIn(t *testing.
 	storage := newStalledWrite(keyOf(t, table, kbA, jo, "resource"))
 	must(t, registry.StoreSession(storage, kbA, naming(s.stored(jwt(time.Hour), "r1"), jo)))
 	issuer := s.issuerOf()
-	timing := issuer.Timing
-	timing.SaveDebounce = time.Millisecond
 	signals := xynolog.NewSessionSignals()
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
-	session, end, err := registry.HttpSessionFactory{HTTP: issuer.HTTP, Timing: timing}.Session(ctx, registry.SessionFactoryOptions{Kb: s.registered(t, kbA), Storage: storage, Signals: signals})
+	session, end, err := registry.HttpSessionFactory{HTTP: issuer.HTTP, ClientTiming: xynolog.DefaultClientTiming(), TransportTiming: issuer.Timing}.Session(ctx, registry.SessionFactoryOptions{Kb: s.registered(t, kbA), Storage: storage, Signals: signals})
 	must(t, err)
 	ended := sync.OnceFunc(end)
 	defer ended()
@@ -915,15 +919,14 @@ func TestASignInUnreadableAtASaveStopsTheClientKeepingAndIsSaidOnce(t *testing.T
 	must(t, kept.Keep(ctx, s.heldSignIn(jwt(time.Hour), "r1", &jo)))
 	caches := &watchedStorage{SessionStorage: xynolog.NewMemoryStorage()}
 	issuer := s.issuerOf()
-	timing := issuer.Timing
-	timing.SaveDebounce = time.Millisecond
 	session, end, err := xynolog.SessionFromKept(ctx, xynolog.SessionFromKeptConfig{
-		Kb:       api.KbTarget{Endpoint: s.registered(t, kbA).Endpoint, Id: kbA, Label: "KB A"},
-		Kept:     kept,
-		HTTP:     issuer.HTTP,
-		Timing:   timing,
-		Channels: bus.BridgedChannels,
-		Storage:  caches,
+		Kb:              api.KbTarget{Endpoint: s.registered(t, kbA).Endpoint, Id: kbA, Label: "KB A"},
+		Kept:            kept,
+		HTTP:            issuer.HTTP,
+		ClientTiming:    xynolog.DefaultClientTiming(),
+		TransportTiming: issuer.Timing,
+		Channels:        bus.BridgedChannels,
+		Storage:         caches,
 	})
 	must(t, err)
 	ended := sync.OnceFunc(end)
@@ -1026,50 +1029,51 @@ func codesOf(told []*xynolog.SessionError) []api.SessionErrorCode {
 // said on the session's errors stream, once, as session.keep-failed, before
 // the stream ends. Nothing is written. The stream ends when the session does,
 // so this holds only because end closes the client first, waiting for that
-// save, and then the session.
+// save, and then the session. On the test's own clock, which nothing moves
+// between the read and the close: the closing save is the first.
 func TestAKeepFailedOfTheClosingSaveIsSaidBeforeTheErrorsEnd(t *testing.T) {
-	table := readPersistedCases(t)
-	jo := personOf(t, table, "jo").PersonKey
-	s := newStage(t)
-	s.mu.Lock()
-	s.who = table.WhoAmI
-	s.mu.Unlock()
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	defer cancel()
-	kept := &unreadableSignIn{MemorySignIn: &xynolog.MemorySignIn{}}
-	must(t, kept.Keep(ctx, s.heldSignIn(jwt(time.Hour), "r1", &jo)))
-	caches := &watchedStorage{SessionStorage: xynolog.NewMemoryStorage()}
-	issuer := s.issuerOf()
-	timing := issuer.Timing
-	// Nothing the client holds is written before it closes.
-	timing.SaveDebounce = time.Hour
-	session, end, err := xynolog.SessionFromKept(ctx, xynolog.SessionFromKeptConfig{
-		Kb:       api.KbTarget{Endpoint: s.registered(t, kbA).Endpoint, Id: kbA, Label: "KB A"},
-		Kept:     kept,
-		HTTP:     issuer.HTTP,
-		Timing:   timing,
-		Channels: bus.BridgedChannels,
-		Storage:  caches,
+	synctest.Test(t, func(t *testing.T) {
+		table := readPersistedCases(t)
+		jo := personOf(t, table, "jo").PersonKey
+		s := bubbledStage(t)
+		s.mu.Lock()
+		s.who = table.WhoAmI
+		s.mu.Unlock()
+		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+		defer cancel()
+		kept := &unreadableSignIn{MemorySignIn: &xynolog.MemorySignIn{}}
+		must(t, kept.Keep(ctx, s.heldSignIn(jwt(time.Hour), "r1", &jo)))
+		caches := &watchedStorage{SessionStorage: xynolog.NewMemoryStorage()}
+		issuer := s.issuerOf()
+		session, end, err := xynolog.SessionFromKept(ctx, xynolog.SessionFromKeptConfig{
+			Kb:              api.KbTarget{Endpoint: s.registered(t, kbA).Endpoint, Id: kbA, Label: "KB A"},
+			Kept:            kept,
+			HTTP:            issuer.HTTP,
+			ClientTiming:    xynolog.DefaultClientTiming(),
+			TransportTiming: issuer.Timing,
+			Channels:        bus.BridgedChannels,
+			Storage:         caches,
+		})
+		must(t, err)
+		ended := sync.OnceFunc(end)
+		defer ended()
+		heard := hear(session)
+		_, err = session.Client().Browse.Resource(id("res-1")).Fresh(ctx)
+		must(t, err)
+		if session.Client().PersistenceSettled() {
+			t.Fatal("the client owes no save before it closes")
+		}
+
+		kept.unreadable.Store(true)
+		ended()
+
+		if told := heard.rest(t); !keptFailedOnce(told) {
+			t.Errorf("by the end of its errors stream the session said %v; it says session.keep-failed of kb-a, once", codesOf(told))
+		}
+		if written := caches.under(&caches.written, keyPrefixes(t)); len(written) > 0 {
+			t.Errorf("the client wrote %v", written)
+		}
 	})
-	must(t, err)
-	ended := sync.OnceFunc(end)
-	defer ended()
-	heard := hear(session)
-	_, err = session.Client().Browse.Resource(id("res-1")).Fresh(ctx)
-	must(t, err)
-	if session.Client().PersistenceSettled() {
-		t.Fatal("the client owes no save before it closes")
-	}
-
-	kept.unreadable.Store(true)
-	ended()
-
-	if told := heard.rest(t); !keptFailedOnce(told) {
-		t.Errorf("by the end of its errors stream the session said %v; it says session.keep-failed of kb-a, once", codesOf(told))
-	}
-	if written := caches.under(&caches.written, keyPrefixes(t)); len(written) > 0 {
-		t.Errorf("the client wrote %v", written)
-	}
 }
 
 // unrecordable is a memory sign-in that cannot record the person the gateway
@@ -1106,15 +1110,14 @@ func TestASignInThatCannotRecordThePersonStopsTheClientKeepingAndIsSaidOnce(t *t
 			must(t, kept.Keep(ctx, s.heldSignIn(jwt(time.Hour), "r1", row.names)))
 			caches := &watchedStorage{SessionStorage: xynolog.NewMemoryStorage()}
 			issuer := s.issuerOf()
-			timing := issuer.Timing
-			timing.SaveDebounce = time.Millisecond
 			session, end, err := xynolog.SessionFromKept(ctx, xynolog.SessionFromKeptConfig{
-				Kb:       api.KbTarget{Endpoint: s.registered(t, kbA).Endpoint, Id: kbA, Label: "KB A"},
-				Kept:     kept,
-				HTTP:     issuer.HTTP,
-				Timing:   timing,
-				Channels: bus.BridgedChannels,
-				Storage:  caches,
+				Kb:              api.KbTarget{Endpoint: s.registered(t, kbA).Endpoint, Id: kbA, Label: "KB A"},
+				Kept:            kept,
+				HTTP:            issuer.HTTP,
+				ClientTiming:    xynolog.DefaultClientTiming(),
+				TransportTiming: issuer.Timing,
+				Channels:        bus.BridgedChannels,
+				Storage:         caches,
 			})
 			must(t, err)
 			ended := sync.OnceFunc(end)
@@ -1155,15 +1158,14 @@ func TestASessionEndedOnTheKeepFailedItSaidEnds(t *testing.T) {
 	kept := &unreadableSignIn{MemorySignIn: &xynolog.MemorySignIn{}}
 	must(t, kept.Keep(ctx, s.heldSignIn(jwt(time.Hour), "r1", &jo)))
 	issuer := s.issuerOf()
-	timing := issuer.Timing
-	timing.SaveDebounce = time.Millisecond
 	session, end, err := xynolog.SessionFromKept(ctx, xynolog.SessionFromKeptConfig{
-		Kb:       api.KbTarget{Endpoint: s.registered(t, kbA).Endpoint, Id: kbA, Label: "KB A"},
-		Kept:     kept,
-		HTTP:     issuer.HTTP,
-		Timing:   timing,
-		Channels: bus.BridgedChannels,
-		Storage:  xynolog.NewMemoryStorage(),
+		Kb:              api.KbTarget{Endpoint: s.registered(t, kbA).Endpoint, Id: kbA, Label: "KB A"},
+		Kept:            kept,
+		HTTP:            issuer.HTTP,
+		ClientTiming:    xynolog.DefaultClientTiming(),
+		TransportTiming: issuer.Timing,
+		Channels:        bus.BridgedChannels,
+		Storage:         xynolog.NewMemoryStorage(),
 	})
 	must(t, err)
 	ended := sync.OnceFunc(end)
@@ -1205,29 +1207,27 @@ func TestASessionEndedOnTheKeepFailedItSaidEnds(t *testing.T) {
 	}
 }
 
-// refusingSession is a session with kb-a over a sign-in that names jo,
-// keeping what its client holds for jo in caches, each save saveWait after
-// what it holds changed; and what ends it, once.
-func refusingSession(ctx context.Context, t *testing.T, caches *refusing, saveWait time.Duration) (persistedCases, *xynolog.Session, func()) {
+// refusingSession is a session with kb-a at the stage s over a sign-in that
+// names jo, keeping what its client holds for jo in caches; and what ends it,
+// once.
+func refusingSession(ctx context.Context, t *testing.T, s *stage, caches *refusing) (persistedCases, *xynolog.Session, func()) {
 	t.Helper()
 	table := readPersistedCases(t)
 	jo := personOf(t, table, "jo").PersonKey
-	s := newStage(t)
 	s.mu.Lock()
 	s.who = table.WhoAmI
 	s.mu.Unlock()
 	kept := &xynolog.MemorySignIn{}
 	must(t, kept.Keep(ctx, s.heldSignIn(jwt(time.Hour), "r1", &jo)))
 	issuer := s.issuerOf()
-	timing := issuer.Timing
-	timing.SaveDebounce = saveWait
 	session, end, err := xynolog.SessionFromKept(ctx, xynolog.SessionFromKeptConfig{
-		Kb:       api.KbTarget{Endpoint: s.registered(t, kbA).Endpoint, Id: kbA, Label: "KB A"},
-		Kept:     kept,
-		HTTP:     issuer.HTTP,
-		Timing:   timing,
-		Channels: bus.BridgedChannels,
-		Storage:  caches,
+		Kb:              api.KbTarget{Endpoint: s.registered(t, kbA).Endpoint, Id: kbA, Label: "KB A"},
+		Kept:            kept,
+		HTTP:            issuer.HTTP,
+		ClientTiming:    xynolog.DefaultClientTiming(),
+		TransportTiming: issuer.Timing,
+		Channels:        bus.BridgedChannels,
+		Storage:         caches,
 	})
 	must(t, err)
 	ended := sync.OnceFunc(end)
@@ -1243,7 +1243,7 @@ func TestAWriteTheStorageRefusesIsSaidOnceAndStaysOwed(t *testing.T) {
 	defer cancel()
 	caches := &refusing{SharedStorage: xynologtest.NewSharedStorage()}
 	caches.sets.Store(true)
-	table, session, ended := refusingSession(ctx, t, caches, time.Millisecond)
+	table, session, ended := refusingSession(ctx, t, newStage(t), caches)
 	heard := hear(session)
 
 	_, err := session.Client().Browse.Resource(id("res-1")).Fresh(ctx)
@@ -1271,31 +1271,33 @@ func TestAWriteTheStorageRefusesIsSaidOnceAndStaysOwed(t *testing.T) {
 // said once on the session's errors stream, as session.save-refused, before
 // the stream ends. The stream ends when the session does, so this holds only
 // because end closes the client first, waiting for that write, and then the
-// session.
+// session. On the test's own clock, which nothing moves between the read and
+// the close: the closing write is the first.
 func TestAClosingWriteTheStorageRefusesIsSaidBeforeTheErrorsEnd(t *testing.T) {
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	defer cancel()
-	caches := &refusing{SharedStorage: xynologtest.NewSharedStorage()}
-	// Nothing the client holds is written before it closes.
-	table, session, ended := refusingSession(ctx, t, caches, time.Hour)
-	heard := hear(session)
-	_, err := session.Client().Browse.Resource(id("res-1")).Fresh(ctx)
-	must(t, err)
-	if session.Client().PersistenceSettled() {
-		t.Fatal("the client owes no save before it closes")
-	}
+	synctest.Test(t, func(t *testing.T) {
+		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+		defer cancel()
+		caches := &refusing{SharedStorage: xynologtest.NewSharedStorage()}
+		table, session, ended := refusingSession(ctx, t, bubbledStage(t), caches)
+		heard := hear(session)
+		_, err := session.Client().Browse.Resource(id("res-1")).Fresh(ctx)
+		must(t, err)
+		if session.Client().PersistenceSettled() {
+			t.Fatal("the client owes no save before it closes")
+		}
 
-	caches.sets.Store(true)
-	ended()
+		caches.sets.Store(true)
+		ended()
 
-	told := heard.rest(t)
-	if codes := codesOf(told); !slices.Equal(codes, []api.SessionErrorCode{api.SessionErrorCodeSaveRefused}) || told[0].KbID != kbA {
-		t.Errorf("by the end of its errors stream the session said %v; it says session.save-refused of kb-a, once", codes)
-	}
-	jo := personOf(t, table, "jo").PersonKey
-	if _, written := caches.Get(keyOf(t, table, kbA, jo, "resource")); written {
-		t.Error("the write the storage refused was written")
-	}
+		told := heard.rest(t)
+		if codes := codesOf(told); !slices.Equal(codes, []api.SessionErrorCode{api.SessionErrorCodeSaveRefused}) || told[0].KbID != kbA {
+			t.Errorf("by the end of its errors stream the session said %v; it says session.save-refused of kb-a, once", codes)
+		}
+		jo := personOf(t, table, "jo").PersonKey
+		if _, written := caches.Get(keyOf(t, table, kbA, jo, "resource")); written {
+			t.Error("the write the storage refused was written")
+		}
+	})
 }
 
 // A session that does not ask who its token is keeps, from the start, for the
@@ -1321,7 +1323,8 @@ func TestASessionThatDoesNotAskKeepsForThePersonItsSignInNames(t *testing.T) {
 		Kb:                   api.KbTarget{Endpoint: s.registered(t, kbA).Endpoint, Id: kbA, Label: "KB A"},
 		Kept:                 kept,
 		HTTP:                 issuer.HTTP,
-		Timing:               issuer.Timing,
+		ClientTiming:         xynolog.DefaultClientTiming(),
+		TransportTiming:      issuer.Timing,
 		Channels:             bus.BridgedChannels,
 		Storage:              caches,
 		SkipAskingWhoTokenIs: true,

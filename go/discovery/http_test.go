@@ -146,7 +146,7 @@ func TestALaunchersDocumentThatIsNeverServedIsUnreadableAtTheDeadline(t *testing
 
 		read := reader.Read(context.Background())
 
-		deadline := xynolog.DefaultTiming().HttpRequestTimeout
+		deadline := xynolog.DefaultTransportTiming().HttpRequestTimeout
 		if took := time.Since(started); took < deadline || took >= deadline+2*time.Second {
 			t.Errorf("took %s", took)
 		}

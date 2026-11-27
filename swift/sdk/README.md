@@ -299,7 +299,7 @@ failures, as a transport does of a request the gateway refused, so a session
 made over it says it on its `errors()`; one reported before anyone listens is
 kept for the first listener. A `LivenessSpec`'s `timeout` is the
 time its composition gives a bus request, so its `setup` builds the client with
-that many milliseconds as its `busRequestTimeoutMs`.
+that many milliseconds as its `ClientTiming`'s `busRequestTimeoutMs`.
 
 Every maker that waits takes a `clock:` (any `Clock` whose duration is
 `Duration`, `ContinuousClock()` when none is given), and every maker that backs
@@ -333,11 +333,12 @@ Match offers live resource search results, and Gather offers live incoming
 references.
 
 `client.wire` sends typed generated `Channels` and `Operations`. A request
-has, from the call, its emit included, `busRequestTimeoutMs`
-(`XynologClient(busRequestTimeoutMs:)`, the timing table's value when none is
-given), or the `timeoutMs:` its caller gives, on the client's clock and over any
-transport, to be answered; then it fails as `busTimeout`, and an emit still in
-flight is given up, with no attempt after it. A worker's claim waits its `ClaimOptions.jobClaimTimeoutMs`, and a held
+has, from the call, its emit included, `busRequestTimeoutMs` (of the
+`ClientTiming` that `XynologClient(timing:)` takes, the timing table's value
+when none is given), or the `timeoutMs:` its caller gives, on the client's clock
+and over any transport, to be answered; then it fails as `busTimeout`, and an
+emit still in flight is given up, with no attempt after it. A worker's claim
+waits its `ClaimOptions.jobClaimTimeoutMs`, and a held
 job's commit its `markCommitTimeoutMs`, the same way. `frames` on a
 `ScopedChannel` requires a resource and holds that resource only while the read
 is alive. Breaking, cancellation, completion or disposal releases the hold.

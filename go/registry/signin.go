@@ -21,16 +21,17 @@ func BeginSignIn(ctx context.Context, browser *XynologBrowser, issuer xynolog.Is
 // CompleteSignIn finishes a sign-in from the URL the issuer sent the person
 // back to: it exchanges the code, asks the knowledge base who it is, and has
 // the registry land the sign-in on the entry for the knowledge base that
-// answered (XynologBrowser.SignedIn). The failure is a *xynolog.SignInError
-// when the grant failed, and a *xynolog.IdentityUnverifiableError when it
-// succeeded and the knowledge base could not say who it is; then nothing is
-// registered, and nothing is stored.
-func CompleteSignIn(ctx context.Context, browser *XynologBrowser, issuer xynolog.Issuer, callbackURL string) (api.SignInOutcome, error) {
+// answered (XynologBrowser.SignedIn). The knowledge base is asked by a client
+// that keeps clientTiming, over a transport that keeps the issuer's Timing.
+// The failure is a *xynolog.SignInError when the grant failed, and a
+// *xynolog.IdentityUnverifiableError when it succeeded and the knowledge base
+// could not say who it is; then nothing is registered, and nothing is stored.
+func CompleteSignIn(ctx context.Context, browser *XynologBrowser, issuer xynolog.Issuer, callbackURL string, clientTiming xynolog.ClientTiming) (api.SignInOutcome, error) {
 	pending, tokens, err := xynolog.CompleteAuthorization(ctx, issuer, callbackURL, browser.Storage())
 	if err != nil {
 		return api.SignInOutcome{}, err
 	}
-	identity, err := xynolog.DescribeConnection(ctx, pending.Target, tokens.Access, issuer.HTTP, issuer.Timing, issuer.Random)
+	identity, err := xynolog.DescribeConnection(ctx, pending.Target, tokens.Access, issuer.HTTP, clientTiming, issuer.Timing, issuer.Random)
 	if err != nil {
 		return api.SignInOutcome{}, err
 	}

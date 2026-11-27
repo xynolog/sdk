@@ -88,6 +88,13 @@ the coming release's, and gathers its changes as they land.
   `DiscoveredKBPlacement`, `RootPlacement`, `KnowledgeBaseStatusPlacement`
   and `TargetKind`; `InferenceProvider` names an inference provider, in
   place of `EngineProvider`.
+- A schema a `$ref` names at a place within a file is one type, named where
+  that place is stated, wherever it is referred to: the Archivist layout's
+  trees are all `ArchivistLayoutEventStreamTree`, every error vocabulary
+  whose codes state only their docs is `ErrorsCodesJob`, the SDK's telemetry
+  instruments are `ServiceTelemetryTelemetryMetricsItemInstrument`, and the
+  rest. The type each reference was given of its own
+  (`ArchivistLayoutViewTree`, `ErrorsCodesSession`, …) is gone.
 - An upload is a `types::PutBinaryRequest`, the type of Protocol's
   `client/types/PutBinaryRequest.json`, where it was
   `transport::PutBinaryRequest`: its bytes are its `file`, a `types::Binary`,
@@ -107,12 +114,12 @@ the coming release's, and gathers its changes as they land.
   fields, where they were its `entry`'s.
 - A retry budget is `types::RetryBudget`, the type of Protocol's
   `client/RetryBudget.json`, where it was `retry::RetryPolicy`:
-  `timing::EMIT_RETRY` and `timing::REFRESH_RETRY` are one, a transport's
-  `Timing::emit_retry` is one, and `retry_with_backoff` takes one by
+  `timing::EMIT_RETRY` and `timing::REFRESH_RETRY` are one,
+  `TransportTiming::emit_retry` is one, and `retry_with_backoff` takes one by
   reference. Its delays are whole milliseconds, `initial_delay_ms` and
   `max_delay_ms`, as Protocol states them, where they were `Duration`s,
-  `initial_delay` and `max_delay`, and its `attempts` is a `u64`. The
-  transport's `Timing` is no longer `Copy`.
+  `initial_delay` and `max_delay`, and its `attempts` is a `u64`.
+  `TransportTiming` is not `Copy`.
 - `ResourceUpload::file` is a `types::Binary`, the type of Protocol's bytes
   held whole, which is a `bytes::Bytes`, the type the SDK's transport holds
   bytes as, where `file` was a `String`; `ResourceUpload::new` takes one.
@@ -209,6 +216,23 @@ the coming release's, and gathers its changes as they land.
 - An upload's `UploadProgressStarted` and `UploadProgressProgress` state
   `total_bytes` as an `Option<u64>`: a source of unstated length states none.
   Every upload today holds its bytes whole, and states its total.
+- The timing a caller may set is two records generated from
+  `client/timing.json`, `timing::ClientTiming` and `timing::TransportTiming`,
+  each member named as its row is. `client::ClientTiming` is the first, whose
+  `bus_request` is now `bus_request_timeout`. The second,
+  `transport::TransportTiming` in `xynolog-http-transport`, replaces
+  `transport::Timing`: `http_request` is now `http_request_timeout`,
+  `stream_open` is `stream_open_timeout`, and `seen_event_ids` is
+  `seen_event_ids_count`.
+- A session over HTTP is built with that timing: `SessionFromKept` has the
+  fields `client_timing` and `transport_timing`, `session::HttpSession` the
+  field `transport_timing`, and `HttpSessionFactory::new` takes
+  `client_timing` and `transport_timing` between its `http` and its `random`.
+- `Cache::persisted` no longer takes `save_debounce`: it saves
+  `timing::SAVE_DEBOUNCE` after its values last changed.
+- `StoragePersister::new` no longer takes `max_bytes`: a document larger than
+  `timing::MAX_STORED_BYTES_COUNT` loses the entries received longest ago,
+  until it fits.
 
 ## 0.8.1
 

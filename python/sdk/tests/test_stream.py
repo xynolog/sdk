@@ -23,11 +23,12 @@ from aio import run, soon
 
 from xynolog._kept_for_first_reader import KeptForFirstReader
 from xynolog.errors import XynologError
-from xynolog.http.stream import Stream, Timing
+from xynolog.http.stream import Stream
+from xynolog.timing import TransportTiming
 from xynolog.transport import FrameHub, ReplyRouter
 from xynolog.watched import Variable
 
-QUICK: Final = Timing(reconnect_ms=10)
+QUICK: Final = TransportTiming(reconnect_ms=10)
 
 
 @final

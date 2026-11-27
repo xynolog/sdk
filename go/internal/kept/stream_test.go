@@ -5,8 +5,8 @@ import (
 	"slices"
 	"testing"
 
-	xynolog "github.com/xynolog/sdk/go"
 	"github.com/xynolog/sdk/go/internal/kept"
+	"github.com/xynolog/sdk/go/internal/timing"
 )
 
 // The first reader of a stream is given, of what was reported before it read,
@@ -14,7 +14,7 @@ import (
 // that follows, however far behind it falls; a later reader is given
 // everything reported from when it reads.
 func TestTheFirstReaderIsGivenTheLatestReportedBeforeItAndEveryReaderEverythingThatFollows(t *testing.T) {
-	most := xynolog.DefaultTiming().ErrorsKeptForFirstReaderCount
+	most := timing.ErrorsKeptForFirstReaderCount
 	stream := kept.NewStream[string](most)
 	beyond := 5
 	before := make([]string, most+beyond)
@@ -41,7 +41,7 @@ func TestTheFirstReaderIsGivenTheLatestReportedBeforeItAndEveryReaderEverythingT
 // A reader whose stop closes while it waits is let go of: it is given
 // nothing more.
 func TestAReaderWhoseStopClosesWhileItWaitsIsLetGoOf(t *testing.T) {
-	stream := kept.NewStream[string](xynolog.DefaultTiming().ErrorsKeptForFirstReaderCount)
+	stream := kept.NewStream[string](timing.ErrorsKeptForFirstReaderCount)
 	defer stream.Close()
 	stop := make(chan struct{})
 	reading := stream.Reported(stop)
@@ -59,7 +59,7 @@ func TestAReaderWhoseStopClosesWhileItWaitsIsLetGoOf(t *testing.T) {
 // A first reader who comes after the close is given nothing: what was kept
 // for it was let go of at the close.
 func TestAFirstReaderWhoComesAfterTheStreamClosedIsGivenNothing(t *testing.T) {
-	stream := kept.NewStream[string](xynolog.DefaultTiming().ErrorsKeptForFirstReaderCount)
+	stream := kept.NewStream[string](timing.ErrorsKeptForFirstReaderCount)
 	stream.Report("HTTP 503")
 	stream.Close()
 

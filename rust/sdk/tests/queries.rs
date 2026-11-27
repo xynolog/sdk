@@ -134,7 +134,7 @@ fn answers(
 fn options(persistence: Option<CachePersistence>) -> ClientOptions {
     ClientOptions {
         timing: ClientTiming {
-            bus_request: Duration::from_secs(1),
+            bus_request_timeout: Duration::from_secs(1),
             invalidation_window: WINDOW,
             ..ClientTiming::default()
         },
@@ -1629,7 +1629,7 @@ fn l1_l2_a_watcher_is_given_a_value_or_a_failure_and_a_read_settles_under_every_
                 transport: Some(transport),
                 client: ClientOptions {
                     timing: ClientTiming {
-                        bus_request: TIMEOUT,
+                        bus_request_timeout: TIMEOUT,
                         ..ClientTiming::default()
                     },
                     cache_persistence: None,

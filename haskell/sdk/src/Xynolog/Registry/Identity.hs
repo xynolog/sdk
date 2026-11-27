@@ -24,6 +24,7 @@ import Xynolog.Errors (BusRequestError (..))
 import Xynolog.Gateway qualified as Gateway
 import Xynolog.Http qualified as Http
 import Xynolog.Identity qualified as Identity
+import Xynolog.Timing.Settings qualified as Timing
 import Xynolog.Types
 
 data IdentityUnverifiableError = IdentityUnverifiableError
@@ -42,8 +43,8 @@ samePlace (KbEndpointHttpEndpoint one) (KbEndpointHttpEndpoint other) =
 samePlace (KbEndpointLocalEndpoint one) (KbEndpointLocalEndpoint other) = localEndpointKbId one == localEndpointKbId other
 samePlace _ _ = False
 
-describeConnection :: Http.HttpOptions -> HttpEndpoint -> Text -> IO ConnectionIdentity
-describeConnection http target access = do
+describeConnection :: Http.HttpOptions -> Timing.ClientTiming -> HttpEndpoint -> Text -> IO ConnectionIdentity
+describeConnection http timing target access = do
   base <- either (throwIO . IdentityUnverifiableError KbIdentityUnreachable) pure (Gateway.gatewayUrl target)
   let (_, result, failure) = operationChannels BrowseKbRequestedOperation
       options =
@@ -55,7 +56,7 @@ describeConnection http target access = do
             Http.httpLoadPositions = pure Map.empty,
             Http.httpSavePosition = \_ _ -> pure ()
           }
-  readBack <- try $ bracket (Client.fromHttp options Nothing) Client.dispose (Browse.kb . Client.browse)
+  readBack <- try $ bracket (Client.fromHttp options timing Nothing) Client.dispose (Browse.kb . Client.browse)
   description <- case readBack of
     Right value -> pure value
     Left (problem :: SomeException) -> case fromException problem :: Maybe SomeAsyncException of

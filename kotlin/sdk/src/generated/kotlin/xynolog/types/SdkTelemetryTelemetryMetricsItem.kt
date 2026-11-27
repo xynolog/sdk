@@ -10,9 +10,9 @@ public data class SdkTelemetryTelemetryMetricsItem(
     /** The row's name; `{channel}` in it is the bus channel, and `{jobType}` the job's type. */
     public val name: String,
     /** The transport the row comes from: `bus`, the stream and emits; `content`, uploads and reads. */
-    public val transport: SdkTelemetryTelemetryMetricsItemTransport,
+    public val transport: SdkTelemetryTelemetrySpansItemTransport,
     /** The metric's instrument. */
-    public val instrument: SdkTelemetryTelemetryMetricsItemInstrument,
+    public val instrument: ServiceTelemetryTelemetryMetricsItemInstrument,
     /** What the row says. */
     public val meaning: String,
     /** The attributes the span carries. */
@@ -21,8 +21,8 @@ public data class SdkTelemetryTelemetryMetricsItem(
     /** How Java makes a `SdkTelemetryTelemetryMetricsItem`: `builder` takes what it must state, a setter each thing it may, and `build` makes it. */
     public class Builder internal constructor(
         private val name: String,
-        private val transport: SdkTelemetryTelemetryMetricsItemTransport,
-        private val instrument: SdkTelemetryTelemetryMetricsItemInstrument,
+        private val transport: SdkTelemetryTelemetrySpansItemTransport,
+        private val instrument: ServiceTelemetryTelemetryMetricsItemInstrument,
         private val meaning: String,
         private val attributes: kotlin.collections.List<SdkTelemetryTelemetryMetricsItemAttributesItem>,
     ) {
@@ -32,6 +32,6 @@ public data class SdkTelemetryTelemetryMetricsItem(
     public companion object {
         /** A builder of a `SdkTelemetryTelemetryMetricsItem` that states these, and what its setters add. */
         @JvmStatic
-        public fun builder(name: String, transport: SdkTelemetryTelemetryMetricsItemTransport, instrument: SdkTelemetryTelemetryMetricsItemInstrument, meaning: String, attributes: kotlin.collections.List<SdkTelemetryTelemetryMetricsItemAttributesItem>): Builder = Builder(name, transport, instrument, meaning, attributes)
+        public fun builder(name: String, transport: SdkTelemetryTelemetrySpansItemTransport, instrument: ServiceTelemetryTelemetryMetricsItemInstrument, meaning: String, attributes: kotlin.collections.List<SdkTelemetryTelemetryMetricsItemAttributesItem>): Builder = Builder(name, transport, instrument, meaning, attributes)
     }
 }

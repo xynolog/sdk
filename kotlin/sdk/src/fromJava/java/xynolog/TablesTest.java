@@ -11,13 +11,19 @@ import xynolog.services.ArchivistRoute;
 import xynolog.services.ServiceTables;
 import xynolog.types.ControlSender;
 
-/** The service tables and the control API's table, as Java reads them: each a static field. */
+/** The service tables, the clients' tables and the control API's table, as Java reads them: each a static field. */
 class TablesTest {
     @Test
     void aServiceTableIsAStaticField() {
         assertFalse(ServiceTables.JOBS_BUDGETS.getBudgets().isEmpty());
         assertSame(ServiceTables.JOBS_BUDGETS, ServiceTables.SERVICE_TABLES.get("jobs/budgets.json"));
         assertTrue(ArchivistRoute.values().length > 0);
+    }
+
+    @Test
+    void aClientTableIsAStaticField() {
+        assertFalse(Tables.LOCALES_REGISTRY.getLocales().isEmpty());
+        assertSame(Tables.LOCALES_REGISTRY, Tables.TABLES.get("locales/registry.json"));
     }
 
     @Test

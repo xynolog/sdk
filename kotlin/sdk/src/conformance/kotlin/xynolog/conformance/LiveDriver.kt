@@ -22,7 +22,6 @@ import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.booleanOrNull
 import kotlinx.serialization.json.longOrNull
-import xynolog.ClientTiming
 import xynolog.JobAttemptFailed
 import xynolog.JobCompleted
 import xynolog.JobCreated
@@ -36,7 +35,6 @@ import xynolog.channels.BRIDGED_CHANNELS
 import xynolog.errors.XynologError
 import xynolog.http.HttpContentTransport
 import xynolog.http.HttpTransport
-import xynolog.http.Timing
 import xynolog.identifiers.AnnotationId
 import xynolog.identifiers.ResourceId
 import xynolog.registry.personKey
@@ -160,32 +158,11 @@ private class LiveDriver : Driver {
 
     private fun annotation(text: String): AnnotationId = AnnotationId.parse(text) ?: throw Misuse("$text is not an annotation's id")
 
-    /** The client's timing and its transport's, with what the case overrides. */
-    private fun timings(args: JsonObject): Pair<ClientTiming, Timing> {
-        var client = ClientTiming()
-        var transport = Timing()
-        val stated = args["timing"] as? JsonObject ?: return client to transport
-        for (name in stated.keys) {
-            val ms = stated.count(name)
-            when (name) {
-                "busRequestTimeoutMs" -> client = client.copy(busRequestMs = ms)
-                "invalidationWindowMs" -> client = client.copy(invalidationWindowMs = ms)
-                "jobSilenceMs" -> client = client.copy(jobSilenceMs = ms)
-                "jobStatusPollMs" -> client = client.copy(jobStatusPollMs = ms)
-                "reconnectMs" -> transport = transport.copy(reconnectMs = ms)
-                "lazyRemoveMs" -> transport = transport.copy(lazyRemoveMs = ms)
-                "lingerMs" -> transport = transport.copy(lingerMs = ms)
-                else -> throw Misuse("this driver cannot override $name")
-            }
-        }
-        return client to transport
-    }
-
     private fun open(args: JsonObject): JsonElement {
         synchronized(this) {
             if (opened?.client?.let { !it.bus.isDestroyed } == true) throw Misuse("a client is already open")
         }
-        val (clientTiming, transportTiming) = timings(args)
+        val (clientTiming, transportTiming) = Stated.timings(args["timing"] as? JsonObject ?: JsonObject(emptyMap()))
         val persist = (args["persist"] as? JsonPrimitive)?.booleanOrNull == true
         val transport = HttpTransport(args.text("baseUrl"), MutableStateFlow(args.text("token")), BRIDGED_CHANNELS, timing = transportTiming)
         // Taken at once, so every failure from the first request on is heard.

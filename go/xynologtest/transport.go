@@ -37,6 +37,7 @@ import (
 	"github.com/xynolog/sdk/go/api"
 	"github.com/xynolog/sdk/go/bus"
 	"github.com/xynolog/sdk/go/internal/kept"
+	"github.com/xynolog/sdk/go/internal/timing"
 )
 
 // MakeResponse is what the gateway answers a request with, given its
@@ -151,7 +152,7 @@ func NewFaultyTransport(config FaultyConfig) *FaultyTransport {
 		hub:      xynolog.NewFrameHub(),
 		router:   xynolog.NewReplyRouter(),
 		state:    xynolog.NewVariable(api.ConnectionStateOpen),
-		failures: kept.NewTelling[*xynolog.TransportError](xynolog.DefaultTiming().ErrorsKeptForFirstReaderCount),
+		failures: kept.NewTelling[*xynolog.TransportError](timing.ErrorsKeptForFirstReaderCount),
 	}
 }
 
@@ -450,8 +451,9 @@ func (f *FaultyTransport) BridgeInto(sink xynolog.FrameSink) { f.hub.Bridge(sink
 
 // Failures tells told each failure Fail reports from now on, until stop or
 // the transport closes. The first listener is told first the latest
-// ErrorsKeptForFirstReaderCount (xynolog.DefaultTiming) since the transport
-// was made; one who comes after the transport has closed, nothing.
+// errorsKeptForFirstReaderCount (protocol/specs/src/client/timing.json) since
+// the transport was made; one who comes after the transport has closed,
+// nothing.
 func (f *FaultyTransport) Failures(told func(*xynolog.TransportError)) (stop func()) {
 	return f.failures.Listen(told)
 }

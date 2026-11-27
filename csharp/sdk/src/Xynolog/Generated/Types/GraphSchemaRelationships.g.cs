@@ -8,6 +8,6 @@ namespace Xynolog.Types;
 public sealed record GraphSchemaRelationships
 {
     [global::Xynolog.Serialization.Wire("belongsTo")] public required global::Xynolog.Types.GraphSchemaRelationshipsBelongsTo BelongsTo { get; init; }
-    [global::Xynolog.Serialization.Wire("references")] public required global::Xynolog.Types.GraphSchemaRelationshipsReferences References { get; init; }
-    [global::Xynolog.Serialization.Wire("taggedAs")] public required global::Xynolog.Types.GraphSchemaRelationshipsTaggedAs TaggedAs { get; init; }
+    [global::Xynolog.Serialization.Wire("references")] public required global::Xynolog.Types.GraphSchemaRelationshipsBelongsTo References { get; init; }
+    [global::Xynolog.Serialization.Wire("taggedAs")] public required global::Xynolog.Types.GraphSchemaRelationshipsBelongsTo TaggedAs { get; init; }
 }

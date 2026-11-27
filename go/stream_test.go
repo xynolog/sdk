@@ -21,6 +21,7 @@ import (
 
 	"github.com/xynolog/sdk/go/api"
 	"github.com/xynolog/sdk/go/bus"
+	"github.com/xynolog/sdk/go/internal/timing"
 )
 
 func TestTheIdsRememberedAreTheLastOnesDelivered(t *testing.T) {
@@ -45,12 +46,14 @@ func TestTheIdsRememberedAreTheLastOnesDelivered(t *testing.T) {
 }
 
 func TestTheBackoffWaitsBetweenHalfItsCapAndItsCap(t *testing.T) {
-	timing := DefaultTiming()
-	timing.Reconnect = 100 * time.Millisecond
-	timing.MaxReconnect = time.Second
-	s := newStream(&transportShared{timing: timing}, NewVariable(api.ConnectionStateInitial), nil)
-	for attempt, limit := range []time.Duration{100, 200, 400, 800, 1000, 1000} {
-		limit *= time.Millisecond
+	doubling := DefaultTransportTiming()
+	doubling.Reconnect = 100 * time.Millisecond
+	s := newStream(&transportShared{timing: doubling}, NewVariable(api.ConnectionStateInitial), nil)
+	limits := []time.Duration{100, 200, 400, 800, 1600, 3200, 6400, 12800, 25600, 51200}
+	for i := range limits {
+		limits[i] *= time.Millisecond
+	}
+	for attempt, limit := range append(limits, timing.MaxReconnect, timing.MaxReconnect) {
 		wait := s.backoff()
 		if wait < limit/2 || wait > limit {
 			t.Errorf("attempt %d waits %v; its cap is %v", attempt, wait, limit)
@@ -176,11 +179,10 @@ func (g *stubGateway) client() (*HTTPTransport, *http.Client) {
 // renews it with refresher, with timing a test does not wait out, and the
 // HTTP client it was made with.
 func transportTo(url string, token *Variable[string], refresher TokenRefresher) (*HTTPTransport, *http.Client) {
-	timing := DefaultTiming()
-	timing.Reconnect = 20 * time.Millisecond
-	timing.LazyRemove = 20 * time.Millisecond
-	timing.ReconnectDebounce = 10 * time.Millisecond
-	timing.Linger = 20 * time.Millisecond
+	quick := DefaultTransportTiming()
+	quick.Reconnect = 20 * time.Millisecond
+	quick.LazyRemove = 20 * time.Millisecond
+	quick.Linger = 20 * time.Millisecond
 	httpClient := &http.Client{Transport: &http.Transport{}}
 	return NewHTTPTransport(HTTPTransportConfig{
 		BaseURL:   url,
@@ -188,7 +190,7 @@ func transportTo(url string, token *Variable[string], refresher TokenRefresher) 
 		Refresher: refresher,
 		Channels:  []bus.Channel{bus.BeckonFocus.Channel()},
 		HTTP:      httpClient,
-		Timing:    timing,
+		Timing:    quick,
 	}), httpClient
 }
 
@@ -261,15 +263,15 @@ func TestARefusedOpenIsReportedInTheGatewaysWords(t *testing.T) {
 func TestARefusalWhoseBodyNeverEndsIsReportedAtTheRequestDeadline(t *testing.T) {
 	gateway := newStubGateway(t)
 	gateway.unfinished = 1
-	timing := DefaultTiming()
-	timing.Reconnect = 20 * time.Millisecond
-	timing.HttpRequestTimeout = 200 * time.Millisecond
+	quick := DefaultTransportTiming()
+	quick.Reconnect = 20 * time.Millisecond
+	quick.HttpRequestTimeout = 200 * time.Millisecond
 	transport := NewHTTPTransport(HTTPTransportConfig{
 		BaseURL:  gateway.URL,
 		Token:    NewVariable("a-token"),
 		Channels: []bus.Channel{bus.BeckonFocus.Channel()},
 		HTTP:     &http.Client{Transport: &http.Transport{}},
-		Timing:   timing,
+		Timing:   quick,
 	})
 	defer transport.Close()
 	refused := firstFailure(t, transport)
@@ -288,22 +290,22 @@ func TestARefusalWhoseBodyNeverEndsIsReportedAtTheRequestDeadline(t *testing.T) 
 func TestAnOpenTheGatewayNeverAnswersFailsAtItsDeadlineAndIsMadeAgain(t *testing.T) {
 	gateway := newStubGateway(t)
 	gateway.unanswered = 1
-	timing := DefaultTiming()
-	timing.Reconnect = 20 * time.Millisecond
-	timing.StreamOpenTimeout = 200 * time.Millisecond
+	quick := DefaultTransportTiming()
+	quick.Reconnect = 20 * time.Millisecond
+	quick.StreamOpenTimeout = 200 * time.Millisecond
 	transport := NewHTTPTransport(HTTPTransportConfig{
 		BaseURL:  gateway.URL,
 		Token:    NewVariable("a-token"),
 		Channels: []bus.Channel{bus.BeckonFocus.Channel()},
 		HTTP:     &http.Client{Transport: &http.Transport{}},
-		Timing:   timing,
+		Timing:   quick,
 	})
 	defer transport.Close()
 	started := time.Now()
 	until(t, "the stream to open on the subscribe after the unanswered one", func() bool {
 		return transport.State().Value() == api.ConnectionStateOpen
 	})
-	if waited := time.Since(started); waited < timing.StreamOpenTimeout {
+	if waited := time.Since(started); waited < quick.StreamOpenTimeout {
 		t.Errorf("the stream opened %v after it started, before the unanswered open's deadline", waited)
 	}
 	if gateway.subscribes() != 2 {
@@ -369,6 +371,9 @@ func TestALineThatNamesNoChannelIsToldToTheFailureReportAndTheStreamGoesOn(t *te
 	}()
 	defer transport.SubscribeToResource(mustResource(t, "res-1"))()
 	until(t, "the stream to open", func() bool { return transport.State().Value() == api.ConnectionStateOpen })
+	// The stream opened again for the scope: what is counted from here on is no
+	// subscription's doing.
+	until(t, "a subscription of the scope", func() bool { _, ok := gateway.asked(1); return ok })
 	subscribes := func() int {
 		gateway.mu.Lock()
 		defer gateway.mu.Unlock()

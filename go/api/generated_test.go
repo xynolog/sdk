@@ -79,9 +79,8 @@ func TestAnEnumAdmitsItsValuesAndNoOther(t *testing.T) {
 		"KbPlacement":       {api.KbPlacementLocal, api.KbPlacement("moon")},
 		"InferenceProvider": {api.InferenceProviderAnthropic, api.InferenceProvider("oracle")},
 		"System":            {api.SystemMacos, api.System("plan9")},
-		"LimitRefusalsItemCode": {
-			api.ErrorsCodesTransportCodesItemStatusLimitRefusalsItemCodeStreams,
-			api.ErrorsCodesTransportCodesItemStatusLimitRefusalsItemCode("patience"),
+		"LimitRefusalValueCode": {
+			api.LimitRefusalValueCodeStreams, api.LimitRefusalValueCode("patience"),
 		},
 		"DateTimeFormat": {
 			api.ClientOptionDefaultsDefaultsItemSchemaDateTimeFormatDateTime,
@@ -89,7 +88,7 @@ func TestAnEnumAdmitsItsValuesAndNoOther(t *testing.T) {
 		},
 		"DateTimeType": {
 			api.ClientOptionDefaultsDefaultsItemSchemaDateTimeTypeInteger,
-			api.ClientOptionDefaultsDefaultsItemSchemaDateTimeType("boolean"),
+			api.ClientOptionDefaultsDefaultsItemSchemaDateTimeType("array"),
 		},
 		"DecidedIn": {
 			api.ClientOptionDefaultsDefaultsItemSchemaDecidedDecidedInTakes,

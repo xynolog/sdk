@@ -14,6 +14,7 @@ import (
 	"sort"
 	"strings"
 	"testing"
+	"testing/synctest"
 	"time"
 
 	xynolog "github.com/xynolog/sdk/go"
@@ -39,15 +40,15 @@ var (
 
 // jobTiming is the client's waits, with a followed job's silence and status
 // poll as stated.
-func jobTiming(silence, poll time.Duration) xynolog.Timing {
-	timing := xynolog.DefaultTiming()
+func jobTiming(silence, poll time.Duration) xynolog.ClientTiming {
+	timing := xynolog.DefaultClientTiming()
 	timing.JobSilence, timing.JobStatusPoll = silence, poll
 	return timing
 }
 
 // jobWorld is a client over a transport whose job:create is answered with
 // job-1, or by the test when it is not answered.
-func jobWorld(t *testing.T, answered bool, timing xynolog.Timing) (*xynolog.Client, *xynologtest.FaultyTransport) {
+func jobWorld(t *testing.T, answered bool, timing xynolog.ClientTiming) (*xynolog.Client, *xynologtest.FaultyTransport) {
 	t.Helper()
 	if answered {
 		return creatingWorld(t, json.RawMessage(`{"jobId":"job-1"}`), timing)
@@ -63,14 +64,14 @@ func jobWorld(t *testing.T, answered bool, timing xynolog.Timing) (*xynolog.Clie
 
 // creatingWorld is a client over a transport whose job:create is answered
 // with created.
-func creatingWorld(t *testing.T, created json.RawMessage, timing xynolog.Timing) (*xynolog.Client, *xynologtest.FaultyTransport) {
+func creatingWorld(t *testing.T, created json.RawMessage, timing xynolog.ClientTiming) (*xynolog.Client, *xynologtest.FaultyTransport) {
 	t.Helper()
 	transport := xynologtest.NewFaultyTransport(xynologtest.FaultyConfig{Channels: bus.BridgedChannels})
 	transport.QueueReply(jobCreate, created)
 	return worldOver(t, transport, timing)
 }
 
-func worldOver(t *testing.T, transport *xynologtest.FaultyTransport, timing xynolog.Timing) (*xynolog.Client, *xynologtest.FaultyTransport) {
+func worldOver(t *testing.T, transport *xynologtest.FaultyTransport, timing xynolog.ClientTiming) (*xynolog.Client, *xynologtest.FaultyTransport) {
 	t.Helper()
 	made := xynologtest.NewTestClient(xynologtest.TestClientConfig{Transport: transport, Timing: timing})
 	t.Cleanup(func() {
@@ -263,7 +264,7 @@ func waitedWithin[C any](t *testing.T, ch <-chan waitedFor[C], limit time.Durati
 
 func TestAJobReportsItsProgressAndEndsWithItsCompletion(t *testing.T) {
 	t.Parallel()
-	c, fake := jobWorld(t, true, xynolog.DefaultTiming())
+	c, fake := jobWorld(t, true, xynolog.DefaultClientTiming())
 	followed := following(highlighting(t, c).Events(context.Background()))
 	sent := created(t, fake, 1)
 	if want := map[string]any{"jobType": "mark", "resourceId": "res-1", "params": map[string]any{"motivation": "highlighting"}}; !reflect.DeepEqual(normal(t, sent.Payload), want) {
@@ -302,7 +303,7 @@ func TestAJobReportsItsProgressAndEndsWithItsCompletion(t *testing.T) {
 // a follower's first event.
 func TestAJobIsNamedBeforeAnythingElseOfItIsGiven(t *testing.T) {
 	t.Parallel()
-	c, fake := jobWorld(t, true, xynolog.DefaultTiming())
+	c, fake := jobWorld(t, true, xynolog.DefaultClientTiming())
 	followed := following(highlighting(t, c).Events(context.Background()))
 	created(t, fake, 1)
 	say(t, c, jobComplete, "job-1", "mark", nil)
@@ -321,7 +322,7 @@ func TestAJobIsNamedBeforeAnythingElseOfItIsGiven(t *testing.T) {
 
 func TestWaitedForAJobGivesItsCompletion(t *testing.T) {
 	t.Parallel()
-	c, fake := jobWorld(t, true, xynolog.DefaultTiming())
+	c, fake := jobWorld(t, true, xynolog.DefaultClientTiming())
 	waited := waiting(highlighting(t, c))
 	created(t, fake, 1)
 	say(t, c, jobProgress, "job-1", "mark", progressOf(10))
@@ -348,7 +349,7 @@ func TestWhatAMarkJobReportsIsItsCountsOrADecline(t *testing.T) {
 	} {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
-			c, fake := jobWorld(t, true, xynolog.DefaultTiming())
+			c, fake := jobWorld(t, true, xynolog.DefaultClientTiming())
 			waited := waiting(highlighting(t, c))
 			created(t, fake, 1)
 			say(t, c, jobComplete, "job-1", "mark", map[string]any{"result": result})
@@ -366,7 +367,7 @@ func TestWhatAMarkJobReportsIsItsCountsOrADecline(t *testing.T) {
 
 func TestWaitedForAGenerationGivesTheResourceItMade(t *testing.T) {
 	t.Parallel()
-	c, fake := jobWorld(t, true, xynolog.DefaultTiming())
+	c, fake := jobWorld(t, true, xynolog.DefaultClientTiming())
 	waited := waiting(generation(t, c, 0, nil))
 	created(t, fake, 1)
 	var made map[string]any
@@ -386,7 +387,7 @@ func TestWaitedForAGenerationGivesTheResourceItMade(t *testing.T) {
 
 func TestADelegationIsWaitedForOrRangedOverAndOnce(t *testing.T) {
 	t.Parallel()
-	c, fake := jobWorld(t, true, xynolog.DefaultTiming())
+	c, fake := jobWorld(t, true, xynolog.DefaultClientTiming())
 	read := highlighting(t, c)
 	followed := following(read.Events(context.Background()))
 	created(t, fake, 1)
@@ -424,7 +425,7 @@ func TestADelegationIsWaitedForOrRangedOverAndOnce(t *testing.T) {
 
 func TestNothingIsSentUntilADelegationIsWaitedForOrRangedOver(t *testing.T) {
 	t.Parallel()
-	c, fake := jobWorld(t, true, xynolog.DefaultTiming())
+	c, fake := jobWorld(t, true, xynolog.DefaultClientTiming())
 	highlighting(t, c)
 	time.Sleep(50 * time.Millisecond)
 	if sent := fake.Emitted(); len(sent) != 0 {
@@ -434,7 +435,7 @@ func TestNothingIsSentUntilADelegationIsWaitedForOrRangedOver(t *testing.T) {
 
 func TestFramesThatArriveBeforeTheJobsIdIsKnownAreKeptAndHandledInTheOrderTheyCame(t *testing.T) {
 	t.Parallel()
-	c, fake := jobWorld(t, false, xynolog.DefaultTiming())
+	c, fake := jobWorld(t, false, xynolog.DefaultClientTiming())
 	followed := following(highlighting(t, c).Events(context.Background()))
 	request := created(t, fake, 1)
 	say(t, c, jobProgress, "job-1", "mark", progressOf(10))
@@ -519,7 +520,7 @@ func TestAStatusCarriesTheResultItsJobWasStoredWithAndAnEmptyOneIsNone(t *testin
 
 func TestACompletionHeardThatIsAnotherVerbsEndsTheFollowerAndIsNoFailureOfTheJob(t *testing.T) {
 	t.Parallel()
-	c, fake := jobWorld(t, true, xynolog.DefaultTiming())
+	c, fake := jobWorld(t, true, xynolog.DefaultClientTiming())
 	waited := waiting(highlighting(t, c))
 	created(t, fake, 1)
 	var made map[string]any
@@ -679,7 +680,7 @@ func TestAFailureThatIsFinalEndsTheFollowerAndOneThatDoesNotSayIsFinal(t *testin
 	} {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
-			c, fake := jobWorld(t, true, xynolog.DefaultTiming())
+			c, fake := jobWorld(t, true, xynolog.DefaultClientTiming())
 			waited := waiting(highlighting(t, c))
 			created(t, fake, 1)
 			failure := map[string]any{"error": "the budget is spent"}
@@ -698,7 +699,7 @@ func TestAFailureThatIsFinalEndsTheFollowerAndOneThatDoesNotSayIsFinal(t *testin
 
 func TestAnOptionOfAJobGivenAsNothingIsNotSent(t *testing.T) {
 	t.Parallel()
-	c, fake := jobWorld(t, true, xynolog.DefaultTiming())
+	c, fake := jobWorld(t, true, xynolog.DefaultClientTiming())
 	fake.QueueReply(jobCreate, json.RawMessage(`{"jobId":"job-2"}`))
 	var params api.MarkJobParams
 	density := 1.5
@@ -742,7 +743,7 @@ func TestAnOptionOfAJobGivenAsNothingIsNotSent(t *testing.T) {
 
 func TestAJobWhoseCreationIsRefusedIsItsFollowersFailure(t *testing.T) {
 	t.Parallel()
-	c, fake := jobWorld(t, true, xynolog.DefaultTiming())
+	c, fake := jobWorld(t, true, xynolog.DefaultClientTiming())
 	fake.RefuseWhen(func(operation bus.Channel, _ json.RawMessage) json.RawMessage {
 		if operation == jobCreate {
 			return json.RawMessage(`{"message":"the queue refused it"}`)
@@ -761,7 +762,7 @@ func TestAJobWhoseCreationIsRefusedIsItsFollowersFailure(t *testing.T) {
 // would otherwise wait for a job it can never recognise.
 func TestACreationThatNamesNoJobIsItsFollowersFailure(t *testing.T) {
 	t.Parallel()
-	c, _ := creatingWorld(t, json.RawMessage(`{}`), xynolog.DefaultTiming())
+	c, _ := creatingWorld(t, json.RawMessage(`{}`), xynolog.DefaultClientTiming())
 	got := waitedWithin(t, waiting(highlighting(t, c)), time.Second)
 	var ended *xynolog.TransportError
 	if !errors.As(got.err, &ended) || ended.Code != api.TransportErrorCodeError || !strings.Contains(ended.Message, "response.jobId") {
@@ -775,7 +776,7 @@ func TestACreationThatNamesNoJobIsItsFollowersFailure(t *testing.T) {
 // payload, and the job is followed past them.
 func TestAFrameThatIsNotItsChannelsIsReportedAsRefusedAndFollowedPast(t *testing.T) {
 	t.Parallel()
-	c, fake := jobWorld(t, true, xynolog.DefaultTiming())
+	c, fake := jobWorld(t, true, xynolog.DefaultClientTiming())
 	followed := following(highlighting(t, c).Events(context.Background()))
 	created(t, fake, 1)
 	var made map[string]any
@@ -807,7 +808,7 @@ func TestAFrameThatIsNotItsChannelsIsReportedAsRefusedAndFollowedPast(t *testing
 // comes after the job's end is not reported.
 func TestARefusedFrameOfTheLifecycleIsReportedOnceTheJobIsNamedInTheOrderItCame(t *testing.T) {
 	t.Parallel()
-	c, fake := jobWorld(t, false, xynolog.DefaultTiming())
+	c, fake := jobWorld(t, false, xynolog.DefaultClientTiming())
 	followed := following(highlighting(t, c).Events(context.Background()))
 	request := created(t, fake, 1)
 	// One its transport refused, and one whose payload is not its channel's.
@@ -857,7 +858,7 @@ func TestARefusedFrameDoesNotStartTheSilenceAgain(t *testing.T) {
 // Nor does a refused frame start a generation's stall deadline again.
 func TestARefusedFrameDoesNotStartTheStallDeadlineAgain(t *testing.T) {
 	t.Parallel()
-	c, fake := jobWorld(t, true, xynolog.DefaultTiming())
+	c, fake := jobWorld(t, true, xynolog.DefaultClientTiming())
 	stall := 600 * time.Millisecond
 	followed := following(generation(t, c, stall, nil).Events(context.Background()))
 	created(t, fake, 1)
@@ -921,7 +922,7 @@ func TestAGenerationThatSaysNothingIsCancelledAndGivenUpOn(t *testing.T) {
 
 func TestAGenerationThatStallsBeforeItsJobIsKnownHasNothingToCancel(t *testing.T) {
 	t.Parallel()
-	c, fake := jobWorld(t, false, xynolog.DefaultTiming())
+	c, fake := jobWorld(t, false, xynolog.DefaultClientTiming())
 	got := waitedWithin(t, waiting(generation(t, c, 200*time.Millisecond, nil)), 2*time.Second)
 	var ended *xynolog.JobError
 	if !errors.As(got.err, &ended) || ended.Code != api.JobErrorCodeStalled || !ended.JobID.IsZero() {
@@ -935,7 +936,7 @@ func TestAGenerationThatStallsBeforeItsJobIsKnownHasNothingToCancel(t *testing.T
 
 func TestWhatAGenerationSaysStartsItsStallDeadlineAgainAndASetbackIsFollowedPast(t *testing.T) {
 	t.Parallel()
-	c, fake := jobWorld(t, true, xynolog.DefaultTiming())
+	c, fake := jobWorld(t, true, xynolog.DefaultClientTiming())
 	stall, step := 600*time.Millisecond, 350*time.Millisecond
 	followed := following(generation(t, c, stall, nil).Events(context.Background()))
 	created(t, fake, 1)
@@ -963,26 +964,28 @@ func TestWhatAGenerationSaysStartsItsStallDeadlineAgainAndASetbackIsFollowedPast
 	}
 }
 
+// On the test's own clock: the table's waits for a generation are minutes.
 func TestAGenerationWaitsAsLongAsItsLengthAllowsWhenNoDeadlineIsStated(t *testing.T) {
 	t.Parallel()
-	timing := jobTiming(50*time.Millisecond, 50*time.Millisecond)
-	timing.GenerationStallFloor, timing.GenerationStallPerToken = 100*time.Millisecond, time.Millisecond
-	c, fake := jobWorld(t, true, timing)
-	fake.QueueReply(jobStatus, statuses(statusOf(t, "running", nil), 100)...)
-	tokens := 400.0
-	waited := waiting(generation(t, c, 0, &tokens))
-	created(t, fake, 1)
-	time.Sleep(200 * time.Millisecond)
-	select {
-	case got := <-waited:
-		t.Fatalf("the generation was given up on before its length allowed: %v", got.err)
-	default:
-	}
-	got := waitedWithin(t, waited, 2*time.Second)
-	var ended *xynolog.JobError
-	if !errors.As(got.err, &ended) || ended.Code != api.JobErrorCodeStalled || ended.Message != "The job stalled: nothing was heard of it within 400ms" {
-		t.Fatalf("the follower ended with %v", got.err)
-	}
+	synctest.Test(t, func(t *testing.T) {
+		c, fake := jobWorld(t, true, xynolog.DefaultClientTiming())
+		fake.QueueReply(jobStatus, statuses(statusOf(t, "running", nil), 100)...)
+		// Four thousand tokens allow five minutes, past the floor of two.
+		tokens := 4000.0
+		waited := waiting(generation(t, c, 0, &tokens))
+		created(t, fake, 1)
+		time.Sleep(4 * time.Minute)
+		select {
+		case got := <-waited:
+			t.Fatalf("the generation was given up on before its length allowed: %v", got.err)
+		default:
+		}
+		got := waitedWithin(t, waited, 2*time.Minute)
+		var ended *xynolog.JobError
+		if !errors.As(got.err, &ended) || ended.Code != api.JobErrorCodeStalled || ended.Message != "The job stalled: nothing was heard of it within 300000ms" {
+			t.Fatalf("the follower ended with %v", got.err)
+		}
+	})
 }
 
 // ── A client's waits, and its end ───────────────────────────────────────
@@ -1000,7 +1003,7 @@ func TestAClientToldOtherWaitsKeepsThem(t *testing.T) {
 
 func TestAClientThatClosesEndsTheJobsItWasFollowing(t *testing.T) {
 	t.Parallel()
-	c, fake := jobWorld(t, true, xynolog.DefaultTiming())
+	c, fake := jobWorld(t, true, xynolog.DefaultClientTiming())
 	fake.QueueReply(jobCreate, json.RawMessage(`{"jobId":"job-2"}`))
 	followed := following(highlighting(t, c).Events(context.Background()))
 	created(t, fake, 1)

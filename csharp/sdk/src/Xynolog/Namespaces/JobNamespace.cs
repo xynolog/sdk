@@ -26,7 +26,7 @@ public sealed class JobNamespace
     }
 
     /// <summary>Claims, for a worker, each job it comes to hold that one of the options' filters accepts, waiting as long as
-    /// the options say, and as this client's timing says for a wait they leave out.</summary>
+    /// the options say, and as protocol/specs/src/client/timing.json says for a wait they leave out.</summary>
     public Claims Claim(ClaimOptions options) => new(transport, wire, options);
 
     /// <summary>Observes queued jobs. Wire announcements require a transport subscribed to this channel.</summary>

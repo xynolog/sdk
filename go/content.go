@@ -288,7 +288,7 @@ func (p *progressReader) Read(buffer []byte) (int, error) {
 // PutBinary uploads a resource. Every attempt carries the upload's one
 // Idempotency-Key, so an attempt answered with a status RetryRuleTransport
 // retries, or not answered at all, is sent once more, with the same key, bytes
-// and fields, after Timing.RequestRetryPause or the answer's Retry-After when
+// and fields, after requestRetryPauseMs or the answer's Retry-After when
 // that is longer. Its context abandons it: the connection is closed, nothing
 // is reported on the error stream, and it is not sent again.
 func (c *HTTPContentTransport) PutBinary(ctx context.Context, putting api.PutBinaryRequest) *Upload {
@@ -423,7 +423,7 @@ func (c *HTTPContentTransport) GetAnnotations(ctx context.Context, resource api.
 
 // GetAnchoredText reads a resource's anchored text. The Archivist may hold
 // this read while the Smelter settles the content, and the gateway passes
-// that wait through: the deadline (Timing.HttpRequestTimeout) outlasts it.
+// that wait through: the deadline (TransportTiming.HttpRequestTimeout) outlasts it.
 func (c *HTTPContentTransport) GetAnchoredText(ctx context.Context, resource api.ResourceId) (api.AnchoredTextAnswer, error) {
 	busLog(ctx, busGet, "content", map[string]any{"resourceId": resource, "anchoredText": true}, Envelope{})
 	ctx, span := reading(ctx, spanContentGetAnchoredText, resource)

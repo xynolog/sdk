@@ -100,7 +100,8 @@ import Xynolog.Resources qualified as Resources
 import Xynolog.Session qualified as Session
 import Xynolog.SessionStorage qualified as Storage
 import Xynolog.State.SessionSignals qualified as Signals
-import Xynolog.Timing qualified as Timing
+import Xynolog.Timing (checksAtOnceCount)
+import Xynolog.Timing.Settings qualified as Timing
 import Xynolog.Tokens qualified as Tokens
 import Xynolog.Types
 
@@ -110,6 +111,7 @@ data XynologBrowserConfig = XynologBrowserConfig
   { registryStorage :: Storage.SessionStorage,
     registryFactory :: SessionFactory,
     registryHttp :: Http.HttpOptions,
+    registryClientTiming :: Timing.ClientTiming,
     registryWallNow :: IO Scientific
   }
 
@@ -607,7 +609,7 @@ validateOpened owner version session = do
                       Just failure | busRequestErrorCode failure == Code.BusRequestNotFound -> TabCheckGone (MkTabCheckGone TabVerdictGone)
                       _ -> TabCheckUnknown (MkTabCheckUnknown TabVerdictUnknown)
                   )
-      lanes <- newQSem (fromInteger Timing.checksAtOnceCount)
+      lanes <- newQSem (fromInteger checksAtOnceCount)
       checks <- Map.fromList <$> mapConcurrently (\tab -> bracket_ (waitQSem lanes) (signalQSem lanes) (checkTab tab)) waiting
       latest <- readTVarIO (revision owner)
       when (latest == version) (changeOpenOf owner (Session.id session) (`applyTabChecks` checks))
@@ -633,7 +635,7 @@ issuer owner = let http = registryHttp (configuration owner) in Issuer.IssuerOpt
 completeSignIn :: XynologBrowser -> Text -> IO SignInOutcome
 completeSignIn owner callback = Lifetime.run (lifetime owner) $ do
   (pending, tokens) <- Issuer.completeAuthorization (issuer owner) callback (storage owner)
-  identityProof <- Connection.describeConnection (registryHttp (configuration owner)) (pendingAuthorizationTarget pending) (issuedTokensAccess tokens)
+  identityProof <- Connection.describeConnection (registryHttp (configuration owner)) (registryClientTiming (configuration owner)) (pendingAuthorizationTarget pending) (issuedTokensAccess tokens)
   let endpoints = pendingAuthorizationIssuer pending
       grant = StoredSession {storedSessionAccess = AccessToken (issuedTokensAccess tokens), storedSessionClientId = Issuer.browserClientId, storedSessionPersonKey = Nothing, storedSessionRefresh = (issuedTokensRefresh tokens), storedSessionRevocationEndpoint = (pendingAuthorizationIssuerRevocation endpoints), storedSessionTokenEndpoint = (pendingAuthorizationIssuerToken endpoints)}
       completed =

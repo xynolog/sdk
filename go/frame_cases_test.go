@@ -183,7 +183,7 @@ func TestEachFrameOfTheTableIsDeliveredAsItStatesOrRefusedAndToldToWhomItStates(
 		Token:    NewVariable("t"),
 		Channels: channels,
 		HTTP:     &http.Client{Transport: &http.Transport{}},
-		Timing:   DefaultTiming(),
+		Timing:   DefaultTransportTiming(),
 	})
 	defer transport.Close()
 	var toldMu sync.Mutex

@@ -26,9 +26,8 @@ public final class XynologClient: Sendable {
   private let live: LiveQueries
   public init(
     transport: any Transport, gateway: (any GatewayOperations)? = nil,
-    content: (any ContentTransport)? = nil, followTiming: FollowTiming = FollowTiming(),
-    persistence: CachePersistence? = nil, invalidationWindowMs: Int? = nil,
-    busRequestTimeoutMs: Int? = nil, clock: any Clock<Duration> = ContinuousClock()
+    content: (any ContentTransport)? = nil, timing: ClientTiming = ClientTiming(),
+    persistence: CachePersistence? = nil, clock: any Clock<Duration> = ContinuousClock()
   ) async throws {
     self.clock = clock
     let keeping = persistence.map { KeptQueries($0, clock: clock) }
@@ -44,22 +43,22 @@ public final class XynologClient: Sendable {
     self.transport = transport
     let bus = EventBus()
     self.bus = bus
-    let wire = Bus(transport, busRequestTimeoutMs: busRequestTimeoutMs, clock: clock)
+    let wire = Bus(transport, busRequestTimeoutMs: timing.busRequestTimeoutMs, clock: clock)
     self.wire = wire
     let content = content ?? (transport as? any ContentTransport)
     let live = LiveQueries(
       wire: wire, transport: transport, content: content, lifetime: lifetime, keeping: keeping,
-      invalidationWindowMs: invalidationWindowMs ?? Timings.invalidationWindowMs, clock: clock)
+      invalidationWindowMs: timing.invalidationWindowMs, clock: clock)
     self.live = live
     browse = BrowseNamespace(
       wire: wire, bus: bus, lifetime: lifetime, content: content, live: live)
     gather = GatherNamespace(wire: wire, lifetime: lifetime, live: live)
     match = MatchNamespace(wire: wire, bus: bus, lifetime: lifetime, live: live)
     yield = YieldNamespace(
-      wire: wire, bus: bus, lifetime: lifetime, timing: followTiming, clock: clock,
+      wire: wire, bus: bus, lifetime: lifetime, timing: timing, clock: clock,
       content: content)
     mark = MarkNamespace(
-      wire: wire, bus: bus, lifetime: lifetime, timing: followTiming, clock: clock)
+      wire: wire, bus: bus, lifetime: lifetime, timing: timing, clock: clock)
     job = JobNamespace(
       wire: wire, bus: bus, transport: transport, lifetime: lifetime, clock: clock)
     frame = FrameNamespace(wire: wire)
@@ -107,7 +106,9 @@ public final class XynologClient: Sendable {
   }
   public static func fromHttp(
     baseUrl: String, httpClient: HTTPClient, token: String? = nil,
-    persistence: CachePersistence? = nil, clock: any Clock<Duration> = ContinuousClock(),
+    persistence: CachePersistence? = nil, clientTiming: ClientTiming = ClientTiming(),
+    transportTiming: TransportTiming = TransportTiming(),
+    clock: any Clock<Duration> = ContinuousClock(),
     random: any RandomNumberGenerator & Sendable = SystemRandomNumberGenerator()
   )
     async throws -> XynologClient
@@ -115,10 +116,11 @@ public final class XynologClient: Sendable {
     try Task.checkCancellation()
     let transport = HttpTransport(
       baseUrl: baseUrl, httpClient: httpClient, token: token, channels: bridgedChannels,
-      clock: clock, random: random)
+      timing: transportTiming, clock: clock, random: random)
     do {
       return try await XynologClient(
-        transport: transport, gateway: transport, persistence: persistence, clock: clock)
+        transport: transport, gateway: transport, timing: clientTiming, persistence: persistence,
+        clock: clock)
     } catch {
       transport.dispose()
       throw error

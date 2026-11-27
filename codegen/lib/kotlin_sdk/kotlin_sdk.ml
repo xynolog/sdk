@@ -18,7 +18,7 @@ let types_directory = directory ^ "/xynolog/types"
 
 (* The schemas a generation writes, as [Typing] reads them: every root
    ([Roots]), the records Protocol states in its tables, the client types it
-   generates, the schema of each table the services keep to
+   generates, the schema of each table the SDK carries
    ([Service_tables]), and the sign-in store's entry, which is the store's
    own schema and no component of the API. *)
 let spec_of (spec : Spec.t) : (Types.spec, string) result =
@@ -26,7 +26,7 @@ let spec_of (spec : Spec.t) : (Types.spec, string) result =
     let sign_in = Definitions.sign_in spec in
     Types.spec
       [
-        Typing.of_spec spec ~tables:(Roots.service_tables spec);
+        Typing.of_spec spec ~tables:(Service_tables.tables spec);
         Typing.make
           (Definitions.alone ~ids:spec.ids ~name:"SignIn" sign_in)
           ~roots:[ "SignIn" ] ~identifiers:[] ~keys:[];
@@ -156,26 +156,34 @@ let generate (spec : Spec.t) =
                })
              generated.types)
 
-(* The tables the services keep to ([Service_tables]), each read from its
-   file under [root]'s protocol/specs/src. *)
-let service_tables ~root spec =
-  let from_ = "the services' tables" in
+(* The tables the SDK carries ([Service_tables.carried]), each object of
+   them a file, each table read from its file under [root]'s
+   protocol/specs/src. *)
+let carried_tables ~root spec =
   let read table =
     Yojson.Safe.from_file (Filename.concat root ("protocol/specs/src/" ^ table))
   in
-  let* name, named, decls =
-    written ~from_ (fun () -> Service_tables.declarations ~read spec)
-  in
-  Ok
-    (data_file
-       ~banner:
-         (Banner.lines ~from_:"the services' tables of protocol/specs/src"
-            Service_tables.writer)
-       ~package:Service_tables.package ~name
-       ~imports:
-         ("xynolog.Generated" :: "xynolog.types.wireJson"
-         :: List.map (fun n -> Types.types_package ^ "." ^ n) named)
-       decls)
+  List.fold_right
+    (fun (c : Service_tables.carried) files ->
+      let* files = files in
+      let* named, decls =
+        written ~from_:c.name (fun () -> Service_tables.declarations ~read c)
+      in
+      Ok
+        (data_file
+           ~banner:
+             (Banner.lines ~from_:"the tables of protocol/specs/src"
+                Service_tables.writer)
+           ~package:c.package ~name:c.name
+           ~imports:
+             (List.filter
+                (fun i -> Filename.remove_extension i <> c.package)
+                ("xynolog.Generated" :: "xynolog.types.wireJson"
+                :: List.map (fun n -> Types.types_package ^ "." ^ n) named))
+           decls
+        :: files))
+    (Service_tables.carried spec)
+    (Ok [])
 
 (* The Archivist's routes ([Service_tables.archivist_routes]), a file of the
    services' package. *)
@@ -212,12 +220,12 @@ let service_environment (spec : Spec.t) =
     (Service_environment.declarations spec.tables.service_environment_variables)
 
 let files ~root (spec : Spec.t) =
-  let* tables = service_tables ~root spec in
+  let* carried = carried_tables ~root spec in
   let* routes = archivist_routes spec in
   let* control =
     Result.bind (types_of spec) (fun types_spec -> control types_spec spec)
   in
-  let tables = [ control; routes; tables; service_environment spec ] in
+  let tables = [ control; routes; service_environment spec ] @ carried in
   Result.map_error refused
     (let* files = generate spec in
      let files = files @ tables in

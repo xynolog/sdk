@@ -179,7 +179,7 @@ func (s *ScriptedSessions) Session(ctx context.Context, options registry.Session
 		}
 		return refuse(kbID, operation, payload)
 	})
-	client := NewTestClient(TestClientConfig{Transport: transport, Timing: xynolog.DefaultTiming()}).Client
+	client := NewTestClient(TestClientConfig{Transport: transport, Timing: xynolog.DefaultClientTiming()}).Client
 
 	s.mu.Lock()
 	s.built = append(s.built, builtFor{kbID: kbID, transport: transport})
@@ -217,7 +217,7 @@ func (s *ScriptedSessions) Session(ctx context.Context, options registry.Session
 			return *user, nil
 		},
 		OnAuthFailed: options.Signals.NotifySessionEnded,
-		Timing:       xynolog.DefaultTiming(),
+		Timing:       xynolog.DefaultTransportTiming(),
 		Random:       s.random,
 	})
 	if err != nil {

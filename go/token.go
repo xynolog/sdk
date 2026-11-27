@@ -10,6 +10,8 @@ import (
 	"encoding/json"
 	"strings"
 	"time"
+
+	"github.com/xynolog/sdk/go/internal/timing"
 )
 
 // tokenClaims is the claims of a JWT: its second segment of three, base64url
@@ -80,9 +82,9 @@ func IsTokenExpired(token string, now time.Time) bool {
 
 // RenewalDelay is how long to wait before renewing a token that lives
 // lifetime in all and has remaining of it left: the margin before expiry is
-// half its lifetime, at most timing.RefreshBeforeExp, and the wait is never
-// under timing.MinRefreshDelay.
-func RenewalDelay(lifetime, remaining time.Duration, timing Timing) time.Duration {
+// half its lifetime, at most refreshBeforeExpMs, and the wait is never under
+// minRefreshDelayMs (protocol/specs/src/client/timing.json).
+func RenewalDelay(lifetime, remaining time.Duration) time.Duration {
 	margin := min(timing.RefreshBeforeExp, lifetime/2)
 	return max(remaining-margin, timing.MinRefreshDelay)
 }
@@ -90,7 +92,7 @@ func RenewalDelay(lifetime, remaining time.Duration, timing Timing) time.Duratio
 // RefreshDelay is how long to wait, from now, before renewing token; false
 // when it has no readable exp, and nothing is scheduled. The lifetime is the
 // one the issuer chose (exp - iat), or with no iat, what remains of it.
-func RefreshDelay(token string, now time.Time, timing Timing) (time.Duration, bool) {
+func RefreshDelay(token string, now time.Time) (time.Duration, bool) {
 	claims, ok := tokenClaims(token)
 	if !ok {
 		return 0, false
@@ -104,5 +106,5 @@ func RefreshDelay(token string, now time.Time, timing Timing) (time.Duration, bo
 	if issued, ok := secondsClaim(claims, "iat"); ok {
 		lifetime = max(atSeconds(expiry).Sub(atSeconds(issued)), 0)
 	}
-	return RenewalDelay(lifetime, remaining, timing), true
+	return RenewalDelay(lifetime, remaining), true
 }

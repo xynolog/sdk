@@ -241,7 +241,62 @@ let typing_rows ~key type_ = function
 
 (* Timings *)
 
-(* Each entry a constant, a retry budget the model of client/RetryBudget.json. *)
+(* A record of what a caller may set: a property per entry, whose default is
+   the entry's constant. *)
+let timing_record (entries : Timing.Table.t) record =
+  let members = Timing.Table.members record entries in
+  let type_ (entry : Timing.Table.entry) =
+    match entry.value with
+    | Duration _ | Count _ -> S.Named "Int"
+    | Budget _ -> S.Named "RetryBudget"
+  in
+  let property (entry : Timing.Table.entry) =
+    decl ~doc:[ entry.docs ] [ "public" ]
+      (S.Property
+         {
+           var = true;
+           name = entry.name;
+           type_ = Some (type_ entry);
+           value = None;
+         })
+  in
+  let param (entry : Timing.Table.entry) =
+    {
+      S.label = None;
+      name = entry.name;
+      type_ = type_ entry;
+      default = Some (member (name "Timings") entry.name);
+    }
+  in
+  decl
+    ~doc:[ Timing.Table.record_docs record ]
+    [ "public" ]
+    (S.Struct
+       {
+         name = Timing.Table.record_name record;
+         generics = [];
+         inherits = [ S.Named "Sendable" ];
+         layout = S.Lines;
+         members =
+           List.map property members
+           @ [
+               decl [ "public" ]
+                 (S.Init
+                    {
+                      params = List.map param members;
+                      throws = false;
+                      body =
+                        M.line_block
+                          (List.map
+                             (fun (entry : Timing.Table.entry) ->
+                               M.assign (M.self_ entry.name) (name entry.name))
+                             members);
+                    });
+             ];
+       })
+
+(* Each entry a constant, a retry budget the model of client/RetryBudget.json;
+   then the records of what a caller may set. *)
 let timings (entries : Timing.Table.t) =
   [
     decl [ "public" ]
@@ -268,6 +323,7 @@ let timings (entries : Timing.Table.t) =
                entries;
          });
   ]
+  @ List.map (timing_record entries) Timing.Table.records
 
 (* Error codes *)
 
@@ -1428,13 +1484,12 @@ let control models (spec : Spec.t) =
 let declarations models ~(spec : Spec.t) ~view ~shapes ~timing ~codes
     ~user_field =
   let tables = spec.tables in
-  (match
-     List.assoc_opt "client/types/GatherResourceOptions.json" spec.schemas
-   with
+  let options = "client/types/GatherResourceOptions.json" in
+  (match List.assoc_opt options spec.schemas with
   | Some s ->
       ignore
         (M.inline models ~modifiers:[ "public" ] "" "GatherResourceOptions"
-           (view s))
+           (view ~at:(Some options) s))
   | None -> refuse "Protocol states no client type GatherResourceOptions");
   let frame = M.schema models "BusFrame" in
   let metadata =

@@ -9,5 +9,5 @@ public sealed record ErrorsCodesBusRequestCodesItem
 {
     [global::Xynolog.Serialization.Wire("code")] public required string Code { get; init; }
     [global::Xynolog.Serialization.Wire("docs")] public required string Docs { get; init; }
-    [global::Xynolog.Serialization.Wire("wire")] public global::Xynolog.Types.ErrorsCodesBusRequestCodesItemWire? Wire { get; init; }
+    [global::Xynolog.Serialization.Wire("wire")] public global::Xynolog.Types.CommandErrorCode? Wire { get; init; }
 }

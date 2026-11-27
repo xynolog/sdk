@@ -14,8 +14,8 @@ KEY = "xynolog.cache.kb.resource"
 _JSON = TypeAdapter[JsonValue](JsonValue)
 
 
-def persister(storage: MemoryStorage, max_bytes: int = MAX_STORED_BYTES_COUNT) -> StoragePersister[ResourceId, ResourceDescriptor]:
-    return StoragePersister(storage, KEY, key=TypeAdapter(ResourceId), value=TypeAdapter(ResourceDescriptor), max_bytes=max_bytes)
+def persister(storage: MemoryStorage) -> StoragePersister[ResourceId, ResourceDescriptor]:
+    return StoragePersister(storage, KEY, key=TypeAdapter(ResourceId), value=TypeAdapter(ResourceDescriptor))
 
 
 def at(monkeypatch: pytest.MonkeyPatch, milliseconds: int) -> None:
@@ -126,7 +126,9 @@ def test_a_document_too_large_loses_the_entries_received_longest_ago_until_it_fi
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     ids = [ResourceId(f"res-{n}") for n in range(1, 5)]
-    values = {each: ResourceDescriptor.model_validate(descriptor(each)) for each in ids}
+
+    def named(each: ResourceId, length: int) -> ResourceDescriptor:
+        return ResourceDescriptor.model_validate(descriptor(each, "x" * length))
 
     def kept(storage: MemoryStorage) -> list[JsonValue]:
         stored = storage.get(KEY)
@@ -137,16 +139,18 @@ def test_a_document_too_large_loses_the_entries_received_longest_ago_until_it_fi
         assert isinstance(entries, list)
         return [entry[0] for entry in entries if isinstance(entry, list)]
 
-    # How large a document of three of them is, and so the most that keeps three and not four.
+    # Named at such length that a document of the first three is as large as one may be, and four do not fit.
     measuring = MemoryStorage()
     at(monkeypatch, 1_000)
-    persister(measuring).save({each: values[each] for each in ids[:3]})
+    persister(measuring).save({each: named(each, 1) for each in ids[:3]})
     stored = measuring.get(KEY)
     assert stored is not None
-    three = len(stored.encode())
+    spare = MAX_STORED_BYTES_COUNT - len(stored.encode())
+    lengths = {each: 1 + spare // 3 + (spare % 3 if each == ids[0] else 0) for each in ids}
+    values = {each: named(each, lengths[each]) for each in ids}
 
     storage = MemoryStorage()
-    keeping = persister(storage, max_bytes=three)
+    keeping = persister(storage)
     # Written at different times, the second-written first in the mapping.
     at(monkeypatch, 1_000)
     keeping.save({ids[0]: values[ids[0]]})
@@ -155,7 +159,7 @@ def test_a_document_too_large_loses_the_entries_received_longest_ago_until_it_fi
     at(monkeypatch, 3_000)
     keeping.save({ids[2]: values[ids[2]], ids[1]: values[ids[1]], ids[0]: values[ids[0]]})
     assert sorted(kept(storage), key=str) == ids[:3]
-    assert len((storage.get(KEY) or "").encode()) == three
+    assert len((storage.get(KEY) or "").encode()) == MAX_STORED_BYTES_COUNT
 
     # A fourth does not fit: the one written longest ago goes, wherever the mapping has it.
     at(monkeypatch, 4_000)
@@ -168,13 +172,15 @@ def test_a_document_too_large_loses_the_entries_received_longest_ago_until_it_fi
     assert stored is not None
     document = _JSON.validate_json(stored)
     assert isinstance(document, dict)
-    assert document["entries"] == [[ids[0], descriptor(ids[0]), 5_000], [ids[3], descriptor(ids[3]), 4_000]]
+    assert document["entries"] == [
+        [each, descriptor(each, "x" * lengths[each]), written] for each, written in ((ids[0], 5_000), (ids[3], 4_000))
+    ]
 
     # A document no entry fits in keeps none, and is still a document.
-    tiny = MemoryStorage()
-    persister(tiny, max_bytes=10).save(values)
-    assert kept(tiny) == []
-    assert persister(tiny).load() == {}
+    alone = MemoryStorage()
+    persister(alone).save({ids[0]: named(ids[0], MAX_STORED_BYTES_COUNT)})
+    assert kept(alone) == []
+    assert persister(alone).load() == {}
 
 
 def test_an_update_is_given_what_is_stored_and_stores_what_it_says() -> None:

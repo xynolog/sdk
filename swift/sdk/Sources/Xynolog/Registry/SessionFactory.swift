@@ -11,16 +11,23 @@ public protocol SessionFactory: Sendable {
   func revoke(_ session: StoredSession) async
 }
 
+/// Each session's client keeps `clientTiming`, and its transport `transportTiming`.
 public struct HttpSessionFactory: SessionFactory {
   private let httpClient: HTTPClient
+  private let clientTiming: ClientTiming
+  private let transportTiming: TransportTiming
   private let clock: any Clock<Duration>
   private let random: RandomSource
 
   public init(
-    httpClient: HTTPClient, clock: any Clock<Duration> = ContinuousClock(),
+    httpClient: HTTPClient, clientTiming: ClientTiming = ClientTiming(),
+    transportTiming: TransportTiming = TransportTiming(),
+    clock: any Clock<Duration> = ContinuousClock(),
     random: any RandomNumberGenerator & Sendable = SystemRandomNumberGenerator()
   ) {
     self.httpClient = httpClient
+    self.clientTiming = clientTiming
+    self.transportTiming = transportTiming
     self.clock = clock
     self.random = RandomSource(random)
   }
@@ -30,8 +37,8 @@ public struct HttpSessionFactory: SessionFactory {
     return try await sessionFromKept(
       kb: KbTarget(id: kb.id, label: kb.label, endpoint: kb.endpoint),
       kept: keptIn(options.storage, kbId: kb.id), httpClient: httpClient,
-      onAuthFailed: options.signals.notifySessionEnded, storage: options.storage, clock: clock,
-      random: random)
+      onAuthFailed: options.signals.notifySessionEnded, storage: options.storage,
+      clientTiming: clientTiming, transportTiming: transportTiming, clock: clock, random: random)
   }
 
   public func revoke(_ session: StoredSession) async {

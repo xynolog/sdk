@@ -18,7 +18,7 @@ use tokio_stream::wrappers::UnboundedReceiverStream;
 use xynolog::gateway_http::{EMIT_ON_BUS, SUBSCRIBE_TO_BUS};
 use xynolog::transport::{Frame, Transport};
 use xynolog::types::ConnectionState;
-use xynolog_http_transport::transport::{HttpTransport, HttpTransportConfig, Timing};
+use xynolog_http_transport::transport::{HttpTransport, HttpTransportConfig, TransportTiming};
 
 /// The channel the client's stream carries.
 pub const HEARD: &str = "beckon:focus";
@@ -89,7 +89,7 @@ impl Gateway {
             refresher: None,
             channels: vec![HEARD.to_owned()],
             http: reqwest::Client::new(),
-            timing: Timing::default(),
+            timing: TransportTiming::default(),
             random: None,
         });
         let mut states = transport.state();

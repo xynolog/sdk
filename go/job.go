@@ -12,6 +12,7 @@ import (
 
 	"github.com/xynolog/sdk/go/api"
 	"github.com/xynolog/sdk/go/bus"
+	"github.com/xynolog/sdk/go/internal/timing"
 )
 
 // JobNamespace is jobs: their lifecycle, their status, their cancellation,
@@ -55,15 +56,11 @@ func (n *JobNamespace) Status(ctx context.Context, jobID api.JobId) (api.JobStat
 // status the job ended with. One that has not ended within options.WithinMs
 // of the first ask, its asks and the waits between them included, fails as a
 // timeout then: an ask or a wait under way at that instant is cut short. A
-// wait left out (nil) is the client timing's JobPoll and JobPollTimeout.
+// wait left out (nil) is jobPollMs and jobPollTimeoutMs of
+// protocol/specs/src/client/timing.json.
 func (n *JobNamespace) PollUntilComplete(ctx context.Context, jobID api.JobId, options api.JobPollOptions, onStatus func(api.JobStatusResponse)) (api.JobStatusResponse, error) {
-	every, within := n.links.timing.JobPoll, n.links.timing.JobPollTimeout
-	if options.EveryMs != nil {
-		every = time.Duration(*options.EveryMs) * time.Millisecond
-	}
-	if options.WithinMs != nil {
-		within = time.Duration(*options.WithinMs) * time.Millisecond
-	}
+	every := waitStated(options.EveryMs, timing.JobPoll)
+	within := waitStated(options.WithinMs, timing.JobPollTimeout)
 	deadline := time.Now().Add(within)
 	polling, stop := context.WithDeadline(ctx, deadline)
 	defer stop()
@@ -115,8 +112,9 @@ func (n *JobNamespace) Cancel(ctx context.Context, jobID api.JobId) (bool, error
 // they hand out says its own lifecycle, commits its own annotations and
 // settles once (protocol/contract/WORKER-CONTRACT.md). The transport's stream
 // must name JobClaimChannels, and JobCommitChannels for a worker that
-// commits. Each wait options leaves out (nil) is the client's Timing:
-// JobClaimTimeout, HeldJobStall, HeldJobStallCheck and MarkCommitTimeout.
+// commits. Each wait options leaves out (nil) is
+// protocol/specs/src/client/timing.json's: jobClaimTimeoutMs, heldJobStallMs,
+// heldJobStallCheckMs and markCommitTimeoutMs.
 func (n *JobNamespace) Claim(options api.ClaimOptions) *Claims {
 	return newClaims(n.links, options)
 }

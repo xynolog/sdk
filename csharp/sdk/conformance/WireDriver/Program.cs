@@ -56,8 +56,7 @@ internal sealed class WireDriver : IDisposable
             {
                 case "open":
                     if (transport is not null) throw new InvalidOperationException("A transport is already open");
-                    var timing = args.TryGetProperty("timing", out var values)
-                        ? JsonSerializer.Deserialize<Timing>(values.GetRawText(), new JsonSerializerOptions { PropertyNameCaseInsensitive = true, UnmappedMemberHandling = JsonUnmappedMemberHandling.Disallow }) ?? throw new InvalidOperationException("Null timing") : new Timing();
+                    var timing = StatedTiming.Read<TransportTiming>(StatedTiming.Rows(args));
                     var renewals = args.TryGetProperty("renewals", out var tokens)
                         ? new Queue<string>(tokens.EnumerateArray().Select(value => value.GetString() ?? throw new InvalidOperationException("Null renewal"))) : null;
                     transport = new HttpTransport(Text(args, "baseUrl"), Text(args, "token"),

@@ -42,3 +42,24 @@ val hover_delay_ms : int
 val search_debounce_ms : int
 val discovery_interval_ms : int
 val checks_at_once_count : int
+
+type client = {
+  bus_request_timeout_ms : int;
+  invalidation_window_ms : int;
+  job_silence_ms : int;
+  job_status_poll_ms : int;
+}
+
+val client_defaults : client
+
+type transport = {
+  emit_retry : Records.Retry_budget.t;
+  http_request_timeout_ms : int;
+  stream_open_timeout_ms : int;
+  reconnect_ms : int;
+  linger_ms : int;
+  seen_event_ids_count : int;
+  lazy_remove_ms : int;
+}
+
+val transport_defaults : transport

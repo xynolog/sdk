@@ -90,6 +90,13 @@ the coming release's, and gathers its changes as they land.
   `DiscoveredKBPlacement`, `RootPlacement`, `KnowledgeBaseStatusPlacement`
   and `TargetKind`; `InferenceProvider` names an inference provider, in
   place of `EngineProvider`.
+- A schema a `$ref` names at a place within a file is one type, named where
+  that place is stated, wherever it is referred to: the Archivist layout's
+  trees are all `ArchivistLayoutEventStreamTree`, every error vocabulary
+  whose codes state only their docs is `ErrorsCodesJob`, the SDK's telemetry
+  instruments are `ServiceTelemetryTelemetryMetricsItemInstrument`, and the
+  rest. The type each reference was given of its own
+  (`ArchivistLayoutViewTree`, `ErrorsCodesSession`, …) is gone.
 - Two failure vocabularies are named as every SDK names them, from the error
   codes' shared table: `SpanRefusal`, where it was `SpanRefusalErrorCode`
   (`SpanRefusedError.reason`), and `IdentityUnverifiableReason`, where it was
@@ -189,6 +196,18 @@ the coming release's, and gathers its changes as they land.
 - `UploadProgressStarted` and `UploadProgressProgress` state `totalBytes`
   only when the upload's source states its length (protocol#121), so it is an
   `Int?`. Every upload holds its bytes whole and still reports it.
+- What a caller may set of the timing is two types generated from Protocol's
+  `client/timing.json`, `ClientTiming` and `TransportTiming`, each member the
+  entry its name says. `XynologClient` takes `timing: ClientTiming`, in place
+  of `followTiming:`, `invalidationWindowMs:` and `busRequestTimeoutMs:`, and
+  `FollowTiming`'s `silenceMs` and `statusPollMs` are its `jobSilenceMs` and
+  `jobStatusPollMs`. `TransportTiming`'s `httpRequestMs` and `streamOpenMs` are
+  `httpRequestTimeoutMs` and `streamOpenTimeoutMs`, and its `emitAttempts`,
+  `emitInitialDelayMs` and `emitMaxDelayMs` are `emitRetry`, a `RetryBudget`.
+  Its initializer takes its members in the table's order, and none as `nil`.
+- `XynologClient.fromHttp`, `sessionFromKept` and `HttpSessionFactory` take
+  `clientTiming:` and `transportTiming:`, what the client and the transport of
+  each keep.
 
 ### Fixed
 
@@ -200,6 +219,7 @@ the coming release's, and gathers its changes as they land.
 
 - `ResourceFilters` and `WorkerTiming`: `BrowseResourcesRequest`,
   `ResourceSearchFilters` and `ClaimOptions` say what they said.
+- `FollowTiming`: `ClientTiming` says what it said.
 - `Stated` is removed. No member of Protocol is both optional and nullable, so
   a model's optional property is an optional, absent when `nil`.
 

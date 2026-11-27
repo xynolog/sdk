@@ -8,18 +8,19 @@ import (
 	"maps"
 	"slices"
 	"strconv"
+	"strings"
 	"testing"
 	"time"
 
 	"github.com/xynolog/sdk/go/api"
+	"github.com/xynolog/sdk/go/internal/timing"
 )
 
 var keptKey = CacheKey("kb", PersonKey("did:web:example.org:users:alice"), CacheQueryResource)
 
-// keeping is what keeps a client's resource descriptions in storage, in a
-// document of maxBytes at most.
-func keeping(storage SessionStorage, maxBytes int) CachePersister[api.ResourceId, api.ResourceDescriptor] {
-	return NewStoragePersister[api.ResourceId, api.ResourceDescriptor](storage, keptKey, maxBytes)
+// keeping is what keeps a client's resource descriptions in storage.
+func keeping(storage SessionStorage) CachePersister[api.ResourceId, api.ResourceDescriptor] {
+	return NewStoragePersister[api.ResourceId, api.ResourceDescriptor](storage, keptKey)
 }
 
 func descriptorText(id, name string) string {
@@ -152,8 +153,7 @@ func TestAnUpdateIsGivenWhatIsStoredAndStoresWhatItSays(t *testing.T) {
 
 func TestACachesValuesAreKeptAsOneDocumentAsTheWireHadThemAndComeBackAsTheyWere(t *testing.T) {
 	storage := NewMemoryStorage()
-	most := DefaultTiming().MaxStoredBytesCount
-	if kept := keeping(storage, most).Load(); kept != nil {
+	if kept := keeping(storage).Load(); kept != nil {
 		t.Fatalf("an empty storage kept %v", kept)
 	}
 
@@ -161,7 +161,7 @@ func TestACachesValuesAreKeptAsOneDocumentAsTheWireHadThemAndComeBackAsTheyWere(
 	said := `{"@context":"https://schema.org","@id":"res-1","name":"A resource","representations":[],"addedByALaterRelease":{"kept":true}}`
 	resource := readJSON[api.ResourceDescriptor](t, said)
 	id := mustResource(t, "res-1")
-	before, after := saved(keeping(storage, most), map[api.ResourceId]api.ResourceDescriptor{id: resource})
+	before, after := saved(keeping(storage), map[api.ResourceId]api.ResourceDescriptor{id: resource})
 
 	document := documentIn(t, storage)
 	row, ok := document.rows["res-1"]
@@ -169,7 +169,7 @@ func TestACachesValuesAreKeptAsOneDocumentAsTheWireHadThemAndComeBackAsTheyWere(
 		t.Fatalf("the document is version %d, its entries %v, want version 1 and the one entry written between %d and %d", document.version, document.rows, before, after)
 	}
 
-	kept := keeping(storage, most).Load()
+	kept := keeping(storage).Load()
 	value, ok := kept[id]
 	if len(kept) != 1 || !ok {
 		t.Fatalf("kept %v", kept)
@@ -182,8 +182,7 @@ func TestACachesValuesAreKeptAsOneDocumentAsTheWireHadThemAndComeBackAsTheyWere(
 
 func TestAnEntryKeepsTheTimeItsValueWasLastWritten(t *testing.T) {
 	storage := NewMemoryStorage()
-	most := DefaultTiming().MaxStoredBytesCount
-	persister := keeping(storage, most)
+	persister := keeping(storage)
 	resource, other := mustResource(t, "res-1"), mustResource(t, "res-2")
 	one := readJSON[api.ResourceDescriptor](t, descriptorText("res-1", "A resource"))
 	two := readJSON[api.ResourceDescriptor](t, descriptorText("res-2", "A resource"))
@@ -210,7 +209,7 @@ func TestAnEntryKeepsTheTimeItsValueWasLastWritten(t *testing.T) {
 
 	// The next life's persister knows when each was written from the document, not from having written it.
 	pastMillisecond(third)
-	later := keeping(storage, most)
+	later := keeping(storage)
 	kept := later.Load()
 	if len(kept) != 1 || textOf(t, kept[other]) != textOf(t, renamed) {
 		t.Fatalf("the next life kept %v", kept)
@@ -223,7 +222,6 @@ func TestAnEntryKeepsTheTimeItsValueWasLastWritten(t *testing.T) {
 }
 
 func TestADocumentWhoseStructureIsNotTheTablesReadsAsNothingKept(t *testing.T) {
-	most := DefaultTiming().MaxStoredBytesCount
 	good := `["res-1", ` + descriptorText("res-1", "A resource") + `, 5]`
 	for _, stored := range []string{
 		"not json",
@@ -244,7 +242,7 @@ func TestADocumentWhoseStructureIsNotTheTablesReadsAsNothingKept(t *testing.T) {
 		t.Run(stored, func(t *testing.T) {
 			storage := NewMemoryStorage()
 			storage.Set(keptKey, stored)
-			if kept := keeping(storage, most).Load(); kept != nil {
+			if kept := keeping(storage).Load(); kept != nil {
 				t.Fatalf("kept %v", kept)
 			}
 		})
@@ -252,7 +250,7 @@ func TestADocumentWhoseStructureIsNotTheTablesReadsAsNothingKept(t *testing.T) {
 	// And one of this version with no entries kept nothing, which is not nothing kept.
 	storage := NewMemoryStorage()
 	storage.Set(keptKey, `{"version": 1, "entries": []}`)
-	if kept := keeping(storage, most).Load(); kept == nil || len(kept) != 0 {
+	if kept := keeping(storage).Load(); kept == nil || len(kept) != 0 {
 		t.Fatalf("kept %v, want no entries", kept)
 	}
 }
@@ -275,7 +273,7 @@ func TestAnEntryThatIsNotThisCachesShapeIsOneItNeverKept(t *testing.T) {
 		document += entry
 	}
 	storage.Set(keptKey, document+"]}")
-	kept := keeping(storage, DefaultTiming().MaxStoredBytesCount).Load()
+	kept := keeping(storage).Load()
 	value, ok := kept[mustResource(t, "res-1")]
 	if len(kept) != 1 || !ok || !sameJSON(t, textOf(t, value), descriptorText("res-1", "A resource")) {
 		t.Fatalf("kept %v", kept)
@@ -299,22 +297,29 @@ func TestADocumentTooLargeLosesTheEntriesThatHaveGoneLongestWithoutANewValueUnti
 	}
 	keysOf := func(document keptDocument) []string { return slices.Sorted(maps.Keys(document.rows)) }
 
-	// How large a document of three of them is, and so the most that keeps three and not four.
+	// Named at such length that a document of the first three is as large as one may be, and four do not fit.
 	measuring := NewMemoryStorage()
-	keeping(measuring, DefaultTiming().MaxStoredBytesCount).Save(of(ids[:3]...))
+	keeping(measuring).Save(of(ids[:3]...))
 	measured, _ := measuring.Get(keptKey)
-	three := len(measured)
+	spare := timing.MaxStoredBytesCount - len(measured)
+	for n, id := range ids {
+		more := spare / 3
+		if n == 0 {
+			more += spare % 3
+		}
+		values[id] = readJSON[api.ResourceDescriptor](t, descriptorText("res-"+strconv.Itoa(n+1), "A resource"+strings.Repeat("x", more)))
+	}
 
 	storage := NewMemoryStorage()
-	persister := keeping(storage, three)
+	persister := keeping(storage)
 	_, written := saved(persister, of(ids[0]))
 	pastMillisecond(written)
 	_, written = saved(persister, of(ids[1], ids[0]))
 	pastMillisecond(written)
 	_, written = saved(persister, of(ids[2], ids[1], ids[0]))
 	stored, _ := storage.Get(keptKey)
-	if keys := keysOf(documentIn(t, storage)); !slices.Equal(keys, []string{"res-1", "res-2", "res-3"}) || len(stored) != three {
-		t.Fatalf("kept %v in %d bytes, want the three in %d", keys, len(stored), three)
+	if keys := keysOf(documentIn(t, storage)); !slices.Equal(keys, []string{"res-1", "res-2", "res-3"}) || len(stored) != timing.MaxStoredBytesCount {
+		t.Fatalf("kept %v in %d bytes, want the three in %d", keys, len(stored), timing.MaxStoredBytesCount)
 	}
 
 	// A fourth does not fit: the one written longest ago goes, wherever the mapping has it.
@@ -333,12 +338,13 @@ func TestADocumentTooLargeLosesTheEntriesThatHaveGoneLongestWithoutANewValueUnti
 	}
 
 	// A document no entry fits in keeps none, and is still a document.
-	tiny := NewMemoryStorage()
-	keeping(tiny, 10).Save(values)
-	if keys := keysOf(documentIn(t, tiny)); len(keys) != 0 {
-		t.Fatalf("a document of ten bytes kept %v", keys)
+	alone := NewMemoryStorage()
+	large := readJSON[api.ResourceDescriptor](t, descriptorText("res-1", strings.Repeat("x", timing.MaxStoredBytesCount)))
+	keeping(alone).Save(map[api.ResourceId]api.ResourceDescriptor{ids[0]: large})
+	if keys := keysOf(documentIn(t, alone)); len(keys) != 0 {
+		t.Fatalf("a document too small for its one entry kept %v", keys)
 	}
-	if kept := keeping(tiny, DefaultTiming().MaxStoredBytesCount).Load(); kept == nil || len(kept) != 0 {
+	if kept := keeping(alone).Load(); kept == nil || len(kept) != 0 {
 		t.Fatalf("kept %v, want no entries", kept)
 	}
 }

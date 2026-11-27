@@ -15,12 +15,9 @@ type said = Client_record.said =
 type t = Client_record.t
 
 val connect :
-  ?timing:Subscription.timing ->
-  ?http_timing:Http_wire.timing ->
+  ?client_timing:Client_timing.client ->
+  ?transport_timing:Client_timing.transport ->
   ?telemetry:Telemetry.t ->
-  ?delegation_silence_ms:int ->
-  ?delegation_poll_ms:int ->
-  ?invalidation_window_ms:int ->
   ?restore:(Live_query.key -> Yojson.Safe.t option) ->
   ?save:(Live_query.key -> Yojson.Safe.t option -> unit) ->
   ?persister:Storage_persister.storage_persister ->

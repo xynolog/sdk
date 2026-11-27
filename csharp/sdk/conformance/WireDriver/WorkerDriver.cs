@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using System.Text.Json;
+using System.Text.Json.Nodes;
 using Xynolog;
 using Xynolog.Errors;
 using Xynolog.Http;
@@ -10,11 +11,12 @@ using Xynolog.Types;
 internal sealed class WorkerDriver : IDisposable
 {
     private static readonly ActivitySource Activities = new("xynolog");
-    private static readonly JsonSerializerOptions TimingJson = new() { PropertyNameCaseInsensitive = true };
     private readonly object gate = new();
     private readonly List<IDisposable> scopes = [];
     private XynologClient? client;
     private Claims? claims;
+    /// <summary>The waits <c>open</c> stated of those its claims keep, as <see cref="ClaimOptions"/> names them.</summary>
+    private JsonObject claimWaits = new();
     private Held? held;
 
     internal async Task RunAsync(JsonElement args)
@@ -27,11 +29,14 @@ internal sealed class WorkerDriver : IDisposable
             {
                 case "open":
                     if (client is not null) throw new InvalidOperationException("A client is already open.");
-                    var timing = args.TryGetProperty("timing", out var values) ? values.Deserialize<Timing>(TimingJson) : null;
+                    var rows = StatedTiming.Rows(args);
+                    var clientTiming = StatedTiming.Read<ClientTiming>(StatedTiming.Take<ClientTiming>(rows));
+                    claimWaits = StatedTiming.Take<ClaimOptions>(rows);
+                    var timing = StatedTiming.Read<TransportTiming>(rows);
                     var commits = args.TryGetProperty("commits", out var enabled) && enabled.GetBoolean();
                     var channels = commits ? WorkerRules.JobClaimChannels.Concat(WorkerRules.JobCommitChannels) : WorkerRules.JobClaimChannels;
                     var transport = new HttpTransport(Text(args, "baseUrl"), Text(args, "token"), channels, timing);
-                    client = new XynologClient(transport);
+                    client = new XynologClient(transport, timing: clientTiming);
                     _ = ReportStatesAsync(transport);
                     _ = ReportErrorsAsync(transport);
                     break;
@@ -41,7 +46,9 @@ internal sealed class WorkerDriver : IDisposable
                     break;
                 case "claim":
                     if (claims is not null) throw new InvalidOperationException("This worker already claims.");
-                    claims = (client ?? throw new InvalidOperationException("No client is open.")).Job.Claim(new ClaimOptions { Accepts = Required<JobFilter[]>(args, "accepts") });
+                    var options = claimWaits.DeepClone().AsObject();
+                    options.Add("accepts", JsonSerializer.SerializeToNode(Required<JobFilter[]>(args, "accepts")));
+                    claims = (client ?? throw new InvalidOperationException("No client is open.")).Job.Claim(StatedTiming.Read<ClaimOptions>(options));
                     _ = ReportJobsAsync(claims);
                     _ = ReportRefusalsAsync(claims);
                     _ = ReportStallsAsync(claims);

@@ -61,9 +61,11 @@ public sealed class OpenedSession : IAsyncDisposable
 /// <summary>
 /// Opens an active knowledge base with the same kept session used for other HTTP clients. Its client keeps what it holds
 /// for the person the knowledge base's sign-in names, from when the sign-in names them. Its session tells the signals it
-/// is given why it ended, as it signs out.
+/// is given why it ended, as it signs out. Each session's client keeps the client timing the factory is made with, and
+/// its transport the transport timing: each the protocol's when none is given.
 /// </summary>
-public sealed class HttpSessionFactory(HttpClient? httpClient = null, TimeProvider? timeProvider = null, Random? random = null) : SessionFactory
+public sealed class HttpSessionFactory(HttpClient? httpClient = null, TimeProvider? timeProvider = null, Random? random = null,
+    ClientTiming? clientTiming = null, TransportTiming? transportTiming = null) : SessionFactory
 {
     /// <inheritdoc/>
     public async Task<OpenedSession> OpenAsync(SessionFactoryOptions options, CancellationToken cancellation = default)
@@ -82,10 +84,10 @@ public sealed class HttpSessionFactory(HttpClient? httpClient = null, TimeProvid
         {
             await kept.ReadyAsync(cancellation).ConfigureAwait(Spawning.Captures);
             var http = new HttpTransport(Gateway.Origin(endpoint), kept.State.Token,
-                BusRegistry.BridgedChannels, refresher: kept.RefreshAsync,
+                BusRegistry.BridgedChannels, timing: transportTiming, refresher: kept.RefreshAsync,
                 httpClient: httpClient, timeProvider: timeProvider, random: random);
             transport = http;
-            var client = new XynologClient(http, persistence);
+            var client = new XynologClient(http, persistence, clientTiming);
             var session = new XynologSession(new KbTarget { Id = options.Kb.Id, Endpoint = options.Kb.Endpoint, Label = options.Kb.Label },
                 client, kept);
             return new OpenedSession(client, async () =>

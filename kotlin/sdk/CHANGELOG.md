@@ -13,6 +13,9 @@ the coming release's, and gathers its changes as they land.
   `ClientTesting`, `ControlCli`, `ErrorsCodes`, `IdentifiersKinds`,
   `MediaTypesRegistry`, `SdkTelemetryTelemetry`, `SessionOauth` and
   `SignInStoreOwnerOnly`.
+- `xynolog.Tables`: the languages Xynolog supports, `LOCALES_REGISTRY`, read
+  from protocol/specs/src/locales/registry.json as its schema's type,
+  `LocalesRegistry`; `TABLES` holds it by its file.
 - `xynolog.services.ServiceEnvironmentVariable`: every environment variable a
   Xynolog service reads, beside its configuration document, a constant of its
   name (`XYNOLOG_BUS_LOG`). The bus log reads its variable by it.
@@ -49,6 +52,13 @@ the coming release's, and gathers its changes as they land.
 
 ### Changed
 
+- A schema a `$ref` names at a place within a file is one type, named where
+  that place is stated, wherever it is referred to: the Archivist layout's
+  trees are all `ArchivistLayoutEventStreamTree`, every error vocabulary
+  whose codes state only their docs is `ErrorsCodesJob`, the SDK's telemetry
+  instruments are `ServiceTelemetryTelemetryMetricsItemInstrument`, and the
+  rest. The type each reference was given of its own
+  (`ArchivistLayoutViewTree`, `ErrorsCodesSession`, …) is gone.
 - `PutBinaryRequest` is `xynolog.types.PutBinaryRequest`, the type of
   Protocol's `client/types/PutBinaryRequest.json`, where it was
   `xynolog.transport.PutBinaryRequest`: `yield.resource`,
@@ -78,7 +88,7 @@ the coming release's, and gathers its changes as they land.
   that holds bytes compares and hashes them by what they hold.
 - A retry budget is `xynolog.types.RetryBudget`, the type of Protocol's
   `client/RetryBudget.json`, where it was `xynolog.retry.RetryPolicy`:
-  `Timing.emitRetry` is one, and `retryWithBackoff` and
+  `TransportTiming.emitRetry` is one, and `retryWithBackoff` and
   `retryWithBackoffFuture` take one. Its `attempts` is a `Long`.
 - `ResourceUpload.file` is a `Binary`, the type of Protocol's bytes held
   whole, which is a `String`.
@@ -196,9 +206,26 @@ the coming release's, and gathers its changes as they land.
   `totalBytes` as a `Long?` (protocol#121): a source of unstated length states
   none. Their builders no longer take it; `totalBytes(...)` sets it. Every
   upload today holds its bytes whole, and states its total.
+- The timing a caller may set is two records generated from Protocol's
+  `client/timing.json`, each member the entry its name says: `ClientTiming`,
+  which `XynologClient` takes, and `xynolog.TransportTiming`, which
+  `HttpTransport` takes, in place of `xynolog.http.Timing`.
+  `ClientTiming.busRequestMs` is `busRequestTimeoutMs`, and the transport's
+  `httpRequestMs` and `streamOpenMs` are `httpRequestTimeoutMs` and
+  `streamOpenTimeoutMs`. The constructor, `copy` and `componentN` of each take
+  its members in the table's order.
+- `sessionFromKept`, `sessionFromKeptFuture` and `HttpSessionFactory` take
+  `clientTiming` and `transportTiming`, after their other parameters: what the
+  client and the transport of each session they build keep.
+- `subscribeDiscovery`'s `intervalMs` and `HoverDwell`'s `delayMs` may be left
+  out, and are then the table's `discoveryIntervalMs` and `hoverDelayMs`.
 
 ### Removed
 
+- A `Cache`'s `saveDebounceMs`: it saves after Protocol's `saveDebounceMs`.
+  Java makes one with `Cache(fetch, persister, context)`.
+- `StoragePersister`'s `maxBytes`: a document larger than Protocol's
+  `maxStoredBytesCount` loses the entries received longest ago, until it fits.
 - `xynolog.types.Stated` is removed. No member of Protocol is both optional
   and nullable, so a model's optional property is a nullable type, absent when
   null.

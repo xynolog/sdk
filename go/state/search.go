@@ -23,7 +23,12 @@ import (
 	"time"
 
 	xynolog "github.com/xynolog/sdk/go"
+	"github.com/xynolog/sdk/go/internal/timing"
 )
+
+// SearchDebounce is how long a query stays the same before it is searched
+// for, unless a caller says otherwise (searchDebounceMs of protocol/specs/src/client/timing.json).
+const SearchDebounce = timing.SearchDebounce
 
 // SearchState is what a search shows: its results, and whether more are on
 // their way.
@@ -56,8 +61,9 @@ type SearchPipeline[T any] struct {
 var _ xynolog.StateUnit = (*SearchPipeline[string])(nil)
 
 // NewSearchPipeline is a pipeline searching with search, once a query has
-// stayed the same for debounce (Timing.SearchDebounce, unless the caller says
-// otherwise), beginning with initialQuery.
+// stayed the same for debounce (searchDebounceMs of
+// protocol/specs/src/client/timing.json, unless the caller says otherwise),
+// beginning with initialQuery.
 func NewSearchPipeline[T any](search func(ctx context.Context, query string) iter.Seq2[[]T, bool], debounce time.Duration, initialQuery string) *SearchPipeline[T] {
 	p := &SearchPipeline[T]{
 		search:   search,

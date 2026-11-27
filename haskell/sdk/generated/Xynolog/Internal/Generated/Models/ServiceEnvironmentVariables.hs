@@ -2,12 +2,13 @@
 -- Regenerate: make generate (codegen/lib/haskell_sdk/haskell_sdk.ml)
 {-# LANGUAGE OverloadedStrings #-}
 
-module Xynolog.Internal.Generated.Models.ServiceEnvironmentVariables (ServiceEnvironmentVariables (..), ServiceEnvironmentVariablesVariablesItem (..), ServiceEnvironmentVariablesVariablesItemProvidedBy (..), serviceEnvironmentVariablesVariablesItemProvidedByText, ServiceEnvironmentVariablesVariablesItemReadBy (..), serviceEnvironmentVariablesVariablesItemReadByText, ServiceEnvironmentVariablesVariablesItemServicesItem (..), serviceEnvironmentVariablesVariablesItemServicesItemText) where
+module Xynolog.Internal.Generated.Models.ServiceEnvironmentVariables (ServiceEnvironmentVariables (..), ServiceEnvironmentVariablesVariablesItem (..), ServiceEnvironmentVariablesVariablesItemProvidedBy (..), serviceEnvironmentVariablesVariablesItemProvidedByText, ServiceEnvironmentVariablesVariablesItemReadBy (..), serviceEnvironmentVariablesVariablesItemReadByText) where
 
 import Data.Aeson (FromJSON (..), ToJSON (..), Value (..), withObject, (.:))
 import Data.Aeson.KeyMap qualified as KM
 import Data.Text (Text)
 import Xynolog.Internal.Codec
+import Xynolog.Internal.Generated.Models.ServiceEnvironmentBootRefusals
 
 data ServiceEnvironmentVariables = ServiceEnvironmentVariables
   { serviceEnvironmentVariablesComment :: Text,
@@ -21,7 +22,7 @@ instance ToJSON ServiceEnvironmentVariables where toJSON value = Object (KM.from
 
 data ServiceEnvironmentVariablesVariablesItem = ServiceEnvironmentVariablesVariablesItem
   { serviceEnvironmentVariablesVariablesItemName :: Text,
-    serviceEnvironmentVariablesVariablesItemServices :: [ServiceEnvironmentVariablesVariablesItemServicesItem],
+    serviceEnvironmentVariablesVariablesItemServices :: [ServiceTelemetryTelemetrySpansItemServicesItem],
     serviceEnvironmentVariablesVariablesItemReadBy :: ServiceEnvironmentVariablesVariablesItemReadBy,
     serviceEnvironmentVariablesVariablesItemProvidedBy :: ServiceEnvironmentVariablesVariablesItemProvidedBy,
     serviceEnvironmentVariablesVariablesItemRequired :: Bool,
@@ -58,25 +59,3 @@ instance ToJSON ServiceEnvironmentVariablesVariablesItemReadBy where
 serviceEnvironmentVariablesVariablesItemReadByText :: ServiceEnvironmentVariablesVariablesItemReadBy -> Text
 serviceEnvironmentVariablesVariablesItemReadByText ServiceEnvironmentVariablesVariablesItemReadByService = "service"
 serviceEnvironmentVariablesVariablesItemReadByText ServiceEnvironmentVariablesVariablesItemReadByOpentelemetry = "opentelemetry"
-
-data ServiceEnvironmentVariablesVariablesItemServicesItem = ServiceEnvironmentVariablesVariablesItemServicesItemArchivist | ServiceEnvironmentVariablesVariablesItemServicesItemDispatcher | ServiceEnvironmentVariablesVariablesItemServicesItemGateway | ServiceEnvironmentVariablesVariablesItemServicesItemLibrarian | ServiceEnvironmentVariablesVariablesItemServicesItemSmelter | ServiceEnvironmentVariablesVariablesItemServicesItemWeaver | ServiceEnvironmentVariablesVariablesItemServicesItemWorker deriving (Eq, Show)
-
-instance FromJSON ServiceEnvironmentVariablesVariablesItemServicesItem where parseJSON = checked "ServiceEnvironmentVariablesVariablesItemServicesItem" $ \value -> if value == String "archivist" then pure ServiceEnvironmentVariablesVariablesItemServicesItemArchivist else if value == String "dispatcher" then pure ServiceEnvironmentVariablesVariablesItemServicesItemDispatcher else if value == String "gateway" then pure ServiceEnvironmentVariablesVariablesItemServicesItemGateway else if value == String "librarian" then pure ServiceEnvironmentVariablesVariablesItemServicesItemLibrarian else if value == String "smelter" then pure ServiceEnvironmentVariablesVariablesItemServicesItemSmelter else if value == String "weaver" then pure ServiceEnvironmentVariablesVariablesItemServicesItemWeaver else if value == String "worker" then pure ServiceEnvironmentVariablesVariablesItemServicesItemWorker else fail "unknown enumeration member"
-
-instance ToJSON ServiceEnvironmentVariablesVariablesItemServicesItem where
-  toJSON ServiceEnvironmentVariablesVariablesItemServicesItemArchivist = String "archivist"
-  toJSON ServiceEnvironmentVariablesVariablesItemServicesItemDispatcher = String "dispatcher"
-  toJSON ServiceEnvironmentVariablesVariablesItemServicesItemGateway = String "gateway"
-  toJSON ServiceEnvironmentVariablesVariablesItemServicesItemLibrarian = String "librarian"
-  toJSON ServiceEnvironmentVariablesVariablesItemServicesItemSmelter = String "smelter"
-  toJSON ServiceEnvironmentVariablesVariablesItemServicesItemWeaver = String "weaver"
-  toJSON ServiceEnvironmentVariablesVariablesItemServicesItemWorker = String "worker"
-
-serviceEnvironmentVariablesVariablesItemServicesItemText :: ServiceEnvironmentVariablesVariablesItemServicesItem -> Text
-serviceEnvironmentVariablesVariablesItemServicesItemText ServiceEnvironmentVariablesVariablesItemServicesItemArchivist = "archivist"
-serviceEnvironmentVariablesVariablesItemServicesItemText ServiceEnvironmentVariablesVariablesItemServicesItemDispatcher = "dispatcher"
-serviceEnvironmentVariablesVariablesItemServicesItemText ServiceEnvironmentVariablesVariablesItemServicesItemGateway = "gateway"
-serviceEnvironmentVariablesVariablesItemServicesItemText ServiceEnvironmentVariablesVariablesItemServicesItemLibrarian = "librarian"
-serviceEnvironmentVariablesVariablesItemServicesItemText ServiceEnvironmentVariablesVariablesItemServicesItemSmelter = "smelter"
-serviceEnvironmentVariablesVariablesItemServicesItemText ServiceEnvironmentVariablesVariablesItemServicesItemWeaver = "weaver"
-serviceEnvironmentVariablesVariablesItemServicesItemText ServiceEnvironmentVariablesVariablesItemServicesItemWorker = "worker"

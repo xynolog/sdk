@@ -2,9 +2,11 @@ import type {
   ResourceId,
   EventBus,
   GenerationJobParams,
+  ClientTiming,
   components,
 } from '@xynolog/core';
 import {
+  DEFAULT_CLIENT_TIMING,
   cloneFormat,
   deriveStorageUri,
   getPrimaryRepresentation,
@@ -19,7 +21,6 @@ import {
 } from '../awaitable';
 import { delegated, type DelegatedVerb } from './delegation';
 import { deriveStallDeadlineMs } from './generation-stall';
-import type { JobFollowTiming } from './job-status-poll';
 import type { YieldNamespace as IYieldNamespace } from './types';
 
 import type {
@@ -53,14 +54,17 @@ const YIELD: DelegatedVerb<YieldJobCompletion> = {
 
 export class YieldNamespace implements IYieldNamespace {
   private readonly wire: Bus;
+  /** What a job's follower keeps. */
+  private readonly timing: ClientTiming;
 
   constructor(
     private readonly transport: ITransport,
     private readonly bus: EventBus,
     private readonly content: IContentTransport,
-    private readonly timing: JobFollowTiming = {},
+    timing?: Partial<ClientTiming>,
   ) {
     this.wire = new Bus(transport);
+    this.timing = { ...DEFAULT_CLIENT_TIMING, ...timing };
   }
 
   resource(data: PutBinaryRequest): UploadObservable {

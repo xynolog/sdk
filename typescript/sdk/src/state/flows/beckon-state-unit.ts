@@ -2,6 +2,7 @@ import { BehaviorSubject, type Subscription } from 'rxjs';
 import type { XynologClient } from '../../client';
 import {
   FrameRefusal,
+  HOVER_DELAY_MS,
   watched,
   type AnnotationId,
   type ResourceId,
@@ -75,7 +76,10 @@ export interface HoverDwell extends StateUnit {
   leave(): void;
 }
 
-export function createHoverDwell(emit: EmitHover, delayMs: number): HoverDwell {
+export function createHoverDwell(
+  emit: EmitHover,
+  delayMs: number = HOVER_DELAY_MS,
+): HoverDwell {
   let currentHover: AnnotationId | null = null;
   let timer: ReturnType<typeof setTimeout> | null = null;
   let disposed = false;

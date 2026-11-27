@@ -36,7 +36,7 @@ use xynolog::annotations::{annotation_of_span, reconcile};
 use xynolog::cache::CacheState;
 use xynolog::channels::{BRIDGED_CHANNELS, PrincipalProfile};
 use xynolog::claims::{HeldJob, JOB_CLAIM_CHANNELS, JOB_COMMIT_CHANNELS};
-use xynolog::client::ClientOptions;
+use xynolog::client::{ClientOptions, ClientTiming};
 use xynolog::discovery::{DISCOVERY_URL_PATH, DiscoveryTransport};
 use xynolog::errors::{
     BusRequestErrorCode, IdentityUnverifiable, IdentityUnverifiableReason, SessionError,
@@ -87,7 +87,7 @@ use xynolog_http_transport::session::{
     HttpSessionFactory, SessionFromKept, begin_sign_in, complete_sign_in, describe_connection,
     session_from_kept, sign_in_device, sign_out,
 };
-use xynolog_http_transport::transport::{HttpTransportConfig, Timing, TokenRefresher};
+use xynolog_http_transport::transport::{HttpTransportConfig, TokenRefresher, TransportTiming};
 
 // ── The stand-in ────────────────────────────────────────────────────────
 
@@ -1165,6 +1165,8 @@ fn from_kept(world: &World, kept: Arc<dyn SignInKept>) -> SessionFromKept {
         storage: None,
         on_auth_failed: None,
         http: world.http.clone(),
+        client_timing: ClientTiming::default(),
+        transport_timing: TransportTiming::default(),
         random: None,
     }
 }
@@ -2385,7 +2387,12 @@ fn registered(world: &World, id: &str, did: &str) -> KnowledgeBase {
 fn browser(world: &World, storage: Arc<InMemorySessionStorage>) -> XynologBrowser {
     XynologBrowser::new(XynologBrowserConfig {
         storage,
-        session_factory: Arc::new(HttpSessionFactory::new(world.http.clone(), None)),
+        session_factory: Arc::new(HttpSessionFactory::new(
+            world.http.clone(),
+            ClientTiming::default(),
+            TransportTiming::default(),
+            None,
+        )),
     })
     .expect("a browser")
 }
@@ -3403,7 +3410,7 @@ impl World {
                 refresher: None,
                 channels: Vec::new(),
                 http: self.http.clone(),
-                timing: Timing::default(),
+                timing: TransportTiming::default(),
                 random: None,
             },
             ClientOptions::default(),
@@ -3779,6 +3786,8 @@ async fn a_script(
         storage: None,
         on_auth_failed: None,
         http,
+        client_timing: ClientTiming::default(),
+        transport_timing: TransportTiming::default(),
         random: None,
     })
     .await?;
@@ -3818,6 +3827,8 @@ async fn a_first_sign_in(
         storage: None,
         on_auth_failed: None,
         http,
+        client_timing: ClientTiming::default(),
+        transport_timing: TransportTiming::default(),
         random: None,
     })
     .await?;
@@ -3848,7 +3859,7 @@ async fn a_daemon(
             refresher: Some(agent.clone()),
             channels: BRIDGED_CHANNELS.iter().map(ToString::to_string).collect(),
             http,
-            timing: Timing::default(),
+            timing: TransportTiming::default(),
             random: None,
         },
         ClientOptions::default(),
@@ -3921,7 +3932,7 @@ async fn a_worker(
             refresher: Some(agent.clone()),
             channels,
             http,
-            timing: Timing::default(),
+            timing: TransportTiming::default(),
             random: None,
         },
         ClientOptions::default(),
@@ -4019,7 +4030,12 @@ async fn an_application(
     // The registry an application holds, with its sessions over HTTP.
     let browser = XynologBrowser::new(XynologBrowserConfig {
         storage,
-        session_factory: Arc::new(HttpSessionFactory::new(http.clone(), None)),
+        session_factory: Arc::new(HttpSessionFactory::new(
+            http.clone(),
+            ClientTiming::default(),
+            TransportTiming::default(),
+            None,
+        )),
     })?;
 
     // A person signs in at the issuer the knowledge base trusts, in their

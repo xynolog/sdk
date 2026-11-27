@@ -6,7 +6,6 @@ using System.Text.Json.Nodes;
 using Xynolog.Authorization;
 using Xynolog.Discovery;
 using Xynolog.Errors;
-using Xynolog.Http;
 using Xynolog.Identifiers;
 using Xynolog.Registry;
 using Xynolog.SignIn;
@@ -240,7 +239,7 @@ public sealed partial class TransportTests
                 case var answer: throw new InvalidOperationException("No resource answers " + answer);
             }
         };
-        var client = new XynologClient("https://kb.test", "token", http, timing: new Timing { BusRequestTimeoutMs = 200 });
+        var client = new XynologClient("https://kb.test", "token", http, clientTiming: new ClientTiming { BusRequestTimeoutMs = 200 });
         return new OpenedSession(client, () =>
         {
             client.Dispose();
