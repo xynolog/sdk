@@ -199,6 +199,42 @@ let sign_in (spec : Spec.t) =
            ~accessors:[]);
   }
 
+(* What an issuer stamps on a token for the gateway to read
+   (rust/sdk/src/roles.rs), from principals/roles.json: the claim that holds
+   an account's roles, each role, and the claim that marks an agent's account,
+   with what it holds there. *)
+let roles (spec : Spec.t) =
+  let table = spec.tables.principals_roles in
+  let str ~doc name value =
+    R.Const
+      { doc; attrs = []; vis = Pub; name; ty = R.str_ty; value = R.Str value }
+  in
+  {
+    Output.path = "rust/sdk/src/generated/roles.rs";
+    text =
+      Rust_syntax.text
+        ~header:(regenerate "protocol/specs/src/principals/roles.json")
+        ([
+           str
+             ~doc:[ "The claim that holds an account's roles." ]
+             "ROLES_CLAIM" table.roles_claim;
+         ]
+        @ List.map
+            (fun (r : Tables.Principals_roles.roles_item) ->
+              str ~doc:[ r.docs ]
+                (Text.upper_snake (Text.pascal r.role) ^ "_ROLE")
+                r.role)
+            table.roles
+        @ [
+            str
+              ~doc:[ "The claim that marks an agent's account." ]
+              "KIND_CLAIM" table.kind_claim;
+            str
+              ~doc:[ "What the kind claim holds on an agent's account." ]
+              "AGENT_KIND" table.agent_kind;
+          ]);
+  }
+
 (* The launcher's control API (rust/sdk/src/control.rs), from
    control/methods.json: a marker for each method and each notification,
    whose associated types are the generated types of what it carries, and the
@@ -216,8 +252,10 @@ let carried (spec : Spec.t) id =
     ( [ "crate"; "types"; Filename.remove_extension (Filename.basename file) ],
       [] )
 
-let sender = function C.Client -> "client" | C.Launcher -> "launcher"
-let sender_variant from = R.Path [ "ControlSender"; Text.pascal (sender from) ]
+(* Who sends a notification, as the generated type of ControlSender. *)
+let sender_variant from =
+  R.Path [ "ControlSender"; Naming.variant (C.control_sender_value from) ]
+
 let static_strs = R.Ref (Some "'static", R.Slice R.static_str)
 let strings names = R.Ref_of (R.Array (List.map (fun n -> R.Str n) names))
 
@@ -300,11 +338,7 @@ let control (spec : Spec.t) =
     text =
       Rust_syntax.text
         ~header:(regenerate ("protocol/specs/src/" ^ control_table))
-        (Generate.enumeration "ControlSender"
-           (List.map sender [ C.Client; C.Launcher ])
-           None
-           [ "Which side of the control API sends a notification." ]
-        @ List.concat_map (method_items spec) t.methods
+        (List.concat_map (method_items spec) t.methods
         @ List.concat_map (notification_items spec) t.notifications
         @ [
             table "CONTROL_METHODS" t.methods "ControlMethodRow"
@@ -323,7 +357,13 @@ let control (spec : Spec.t) =
 
 let files ~root (spec : Spec.t) =
   match
-    [ types spec; sign_in spec; control spec; service_tables ~root spec ]
+    [
+      types spec;
+      sign_in spec;
+      roles spec;
+      control spec;
+      service_tables ~root spec;
+    ]
   with
   | files -> Ok files
   | exception Definitions.Refused message ->

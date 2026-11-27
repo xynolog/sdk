@@ -9,6 +9,7 @@
     "generated/Xynolog/Internal/Generated/CacheRefresh.hs": "61eb103258a4b89acf0cb614417b06baf478d0bfc5c2ec9bf21865bd71f0eb9b",
     "generated/Xynolog/Internal/Generated/ClientAssertion.hs": "b860dec5098ce9e1016cd0243bc68f1f17495d3ed54bd231819d55d951072fc2",
     "generated/Xynolog/Internal/Generated/ClientTiming.hs": "ddcc740f5270dc27423e0370b785f6628a64534f68ac026b042e8fe2d60413d3",
+    "generated/Xynolog/Internal/Generated/DiscoveryUrlPath.hs": "f155ba75a2dd2255c20357bb580d3c0ded96890c9a18df2e0c00f07d0fc3819b",
     "generated/Xynolog/Internal/Generated/HeldJob.hs": "39f1de05af23d7e4e7c36f19d93148f7596309d166f7cb1800e11d2afb02272c",
     "generated/Xynolog/Internal/Generated/MarkMotivation.hs": "7e304bc0cbadbb579aa4ffbc0548d42a7f70b43f4f30306a34a59cc4c180ebf6",
     "generated/Xynolog/Internal/Generated/Models/AboutParams.hs": "36be50594b78d1c5ad519366ac47ad9db6410fdbe05ae9ea31218b42931f397c",
@@ -653,10 +654,10 @@
     "src/Xynolog/Client.hs": "4d7b15e672eecf01786e130ab216ed1653a898289ec178814ff14802d4136966",
     "src/Xynolog/ClientAssertion.hs": "07004022f82dc3fce9c9f50b94dfbcf978fb123ca61a55189c5daa507aaf2d96",
     "src/Xynolog/Content.hs": "52f5f2a229ca71b28f32a8cb9ddecce5ea16d2e0c45220edba5fee79a4dd2a42",
-    "src/Xynolog/Control.hs": "512c3c8296ac27f810a3a6b053a737fa46b878421742ba4b3ecd3dc4d3e46704",
+    "src/Xynolog/Control.hs": "5370a1579e9340772581ef85baf1d66bf3c130e3830e6d53e1390d8ba3f0a59b",
     "src/Xynolog/Delegation.hs": "dc5779ae67ae4622e585e80020efcd7d2f49a8063d0c7b428d368652c08cc3bf",
-    "src/Xynolog/Discovery.hs": "5ee771bfb30c7c750f19649d3e598c04b3df8ea5008a0b10019d026b63a08603",
-    "src/Xynolog/ErrorCodes.hs": "07b493c9640b4127cd67025acd0f6da4895d7427cfcd4518f9b8f80d0faa1801",
+    "src/Xynolog/Discovery.hs": "501dff705848dba36e48eae042f0572935ce73861bd2873d306ae7760399c8d3",
+    "src/Xynolog/ErrorCodes.hs": "4260d76e7c349203122f89261b026c345ccf777d819a5fa8eb6d4aae74b2fc6e",
     "src/Xynolog/Errors.hs": "7b4b3d4c65dc58a4cf3feea15a399a6ed9fea864034162cc5addbf178a9f49d0",
     "src/Xynolog/EventBus.hs": "3bcaf7c024c351ddf744a3bc193052176ce9357437c5775e327ddcec35acd742",
     "src/Xynolog/Frame.hs": "08ec7f9a5b27b6fe83bff70c9b556798e815ae3c4a5810784849b6fada90a474",
@@ -687,7 +688,7 @@
     "src/Xynolog/Session.hs": "41c55a1b22f0bd2fa6dfd8aa76e0654af0b11026619af044356f8a1efb233522",
     "src/Xynolog/SessionStorage.hs": "df2c1c25c872b501a8ba43f49e4eb00e5626de3e1a9466993aa8a0f01796e404",
     "src/Xynolog/SignIn.hs": "00e99fbbf689da48a389108e82934bdb178633df0a4bb24d376e30a999e8b7e6",
-    "src/Xynolog/SignInStore.hs": "a852416d1924c3e3a0de3d4df99679b0265038073ba90e8e34c37e3320835832",
+    "src/Xynolog/SignInStore.hs": "1e83a8d1f5f289627323df0e3878f29b6cbb46727826ebb84c9842c3d44fd42f",
     "src/Xynolog/State/Beckon.hs": "49c0ec6c7093b4c91feb0d5f69c8d370a2fa9db7841bcb3588c871e3d2353b83",
     "src/Xynolog/State/Gather.hs": "29f2463ca3ea03d0b1e5a00b2d23a3a1034c7546baeb3a1f56aa3d0b74f379b5",
     "src/Xynolog/State/HoverDwell.hs": "96277d28b161eda056da1b542493ef662f6afca2ccb2057177981fd148c8c298",
@@ -714,7 +715,7 @@
     "src/Xynolog/Types.hs": "0f192d1e2eafc6e222e19117a2dc2e8834965a2f698f494988a1fda68a034b37",
     "src/Xynolog/Worker.hs": "83992d20c0ca8a05de8780b7c43090236bd7c8196e5c1a85592466353b8bd660",
     "src/Xynolog/Yield.hs": "591b83ed53bf6af381c539738b2d4993d196912f4131bd26d4d7b0624354a562",
-    "xynolog.cabal.in": "20971022c470bd303394480a3d587f2dea6960bc2c23edcf963286f6e6497783"
+    "xynolog.cabal.in": "418256e21f173dc4e3853943cd1dd7d20befe0308bfa53baf2e1958ffd856035"
   },
   "modules": {
     "Xynolog.Annotations": {
@@ -1417,23 +1418,17 @@
           "definition": "data Xynolog.Control.ControlNotification params = ...",
           "kind": "forall {k}. k -> *",
           "roles": "phantom"
-        },
-        "ControlSender": {
-          "definition": "data Xynolog.Control.ControlSender = ...",
-          "kind": "*"
         }
       },
       "values": {
         "ControlMethod": "forall {k} {k1} (params :: k) (result :: k1). Data.Text.Internal.Text -> Bool -> [Data.Text.Internal.Text] -> Xynolog.Control.ControlMethod params result",
-        "ControlNotification": "forall {k} (params :: k). Data.Text.Internal.Text -> Xynolog.Control.ControlSender -> Xynolog.Control.ControlNotification params",
-        "ControlSenderClient": "Xynolog.Control.ControlSender",
-        "ControlSenderLauncher": "Xynolog.Control.ControlSender",
+        "ControlNotification": "forall {k} (params :: k). Data.Text.Internal.Text -> Xynolog.Internal.Generated.Models.ControlSender.ControlSender -> Xynolog.Control.ControlNotification params",
         "authLogin": "Xynolog.Control.ControlMethod Xynolog.Internal.Generated.Models.AuthLoginParams.AuthLoginParams Xynolog.Internal.Generated.Models.AuthLoginResult.AuthLoginResult",
         "authLogout": "Xynolog.Control.ControlMethod Xynolog.Internal.Generated.Models.AuthLogoutParams.AuthLogoutParams Xynolog.Internal.Generated.Models.AuthLogoutResult.AuthLogoutResult",
         "controlMethodExclusive": "forall {k1} {k2} (params :: k1) (result :: k2). Xynolog.Control.ControlMethod params result -> Bool",
         "controlMethodName": "forall {k1} {k2} (params :: k1) (result :: k2). Xynolog.Control.ControlMethod params result -> Data.Text.Internal.Text",
         "controlMethodSends": "forall {k1} {k2} (params :: k1) (result :: k2). Xynolog.Control.ControlMethod params result -> [Data.Text.Internal.Text]",
-        "controlNotificationFrom": "forall {k} (params :: k). Xynolog.Control.ControlNotification params -> Xynolog.Control.ControlSender",
+        "controlNotificationFrom": "forall {k} (params :: k). Xynolog.Control.ControlNotification params -> Xynolog.Internal.Generated.Models.ControlSender.ControlSender",
         "controlNotificationName": "forall {k} (params :: k). Xynolog.Control.ControlNotification params -> Data.Text.Internal.Text",
         "identityUseradd": "Xynolog.Control.ControlMethod Xynolog.Internal.Generated.Models.IdentityUseraddParams.IdentityUseraddParams Xynolog.Internal.Generated.Models.IdentityUseraddResult.IdentityUseraddResult",
         "identityUsersList": "Xynolog.Control.ControlMethod Xynolog.Internal.Generated.Models.IdentityUsersListParams.IdentityUsersListParams Xynolog.Internal.Generated.Models.IdentityUsersListResult.IdentityUsersListResult",
@@ -1516,6 +1511,7 @@
         "discoveryDiff": "Maybe Xynolog.Internal.Generated.Models.DiscoveryState.DiscoveryState -> Xynolog.Internal.Generated.Models.DiscoveryState.DiscoveryState -> Maybe Xynolog.Internal.Generated.Models.DiscoveryDiff.DiscoveryDiff",
         "discoveryIntervalMs": "Xynolog.Discovery.DiscoveryOptions -> Integer",
         "discoveryNow": "Xynolog.Discovery.DiscoveryOptions -> IO Integer",
+        "discoveryUrlPath": "Data.Text.Internal.Text",
         "discoveryWaitUntil": "Xynolog.Discovery.DiscoveryOptions -> Integer -> IO ()",
         "parseDiscoveryDocument": "Data.Text.Internal.Text -> Xynolog.Internal.Generated.Models.DiscoveryState.DiscoveryState",
         "readDiscovery": "Xynolog.Discovery.DiscoveryTransport -> IO Xynolog.Internal.Generated.Models.DiscoveryRead.DiscoveryRead",
@@ -1628,6 +1624,14 @@
         "TransportUnprocessable": "Xynolog.ErrorCodes.TransportCode",
         "busRequestCode": "Xynolog.ErrorCodes.BusRequestCode -> Data.Text.Internal.Text",
         "controlCode": "Xynolog.ErrorCodes.ControlCode -> Data.Text.Internal.Text",
+        "controlRetryable": "Xynolog.ErrorCodes.ControlCode -> Bool",
+        "controlRpc": "Xynolog.ErrorCodes.ControlCode -> Int",
+        "controlRpcInternalError": "Int",
+        "controlRpcInvalidParams": "Int",
+        "controlRpcInvalidRequest": "Int",
+        "controlRpcMethodNotFound": "Int",
+        "controlRpcOperationFailed": "Int",
+        "controlRpcParseError": "Int",
         "jobCode": "Xynolog.ErrorCodes.JobCode -> Data.Text.Internal.Text",
         "kbIdentityCode": "Xynolog.ErrorCodes.KbIdentityCode -> Data.Text.Internal.Text",
         "limitRefusalTransportCodes": "[(Int, Data.Text.Internal.Text, Xynolog.ErrorCodes.TransportCode)]",
@@ -2452,8 +2456,8 @@
         "signInStoreTime": "Xynolog.SignInStore.SignInStoreOptions -> Xynolog.Retry.RetryOptions",
         "signInStoreWallNow": "Xynolog.SignInStore.SignInStoreOptions -> IO Data.Time.Clock.Internal.UTCTime.UTCTime",
         "signIns": "Xynolog.SignInStore.SignInStore -> IO (Data.Map.Internal.Map Data.Text.Internal.Text Xynolog.Internal.Generated.Models.SignIn.SignIn)",
-        "stateDirectory": "Data.Text.Internal.Text -> Maybe FilePath -> Maybe FilePath -> Maybe FilePath -> Maybe FilePath",
-        "thisSystem": "Data.Text.Internal.Text"
+        "stateDirectory": "Xynolog.Internal.Generated.Models.System.System -> Maybe FilePath -> Maybe FilePath -> Maybe FilePath -> Maybe FilePath",
+        "thisSystem": "Xynolog.Internal.Generated.Models.System.System"
       }
     },
     "Xynolog.State.Beckon": {

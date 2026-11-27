@@ -99,7 +99,10 @@ let swift_files ~root (spec : Spec.t) =
   let ( let* ) = Result.bind in
   let* derivation = Required.derive spec in
   let* timing = Timing.Table.derive spec.tables.client_timing in
-  let* codes = Error_codes.Table.derive spec.tables.errors_codes in
+  let* codes =
+    Error_codes.Table.derive ~rpc_codes:spec.tables.control_rpc_codes
+      spec.tables.errors_codes
+  in
   let* user_field = User_stamp.field spec.tables.identifiers_kinds in
   match
     let bundle = D.bundle spec in

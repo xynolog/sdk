@@ -36,10 +36,7 @@ import {
 } from '@xynolog/core';
 import type { SignInKept } from './sign-in-kept';
 import { parseJwtExpiry, textClaim } from './storage';
-import type { StoredSession } from '@xynolog/core';
-
-/** The systems whose state homes differ. */
-export type System = 'macos' | 'windows' | 'other';
+import type { StoredSession, components } from '@xynolog/core';
 
 /**
  * The launcher's state home, the directory that holds the sign-in store, on
@@ -50,7 +47,7 @@ export type System = 'macos' | 'windows' | 'other';
  * it (protocol/specs/src/sign-in-store/cases.json, `cases`).
  */
 export function stateDir(
-  system: System,
+  system: components['schemas']['System'],
   environment: {
     home: string | null;
     xdgStateHome: string | null;

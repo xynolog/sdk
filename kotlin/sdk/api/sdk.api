@@ -302,7 +302,7 @@ public abstract interface class xynolog/cache/CachePersister {
 }
 
 public abstract interface class xynolog/cache/CacheState {
-	public abstract fun getStatus ()Ljava/lang/String;
+	public abstract fun getStatus ()Lxynolog/types/CacheStatus;
 }
 
 public final class xynolog/cache/CacheState$Failed : xynolog/cache/CacheState {
@@ -312,7 +312,7 @@ public final class xynolog/cache/CacheState$Failed : xynolog/cache/CacheState {
 	public static synthetic fun copy$default (Lxynolog/cache/CacheState$Failed;Ljava/lang/Exception;ILjava/lang/Object;)Lxynolog/cache/CacheState$Failed;
 	public fun equals (Ljava/lang/Object;)Z
 	public final fun getError ()Ljava/lang/Exception;
-	public fun getStatus ()Ljava/lang/String;
+	public fun getStatus ()Lxynolog/types/CacheStatus;
 	public fun hashCode ()I
 	public fun toString ()Ljava/lang/String;
 }
@@ -320,7 +320,7 @@ public final class xynolog/cache/CacheState$Failed : xynolog/cache/CacheState {
 public final class xynolog/cache/CacheState$Pending : xynolog/cache/CacheState {
 	public static final field INSTANCE Lxynolog/cache/CacheState$Pending;
 	public fun equals (Ljava/lang/Object;)Z
-	public fun getStatus ()Ljava/lang/String;
+	public fun getStatus ()Lxynolog/types/CacheStatus;
 	public fun hashCode ()I
 	public fun toString ()Ljava/lang/String;
 }
@@ -331,7 +331,7 @@ public final class xynolog/cache/CacheState$Ready : xynolog/cache/CacheState {
 	public final fun copy (Ljava/lang/Object;)Lxynolog/cache/CacheState$Ready;
 	public static synthetic fun copy$default (Lxynolog/cache/CacheState$Ready;Ljava/lang/Object;ILjava/lang/Object;)Lxynolog/cache/CacheState$Ready;
 	public fun equals (Ljava/lang/Object;)Z
-	public fun getStatus ()Ljava/lang/String;
+	public fun getStatus ()Lxynolog/types/CacheStatus;
 	public final fun getValue ()Ljava/lang/Object;
 	public fun hashCode ()I
 	public fun toString ()Ljava/lang/String;
@@ -394,7 +394,7 @@ public final class xynolog/control/ControlMethod {
 public final class xynolog/control/ControlNotification {
 	public final fun getName ()Ljava/lang/String;
 	public final fun getParams ()Lkotlinx/serialization/KSerializer;
-	public final fun getSentBy ()Lxynolog/control/ControlSender;
+	public final fun getSentBy ()Lxynolog/types/ControlSender;
 	public fun toString ()Ljava/lang/String;
 }
 
@@ -416,6 +416,10 @@ public final class xynolog/discovery/DiscoveryTransport$DefaultImpls {
 	public static fun readFuture (Lxynolog/discovery/DiscoveryTransport;)Ljava/util/concurrent/CompletableFuture;
 }
 
+public final class xynolog/discovery/DiscoveryUrlPathKt {
+	public static final field DISCOVERY_URL_PATH Ljava/lang/String;
+}
+
 public final class xynolog/errors/BusRequestError : xynolog/errors/XynologError {
 	public fun <init> (Lxynolog/errors/BusRequestErrorCode;Ljava/lang/String;Lkotlinx/serialization/json/JsonObject;)V
 	public synthetic fun <init> (Lxynolog/errors/BusRequestErrorCode;Ljava/lang/String;Lkotlinx/serialization/json/JsonObject;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
@@ -433,6 +437,14 @@ public final class xynolog/errors/ControlErrorCode$Companion {
 }
 
 public final class xynolog/errors/ErrorCodesKt {
+	public static final fun controlCodeRetryable (Lxynolog/errors/ControlErrorCode;)Z
+	public static final fun controlRpcCodeOf (Lxynolog/errors/ControlErrorCode;)I
+	public static final fun getCONTROL_RPC_INTERNAL_ERROR ()I
+	public static final fun getCONTROL_RPC_INVALID_PARAMS ()I
+	public static final fun getCONTROL_RPC_INVALID_REQUEST ()I
+	public static final fun getCONTROL_RPC_METHOD_NOT_FOUND ()I
+	public static final fun getCONTROL_RPC_OPERATION_FAILED ()I
+	public static final fun getCONTROL_RPC_PARSE_ERROR ()I
 	public static final fun getLIMIT_REFUSAL_TRANSPORT_CODES ()Ljava/util/List;
 }
 
@@ -1223,15 +1235,6 @@ public final class xynolog/signin/MemorySignIn : xynolog/signin/SignInKept {
 	public fun renewedFuture (Lxynolog/types/StoredSession;Ljava/lang/String;Ljava/lang/String;)Ljava/util/concurrent/CompletableFuture;
 }
 
-public final class xynolog/signin/Platform : java/lang/Enum {
-	public static final field MACOS Lxynolog/signin/Platform;
-	public static final field OTHER Lxynolog/signin/Platform;
-	public static final field WINDOWS Lxynolog/signin/Platform;
-	public static fun getEntries ()Lkotlin/enums/EnumEntries;
-	public static fun valueOf (Ljava/lang/String;)Lxynolog/signin/Platform;
-	public static fun values ()[Lxynolog/signin/Platform;
-}
-
 public abstract interface class xynolog/signin/SignInKept {
 	public abstract fun forget (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun forgetFuture ()Ljava/util/concurrent/CompletableFuture;
@@ -1265,8 +1268,8 @@ public final class xynolog/signin/SignInStoreNamesKt {
 }
 
 public final class xynolog/signin/StateHomeKt {
-	public static final fun stateDir (Lxynolog/signin/Platform;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;
-	public static final fun thisPlatform ()Lxynolog/signin/Platform;
+	public static final fun stateDir (Lxynolog/types/System;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;
+	public static final fun thisSystem ()Lxynolog/types/System;
 }
 
 public final class xynolog/state/BeckonStateUnit : xynolog/StateUnit {

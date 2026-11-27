@@ -32,6 +32,82 @@ let vocabulary (v : Table.vocabulary) =
 let returning pairs =
   List.map (fun (case, result) -> ([ case ], [ G.Return result ])) pairs
 
+let rpc_constant r = "ControlRpcCode" ^ Table.rpc_pascal r
+
+(* A method of the control codes' type that returns what [key] says of each
+   code, a case for each, and panics given a code that is none of them. *)
+let answering (t : Table.t) ~doc ~results name key value =
+  G.func ~doc:(G.prose doc)
+    ~receiver:("c", G.Named t.control.go_name)
+    ~results:(G.Unnamed [ results ]) name
+    (G.Block
+       [
+         G.Switch
+           {
+             tag = Some (G.Name "c");
+             cases =
+               List.map
+                 (fun (k, codes) ->
+                   ( List.map (fun (c : Table.code) -> G.Name c.go) codes,
+                     [ G.Return [ value k ] ] ))
+                 (Table.grouped key t);
+             default =
+               Some
+                 [
+                   G.Do
+                     (G.call "panic"
+                        [
+                          G.Binary
+                            ( G.Binary
+                                ( G.Quoted "a control code \"",
+                                  G.Add,
+                                  G.Convert (G.Named "string", G.Name "c") ),
+                              G.Add,
+                              G.Quoted
+                                ("\" is none of " ^ t.control.go_name ^ "'s") );
+                        ]);
+                 ];
+           };
+       ])
+
+(* The JSON-RPC codes the control API answers with, a constant each, and the
+   one each control code is answered under, with whether it is retryable. *)
+let control_answers (t : Table.t) =
+  [
+    G.Type
+      {
+        doc =
+          G.prose
+            "ControlRpcCode is a JSON-RPC error code the launcher's control \
+             API answers with (control/rpc-codes.json).";
+        name = "ControlRpcCode";
+        def = G.Is (G.Named "int");
+      };
+    G.Consts
+      {
+        doc = [];
+        spacing = G.Packed;
+        specs =
+          List.map
+            (fun (r : Tables.Control_rpc_codes.codes_item) ->
+              G.spec ~doc:(G.prose r.docs) ~type_:(G.Named "ControlRpcCode")
+                (rpc_constant r) (G.Int r.number))
+            t.rpc_codes;
+      };
+    answering t ~results:(G.Named "ControlRpcCode")
+      ~doc:"Rpc is the JSON-RPC code an answer carries the code under." "Rpc"
+      (fun (a : Table.answered) -> a.rpc)
+      (fun r -> G.Name (rpc_constant r));
+    answering t ~results:(G.Named "bool")
+      ~doc:
+        "Retryable is whether the same request can succeed sent again \
+         unchanged, once something outside it changes: what ErrorData's \
+         retryable says of the code."
+      "Retryable"
+      (fun (a : Table.answered) -> a.retryable)
+      (fun r -> G.Name (string_of_bool r));
+  ]
+
 let text (t : Table.t) =
   let bus = G.Named t.bus.go_name and transport = G.Named t.transport.go_name in
   let code = G.Name "code" and status = G.Name "status" in
@@ -231,7 +307,7 @@ let text (t : Table.t) =
               };
           ]
         @ List.concat_map vocabulary t.others
-        @ vocabulary t.control;
+        @ vocabulary t.control @ control_answers t;
     }
 
 let file t = { Output.path; text = text t }

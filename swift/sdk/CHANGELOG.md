@@ -25,7 +25,7 @@ the coming release's, and gathers its changes as they land.
 - The Control API's table, `Control`: each method as a `ControlMethod` typed by
   its params and result, with whether it is exclusive and the notifications
   it sends, and each notification as a `ControlNotification` typed by its
-  params, with the `ControlParty` that sends it.
+  params, with the `ControlSender` that sends it.
 - Protocol's tables are public: an `Operation`'s `request`, `result`,
   `failure` and `replyNames`; a channel's `stamps`; `Timings` and
   `RetryBudget`; `resourceScopedChannels`; `telemetrySpans`,
@@ -56,6 +56,12 @@ the coming release's, and gathers its changes as they land.
   pattern's groups and alternatives (`^(GET|POST) /`), a set of members an
   object may not carry together, the fewest members it carries, and what its
   members' names must be.
+- `ControlRpcCode`, each code of `control/rpc-codes.json`, and
+  `ControlErrorCode.rpc` and `retryable`: the JSON-RPC code each control error
+  code is answered with, and whether a request it failed is worth sending
+  again, generated from `control/rpc-codes.json` and `errors/codes.json`.
+- `discoveryUrlPath`, where a launcher's discovery document is, generated from
+  `client/surface.json`.
 
 ### Changed
 
@@ -186,6 +192,8 @@ the coming release's, and gathers its changes as they land.
   `gather.annotation` no longer sends a `contextWindow` of 2000, nor an
   `options` member when it is given none, and `match.search` no longer sends
   `useSemanticScoring` true. Its `limit` is still 10 when none is stated.
+- `stateDir(system:home:…)` takes Protocol's `System`, where it took the SDK's
+  own `Platform`.
 - Discovery's types are the ones Protocol states: `parseDiscoveryDocument`
   returns `DiscoveryState`, a `DiscoveryTransport` reads a `DiscoveryRead`
   (`.discoveryAbsent`, `.discoveryManaged` or `.discoveryUnchanged`, where it

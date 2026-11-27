@@ -213,4 +213,78 @@ public static class ControlErrorCode
     public const string Cancelled = "control.cancelled";
     /// <summary>The request failed for a reason no other code names. Its message says why, as the command line would.</summary>
     public const string Failed = "control.failed";
+    /// <summary>The JSON-RPC code of control/rpc-codes.json an answer carries the control code under.</summary>
+    public static int Rpc(string code) => code switch
+    {
+        InvalidParams => ControlRpcCode.InvalidParams,
+        UnsupportedApiVersion => ControlRpcCode.InvalidParams,
+        InvalidRequest => ControlRpcCode.OperationFailed,
+        InvalidService => ControlRpcCode.OperationFailed,
+        InvalidValue => ControlRpcCode.OperationFailed,
+        UnknownSetting => ControlRpcCode.OperationFailed,
+        TargetRequired => ControlRpcCode.OperationFailed,
+        TargetAmbiguous => ControlRpcCode.OperationFailed,
+        RootNotFound => ControlRpcCode.OperationFailed,
+        RootNotRegistered => ControlRpcCode.OperationFailed,
+        StackNotRunning => ControlRpcCode.OperationFailed,
+        StackRunning => ControlRpcCode.OperationFailed,
+        StartInProgress => ControlRpcCode.OperationFailed,
+        RuntimeUnavailable => ControlRpcCode.OperationFailed,
+        DependencyUnavailable => ControlRpcCode.OperationFailed,
+        Unreachable => ControlRpcCode.OperationFailed,
+        InstanceInUse => ControlRpcCode.OperationFailed,
+        InstanceNotFound => ControlRpcCode.OperationFailed,
+        ConfirmationRequired => ControlRpcCode.OperationFailed,
+        UnreadableState => ControlRpcCode.OperationFailed,
+        AlreadySignedIn => ControlRpcCode.OperationFailed,
+        SignInFailed => ControlRpcCode.OperationFailed,
+        Cancelled => ControlRpcCode.OperationFailed,
+        Failed => ControlRpcCode.OperationFailed,
+        _ => throw new global::System.ArgumentOutOfRangeException(nameof(code), code, "No control code."),
+    };
+    /// <summary>Whether the same request can succeed sent again unchanged, once something outside it changes: what ErrorData's retryable says of the code.</summary>
+    public static bool Retryable(string code) => code switch
+    {
+        InvalidParams => false,
+        UnsupportedApiVersion => false,
+        InvalidRequest => false,
+        InvalidService => false,
+        InvalidValue => false,
+        UnknownSetting => false,
+        TargetRequired => false,
+        TargetAmbiguous => false,
+        RootNotFound => false,
+        RootNotRegistered => false,
+        StackNotRunning => true,
+        StackRunning => true,
+        StartInProgress => true,
+        RuntimeUnavailable => true,
+        DependencyUnavailable => true,
+        Unreachable => true,
+        InstanceInUse => false,
+        InstanceNotFound => false,
+        ConfirmationRequired => false,
+        UnreadableState => true,
+        AlreadySignedIn => false,
+        SignInFailed => true,
+        Cancelled => false,
+        Failed => true,
+        _ => throw new global::System.ArgumentOutOfRangeException(nameof(code), code, "No control code."),
+    };
+}
+
+public static class ControlRpcCode
+{
+    /// <summary>The line is not JSON, or holds more than one JSON value. Answered under a null id (F2).</summary>
+    public const int ParseError = -32700;
+    /// <summary>The message is a batch, does not state `"jsonrpc": "2.0"` and a method, has a member JSON-RPC does not define, or its id is null, a fraction or one in flight. Answered under a null id (F2, F3).</summary>
+    public const int InvalidRequest = -32600;
+    /// <summary>The API has no method of the request's name (F4).</summary>
+    public const int MethodNotFound = -32601;
+    /// <summary>The request's params are not what its method's schema admits, or are written to a version of the API this launcher does not speak (V1, P1).</summary>
+    public const int InvalidParams = -32602;
+    /// <summary>The launcher would send a result or error data that does not hold to its schema, or the handler panicked. Never retryable: the same request fails the same way (E4).</summary>
+    public const int InternalError = -32603;
+    /// <summary>The operation the request ran failed. The data's code says why, and whether the request is retryable (E2).</summary>
+    public const int OperationFailed = -32000;
 }

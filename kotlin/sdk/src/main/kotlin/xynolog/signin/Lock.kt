@@ -1,5 +1,6 @@
 package xynolog.signin
 
+import xynolog.types.System
 import java.io.IOException
 import java.lang.foreign.Arena
 import java.lang.foreign.FunctionDescriptor
@@ -28,7 +29,7 @@ internal object StoreLock {
     /** The byte the launcher locks on Windows, far past anything a lock file holds. */
     private const val WINDOWS_BYTE = LOCK_OFFSET_HIGH shl 32
 
-    fun hold(lock: Path): Held = if (thisPlatform() == Platform.WINDOWS) windows(lock) else Flock.hold(lock)
+    fun hold(lock: Path): Held = if (thisSystem() == System.Windows) windows(lock) else Flock.hold(lock)
 
     private fun windows(lock: Path): Held {
         val channel = FileChannel.open(lock, StandardOpenOption.CREATE, StandardOpenOption.WRITE)

@@ -5,14 +5,14 @@
 
 use serde_json::Value;
 use xynolog::control::{
-    CONTROL_METHODS, CONTROL_NOTIFICATIONS, ControlMethod, ControlNotification, ControlSender,
-    LauncherAbout, NotificationsCancelled, RootsInit, control_method,
+    CONTROL_METHODS, CONTROL_NOTIFICATIONS, ControlMethod, ControlNotification, LauncherAbout,
+    NotificationsCancelled, RootsInit, control_method,
 };
 use xynolog::errors::{
     BusRequestErrorCode, ControlErrorCode, IdentityUnverifiableReason, JobErrorCode,
     SessionErrorCode, SignInErrorCode, SpanRefusal, TransportErrorCode,
 };
-use xynolog::types::{AboutParams, ApiVersion, Cancelled, RootsInitResult};
+use xynolog::types::{AboutParams, ApiVersion, Cancelled, ControlSender, RootsInitResult};
 
 fn table(text: &str) -> Value {
     serde_json::from_str(text).expect("the table is JSON")

@@ -344,6 +344,61 @@ let failure_codes (t : Error_codes.Table.t) (models : Models.t) =
            ];
        ])
 
+(* What a control code is answered under, by each code: the JSON-RPC code of
+   ControlRpcCode an answer carries it under, and whether it is retryable. *)
+let control_answers (t : Error_codes.Table.t) =
+  let answering ~docs ~returns name value =
+    C.Documented
+      ( docs,
+        C.Method
+          {
+            modifiers = [ Public; Static ];
+            returns = T returns;
+            name;
+            params = [ { by = `Value; type_ = T "string"; name = "code" } ];
+            body =
+              C.Arrow
+                (C.Switch
+                   ( C.Name "code",
+                     List.map
+                       (fun (a : Error_codes.Table.answered) ->
+                         ( C.Value (Name (code_constant a.control_code.code)),
+                           value a ))
+                       t.answered
+                     @ [
+                         ( C.Discard,
+                           C.Throw
+                             (C.New
+                                {
+                                  type_ =
+                                    Some
+                                      (T
+                                         "global::System.ArgumentOutOfRangeException");
+                                  args =
+                                    Some
+                                      [
+                                        C.Arg (C.Nameof "code");
+                                        C.Arg (C.Name "code");
+                                        C.Arg (C.Str "No control code.");
+                                      ];
+                                  init = None;
+                                }) );
+                       ] ));
+          } )
+  in
+  [
+    answering
+      ~docs:
+        "The JSON-RPC code of control/rpc-codes.json an answer carries the \
+         control code under." ~returns:"int" "Rpc" (fun a ->
+        C.Name ("ControlRpcCode." ^ Error_codes.Table.rpc_pascal a.rpc));
+    answering
+      ~docs:
+        "Whether the same request can succeed sent again unchanged, once \
+         something outside it changes: what ErrorData's retryable says of the \
+         code." ~returns:"bool" "Retryable" (fun a -> C.Bool a.retryable);
+  ]
+
 (* Each failure vocabulary of errors/codes.json, a class of its codes as
    constants, named as Go names its type; the transport's also says which
    code an HTTP status becomes. *)
@@ -432,7 +487,22 @@ let error_codes (t : Error_codes.Table.t) =
        vocabulary ~more:[ transport_of; of_limit_refusal ] t.transport;
      ]
     @ List.map (fun v -> vocabulary v) t.others
-    @ [ vocabulary t.control ])
+    @ [
+        vocabulary ~more:(control_answers t) t.control;
+        static_class ~modifiers:[ C.Public; C.Static ] "ControlRpcCode"
+          (List.map
+             (fun (r : Tables.Control_rpc_codes.codes_item) ->
+               C.Documented
+                 ( r.docs,
+                   C.Field
+                     {
+                       modifiers = [ Public; Const ];
+                       type_ = T "int";
+                       name = Error_codes.Table.rpc_pascal r;
+                       value = Some (Int r.number);
+                     } ))
+             t.rpc_codes);
+      ])
 
 (* The timing a client keeps (client/timing.json), a constant an entry,
    named as the entry is; a budget is the model of client/RetryBudget.json. *)
@@ -593,7 +663,10 @@ let properties (spec : Spec.t) name =
 
 let files ~root (spec : Spec.t) =
   let* records, models = models spec in
-  let* codes = Error_codes.Table.derive spec.tables.errors_codes in
+  let* codes =
+    Error_codes.Table.derive ~rpc_codes:spec.tables.control_rpc_codes
+      spec.tables.errors_codes
+  in
   let* failures = failure_codes codes models in
   let* timing = Timing.Table.derive spec.tables.client_timing in
   let* tables = protocol_tables ~root spec in

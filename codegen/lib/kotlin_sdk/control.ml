@@ -94,9 +94,10 @@ let declarations ~types (t : C.t) =
   in
   let named =
     List.sort_uniq compare
-      (List.map
-         (fun (n : C.notifications_item) -> component n.params)
-         t.notifications
+      (sender
+       :: List.map
+            (fun (n : C.notifications_item) -> component n.params)
+            t.notifications
       @ List.concat_map
           (fun (m : C.methods_item) ->
             [ component m.params; component m.result ])
@@ -105,23 +106,6 @@ let declarations ~types (t : C.t) =
   ( "ControlMethods",
     named,
     [
-      K.class_
-        ~about:(K.Doc "Which side of the control API sends a notification.")
-        ~annotations:[ generated ] ~visibility:K.Public
-        ~constructor:
-          (K.constructor
-             [
-               K.param ~about:(K.Doc "The side as the table spells it.")
-                 ~binding:(K.Bound { visibility = K.Public; mutable_ = false })
-                 "value" (K.Type "String");
-             ])
-        ~entries:
-          (List.map
-             (fun from ->
-               let value = C.control_sender_value from in
-               K.entry ~args:[ K.Str value ] (Names.variant_of value))
-             C.control_sender_all)
-        K.Enum_class sender;
       K.class_
         ~about:
           (K.Doc

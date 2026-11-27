@@ -36,7 +36,7 @@ use crate::rfc3339;
 use crate::schema;
 use crate::session::{SCRIPT_CLIENT_ID, SignInKept, text_claim, token_expiry};
 use crate::transport::BoxFuture;
-use crate::types::StoredSession;
+use crate::types::{StoredSession, System};
 use serde_json::{Map, Value};
 use std::error::Error;
 use std::fs::{self, OpenOptions};
@@ -226,35 +226,14 @@ fn owner_only_file() -> OpenOptions {
     options
 }
 
-/// The systems the state home differs by, as
-/// protocol/specs/src/sign-in-store/cases.json names them.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum System {
-    MacOs,
-    Windows,
-    /// Anything else: Linux, and every other Unix.
-    Other,
-}
-
-impl System {
-    /// The system this crate was built for.
-    pub const fn of_this_build() -> System {
-        if cfg!(target_os = "macos") {
-            System::MacOs
-        } else if cfg!(windows) {
-            System::Windows
-        } else {
-            System::Other
-        }
-    }
-
-    /// The system as the cases name it: `macos`, `windows`, or anything else.
-    pub fn named(name: &str) -> System {
-        match name {
-            "macos" => System::MacOs,
-            "windows" => System::Windows,
-            _ => System::Other,
-        }
+/// The system this crate was built for, as a state home differs by it.
+pub const fn this_system() -> System {
+    if cfg!(target_os = "macos") {
+        System::Macos
+    } else if cfg!(windows) {
+        System::Windows
+    } else {
+        System::Other
     }
 }
 
@@ -270,7 +249,7 @@ impl System {
 /// This crate reads no environment: a service links it, and what a service
 /// reads of its environment is a contract. An application reads its own and
 /// says what it found:
-/// `state_dir(System::of_this_build(), home, xdg_state_home, local_app_data)`.
+/// `state_dir(this_system(), home, xdg_state_home, local_app_data)`.
 pub fn state_dir(
     system: System,
     home: Option<&str>,
@@ -287,7 +266,7 @@ pub fn state_dir(
         PathBuf::from(dir)
     };
     Some(match system {
-        System::MacOs => under('/', home, &["Library", "Application Support", "xynolog"]),
+        System::Macos => under('/', home, &["Library", "Application Support", "xynolog"]),
         System::Windows => match local_app_data.filter(|local| !local.is_empty()) {
             Some(local) => under('\\', local, &["xynolog"]),
             None => under('\\', home, &["AppData", "Local", "xynolog"]),

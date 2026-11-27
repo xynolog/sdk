@@ -10,6 +10,7 @@ module Xynolog.Discovery
     textDiscovery,
     discoveryDiff,
     subscribeDiscovery,
+    discoveryUrlPath,
   )
 where
 
@@ -30,6 +31,8 @@ import Data.Text.Encoding.Error (UnicodeException)
 import Streaming (Of, Stream)
 import Streaming.Prelude qualified as Stream
 import System.IO.Error (isDoesNotExistError)
+import Xynolog.Internal.Generated.DiscoveryUrlPath (discoveryUrlPath)
+import Xynolog.Internal.Required (faultOf, faultSaid)
 import Xynolog.Types
   ( DiscoveredKB (..),
     DiscoveryAbsent (..),
@@ -66,13 +69,11 @@ parseDiscoveryDocument raw = case eitherDecodeStrict' (encodeUtf8 raw) of
       Left _ -> invalid "version is not an integer"
       Right _ -> case parseEither parseJSON version :: Either String DiscoveryDocumentVersion of
         Left _ -> absent DiscoveryAbsentReasonUnsupportedVersion (Just "unsupported discovery document version")
-        Right _ -> case parseEither parseJSON value of
-          Left diagnostic -> invalid (T.pack diagnostic)
-          Right document ->
-            let kbs = discoveryDocumentKbs document
-             in if all (\kb -> discoveredKBPort kb >= 1 && discoveredKBPort kb <= 65535) kbs
-                  then DiscoveryStateDiscoveryManaged (DiscoveryManaged DiscoveryManagedKindManaged kbs)
-                  else invalid "knowledge-base port is outside the TCP port range"
+        Right _ -> case faultOf "DiscoveryDocument" value of
+          Just fault -> invalid (faultSaid fault)
+          Nothing -> case parseEither parseJSON value of
+            Left diagnostic -> invalid (T.pack diagnostic)
+            Right document -> DiscoveryStateDiscoveryManaged (DiscoveryManaged DiscoveryManagedKindManaged (discoveryDocumentKbs document))
     _ -> invalid "missing integer version"
   Right _ -> invalid "document is not an object"
   where

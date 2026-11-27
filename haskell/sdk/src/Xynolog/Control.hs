@@ -2,13 +2,10 @@
 -- Regenerate: make generate (codegen/lib/haskell_sdk/haskell_sdk.ml)
 {-# LANGUAGE OverloadedStrings #-}
 
-module Xynolog.Control (ControlSender (..), ControlMethod (..), ControlNotification (..), launcherAbout, rootsList, rootsInit, rootsForget, statusSnapshot, stackStart, stackStop, authLogin, authLogout, identityUseradd, identityUsersList, logsFollow, settingsList, settingsGet, settingsSet, settingsUnset, settingsPath, serviceHost, serviceRun, serviceSignal, notificationsProgress, notificationsUserAction, notificationsLog, notificationsServiceStarted, notificationsServiceOutput, notificationsCancelled) where
+module Xynolog.Control (ControlMethod (..), ControlNotification (..), launcherAbout, rootsList, rootsInit, rootsForget, statusSnapshot, stackStart, stackStop, authLogin, authLogout, identityUseradd, identityUsersList, logsFollow, settingsList, settingsGet, settingsSet, settingsUnset, settingsPath, serviceHost, serviceRun, serviceSignal, notificationsProgress, notificationsUserAction, notificationsLog, notificationsServiceStarted, notificationsServiceOutput, notificationsCancelled) where
 
 import Data.Text (Text)
-import Xynolog.Types (AboutParams, AboutResult, AuthLoginParams, AuthLoginResult, AuthLogoutParams, AuthLogoutResult, Cancelled, IdentityUseraddParams, IdentityUseraddResult, IdentityUsersListParams, IdentityUsersListResult, LogRecord, LogsFollowParams, LogsFollowResult, Progress, RootsForgetParams, RootsForgetResult, RootsInitParams, RootsInitResult, RootsListParams, RootsListResult, ServiceHostParams, ServiceHostResult, ServiceOutput, ServiceRunParams, ServiceRunResult, ServiceSignalParams, ServiceSignalResult, ServiceStarted, Setting, SettingsGetParams, SettingsListParams, SettingsListResult, SettingsPathParams, SettingsPathResult, SettingsSetParams, SettingsUnsetParams, StackStartParams, StackStartResult, StackStopParams, StackStopResult, StatusSnapshotParams, StatusSnapshotResult, UserAction)
-
--- | Which side of the control API sends a notification.
-data ControlSender = ControlSenderClient | ControlSenderLauncher deriving (Eq, Show)
+import Xynolog.Types (AboutParams, AboutResult, AuthLoginParams, AuthLoginResult, AuthLogoutParams, AuthLogoutResult, Cancelled, ControlSender (..), IdentityUseraddParams, IdentityUseraddResult, IdentityUsersListParams, IdentityUsersListResult, LogRecord, LogsFollowParams, LogsFollowResult, Progress, RootsForgetParams, RootsForgetResult, RootsInitParams, RootsInitResult, RootsListParams, RootsListResult, ServiceHostParams, ServiceHostResult, ServiceOutput, ServiceRunParams, ServiceRunResult, ServiceSignalParams, ServiceSignalResult, ServiceStarted, Setting, SettingsGetParams, SettingsListParams, SettingsListResult, SettingsPathParams, SettingsPathResult, SettingsSetParams, SettingsUnsetParams, StackStartParams, StackStartResult, StackStopParams, StackStopResult, StatusSnapshotParams, StatusSnapshotResult, UserAction)
 
 -- | A method of the control API: a request whose params are a @params@, answered with a @result@.
 data ControlMethod params result = ControlMethod

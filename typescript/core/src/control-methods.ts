@@ -27,7 +27,7 @@ export const CONTROL_NOTIFICATIONS = {
   'notifications/cancelled': { from: 'client', params: 'Cancelled' },
 } as const satisfies {
   [key: string]: {
-    readonly from: 'launcher' | 'client';
+    readonly from: components['schemas']['ControlSender'];
     readonly params: keyof components['schemas'];
   };
 };

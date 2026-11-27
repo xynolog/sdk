@@ -327,6 +327,95 @@ let timings (entries : Timing.Table.t) =
 
 (* Error codes *)
 
+(* The JSON-RPC codes the control API answers with, a constant each of
+   ControlRpcCode, and the one each control code is answered under, with
+   whether it is retryable. *)
+let control_answers (codes : Error_codes.Table.t) =
+  let member_doc docs = Text.wrapped ~lead:"  /// " ~width:100 docs in
+  let rpc_member r =
+    String.uncapitalize_ascii (Error_codes.Table.rpc_pascal r)
+  in
+  let answering ~docs ~type_ n key value =
+    decl ~doc:(member_doc docs) [ "public" ]
+      (S.Computed
+         {
+           name = n;
+           type_;
+           body =
+             M.line_block
+               [
+                 S.Switch
+                   {
+                     subject = name "self";
+                     layout = S.Lines;
+                     cases =
+                       List.map
+                         (fun (k, cs) ->
+                           {
+                             S.patterns =
+                               List.map
+                                 (fun (c : Error_codes.Table.code) ->
+                                   case c.code)
+                                 cs;
+                             body = [ S.Return (Some (value k)) ];
+                           })
+                         (Error_codes.Table.grouped key codes);
+                   };
+               ];
+         })
+  in
+  [
+    decl
+      ~doc:
+        [
+          "Each JSON-RPC error code the launcher's control API answers with \
+           (control/rpc-codes.json).";
+        ]
+      [ "public" ]
+      (S.Enum
+         {
+           name = "ControlRpcCode";
+           inherits = [];
+           layout = S.Lines;
+           members =
+             List.map
+               (fun (r : Tables.Control_rpc_codes.codes_item) ->
+                 decl ~doc:(member_doc r.docs) [ "public"; "static" ]
+                   (S.Property
+                      {
+                        var = false;
+                        name = rpc_member r;
+                        type_ = None;
+                        value = Some (S.Int r.number);
+                      }))
+               codes.rpc_codes;
+         });
+    decl []
+      (S.Extension
+         {
+           name = codes.control.go_name;
+           layout = S.Lines;
+           members =
+             [
+               answering
+                 ~docs:
+                   "The JSON-RPC code of control/rpc-codes.json an answer \
+                    carries the code under."
+                 ~type_:(S.Named "Int") "rpc"
+                 (fun (a : Error_codes.Table.answered) -> a.rpc)
+                 (fun r -> S.Member (name "ControlRpcCode", rpc_member r));
+               answering
+                 ~docs:
+                   "Whether the same request can succeed sent again unchanged, \
+                    once something outside it changes: what \
+                    `ErrorData.retryable` says of the code."
+                 ~type_:(S.Named "Bool") "retryable"
+                 (fun (a : Error_codes.Table.answered) -> a.retryable)
+                 (fun r -> S.Bool r);
+             ];
+         });
+  ]
+
 (* Each failure vocabulary's enum, named as the error codes' table names it
    for every SDK. *)
 let error_codes models ~shapes (codes : Error_codes.Table.t) =
@@ -444,7 +533,7 @@ let error_codes models ~shapes (codes : Error_codes.Table.t) =
                ];
          })
   in
-  enums
+  enums @ control_answers codes
   @ [
       transport;
       bus;
@@ -1295,7 +1384,8 @@ let kept models ~shapes (refresh : Tables.Client_refresh.t)
 (* Control *)
 
 (* The control API's methods and notifications (control/methods.json), each
-   by the types of what it carries, and who sends a notification. *)
+   by the types of what it carries, and who sends a notification: the type of
+   ControlSender. *)
 let control models (spec : Spec.t) =
   let module T = Tables.Control_methods in
   let t = spec.tables.control_methods in
@@ -1313,7 +1403,6 @@ let control models (spec : Spec.t) =
     | Some n -> M.named models n
     | None -> refuse "control/methods.json names %s, which no type is" target
   in
-  let party = function T.Client -> "client" | T.Launcher -> "launcher" in
   let generic n =
     {
       S.name = n;
@@ -1364,7 +1453,10 @@ let control models (spec : Spec.t) =
       (fun (n : T.notifications_item) ->
         entry n.docs n.name
           (S.Generic ("ControlNotification", [ type_of n.params ]))
-          [ arg "name" (S.String n.name); arg "from" (case (party n.from)) ])
+          [
+            arg "name" (S.String n.name);
+            arg "from" (case (T.control_sender_value n.from));
+          ])
       t.notifications
   in
   [
@@ -1374,13 +1466,10 @@ let control models (spec : Spec.t) =
         field "exclusive" (S.Named "Bool");
         field "sends" (S.Array_of string_type);
       ];
-    string_enumeration [ "public" ] "ControlParty"
-      (List.sort_uniq String.compare
-         (List.map
-            (fun (n : T.notifications_item) -> party n.from)
-            t.notifications));
     structure "ControlNotification" [ "Params" ]
-      [ field "name" string_type; field "from" (S.Named "ControlParty") ];
+      [
+        field "name" string_type; field "from" (M.named models "ControlSender");
+      ];
     decl [ "public" ]
       (S.Enum
          {

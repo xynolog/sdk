@@ -1,21 +1,10 @@
 //! What the realm stamps on an account's token: its roles, in the flat
-//! `roles` claim, and its kind. The same strings the launcher writes into the
-//! realm; `npm run lint:service-role` holds every site to one value.
+//! `roles` claim, and its kind. A kind, not a role: roles are capabilities,
+//! granted to people and agents alike, and the kind says which an account is.
 
 use serde_json::{Map, Value};
 
-pub const ROLES_CLAIM: &str = "roles";
-/// Carried by every service's account: admits it to the services' own routes.
-pub const SERVICE_ROLE: &str = "xynolog-service";
-/// Carried by a worker: it may claim jobs.
-pub const WORKER_ROLE: &str = "xynolog-worker";
-
-/// The claim that marks an agent's account, and what it holds there: every
-/// service's account and every worker's carries it, and a person's never
-/// does. A kind, not a role: roles are capabilities, granted to people and
-/// agents alike.
-pub const KIND_CLAIM: &str = "kind";
-pub const AGENT_KIND: &str = "agent";
+include!("generated/roles.rs");
 
 /// Whether the token's account is an agent's.
 pub fn is_agent(claims: &Map<String, Value>) -> bool {

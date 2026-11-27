@@ -62,6 +62,13 @@ the coming release's, and gathers its changes as they land.
   the SDK telemetry table (`SPAN_CONTENT_GET`, `METRIC_XYNOLOG_BUS_SENT`,
   `ATTR_RESOURCE_ID`, …, and `CHANNEL`, what stands for the channel in a
   span's name), and the crate's spans and count are named by them.
+- `errors::CONTROL_RPC_*`, each code of `control/rpc-codes.json`, and
+  `ControlErrorCode::rpc` and `retryable`: the JSON-RPC code each control
+  error code is answered with, and whether a request it failed is worth
+  sending again, generated from `control/rpc-codes.json` and
+  `errors/codes.json`.
+- `discovery::DISCOVERY_URL_PATH`, where a launcher's discovery document is,
+  generated from `client/surface.json`.
 
 ### Changed
 
@@ -201,6 +208,13 @@ the coming release's, and gathers its changes as they land.
   `match.search` no `useSemanticScoring` of true, when the caller leaves them
   out: the service's own default applies. Options to `gather.annotation` that
   state nothing are not sent.
+- `sign_in_store::System` is Protocol's `types::System`, and
+  `System::of_this_build()` is `sign_in_store::this_system()`. `System::named`
+  is gone: a system is read as the type's own serde.
+- `roles`' constants are generated from `principals/roles.json`.
+  `SERVICE_ROLE` and `WORKER_ROLE` are `XYNOLOG_SERVICE_ROLE` and
+  `XYNOLOG_WORKER_ROLE`.
+- `control::ControlSender` is `types::ControlSender`, the type of its schema.
 - Discovery's types are the generated ones, in `xynolog::types` as Protocol
   states them, where `discovery` declared its own: `parse_discovery_document`
   gives `DiscoveryState` (`DiscoveryAbsent` or `DiscoveryManaged`), a

@@ -1,13 +1,7 @@
-/**
- * Browser ↔ launcher KB discovery.
- *
- * The launcher publishes its export view at `<stateDir>/discovery/kbs.json`,
- * mounted read-only into the Browser's container at `/discovery` and served
- * by the Browser image (`images/browser`) at this URL path. One TS-side name for
- * that URL: the Browser server's tests fetch this constant, so
- * prefix/filename drift between the server and consumers is a failing test —
- * mirroring for the URL what the DiscoveryDocument schema does for the
- * payload. (The launcher's Go side keeps its own constant;
- * protocol/specs/src/discovery/README.md is the cross-language record.)
- */
+// ⚠ GENERATED FILE — do not edit.
+//
+// Authority:   protocol/specs/src/client/surface.json
+// Regenerate:  make generate  (codegen/lib/discovery_url_path.ml)
+
+/** Where a launcher's discovery document is: its path under the state home, and the URL path a browser fetches it at. */
 export const DISCOVERY_URL_PATH = '/discovery/kbs.json';

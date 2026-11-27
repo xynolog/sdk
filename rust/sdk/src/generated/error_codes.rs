@@ -515,3 +515,78 @@ impl ControlErrorCode {
         }
     }
 }
+
+/// The line is not JSON, or holds more than one JSON value. Answered under a null id (F2).
+pub const CONTROL_RPC_PARSE_ERROR: i32 = -32700;
+/// The message is a batch, does not state `"jsonrpc": "2.0"` and a method, has a member JSON-RPC does not define, or its id is null, a fraction or one in flight. Answered under a null id (F2, F3).
+pub const CONTROL_RPC_INVALID_REQUEST: i32 = -32600;
+/// The API has no method of the request's name (F4).
+pub const CONTROL_RPC_METHOD_NOT_FOUND: i32 = -32601;
+/// The request's params are not what its method's schema admits, or are written to a version of the API this launcher does not speak (V1, P1).
+pub const CONTROL_RPC_INVALID_PARAMS: i32 = -32602;
+/// The launcher would send a result or error data that does not hold to its schema, or the handler panicked. Never retryable: the same request fails the same way (E4).
+pub const CONTROL_RPC_INTERNAL_ERROR: i32 = -32603;
+/// The operation the request ran failed. The data's code says why, and whether the request is retryable (E2).
+pub const CONTROL_RPC_OPERATION_FAILED: i32 = -32000;
+
+impl ControlErrorCode {
+    /// The JSON-RPC code of control/rpc-codes.json an answer carries the code under.
+    pub const fn rpc(self) -> i32 {
+        match self {
+            ControlErrorCode::InvalidParams => CONTROL_RPC_INVALID_PARAMS,
+            ControlErrorCode::UnsupportedApiVersion => CONTROL_RPC_INVALID_PARAMS,
+            ControlErrorCode::InvalidRequest => CONTROL_RPC_OPERATION_FAILED,
+            ControlErrorCode::InvalidService => CONTROL_RPC_OPERATION_FAILED,
+            ControlErrorCode::InvalidValue => CONTROL_RPC_OPERATION_FAILED,
+            ControlErrorCode::UnknownSetting => CONTROL_RPC_OPERATION_FAILED,
+            ControlErrorCode::TargetRequired => CONTROL_RPC_OPERATION_FAILED,
+            ControlErrorCode::TargetAmbiguous => CONTROL_RPC_OPERATION_FAILED,
+            ControlErrorCode::RootNotFound => CONTROL_RPC_OPERATION_FAILED,
+            ControlErrorCode::RootNotRegistered => CONTROL_RPC_OPERATION_FAILED,
+            ControlErrorCode::StackNotRunning => CONTROL_RPC_OPERATION_FAILED,
+            ControlErrorCode::StackRunning => CONTROL_RPC_OPERATION_FAILED,
+            ControlErrorCode::StartInProgress => CONTROL_RPC_OPERATION_FAILED,
+            ControlErrorCode::RuntimeUnavailable => CONTROL_RPC_OPERATION_FAILED,
+            ControlErrorCode::DependencyUnavailable => CONTROL_RPC_OPERATION_FAILED,
+            ControlErrorCode::Unreachable => CONTROL_RPC_OPERATION_FAILED,
+            ControlErrorCode::InstanceInUse => CONTROL_RPC_OPERATION_FAILED,
+            ControlErrorCode::InstanceNotFound => CONTROL_RPC_OPERATION_FAILED,
+            ControlErrorCode::ConfirmationRequired => CONTROL_RPC_OPERATION_FAILED,
+            ControlErrorCode::UnreadableState => CONTROL_RPC_OPERATION_FAILED,
+            ControlErrorCode::AlreadySignedIn => CONTROL_RPC_OPERATION_FAILED,
+            ControlErrorCode::SignInFailed => CONTROL_RPC_OPERATION_FAILED,
+            ControlErrorCode::Cancelled => CONTROL_RPC_OPERATION_FAILED,
+            ControlErrorCode::Failed => CONTROL_RPC_OPERATION_FAILED,
+        }
+    }
+
+    /// Whether the same request can succeed sent again unchanged, once something outside it changes: what `ErrorData::retryable` says of the code.
+    pub const fn retryable(self) -> bool {
+        match self {
+            ControlErrorCode::InvalidParams => false,
+            ControlErrorCode::UnsupportedApiVersion => false,
+            ControlErrorCode::InvalidRequest => false,
+            ControlErrorCode::InvalidService => false,
+            ControlErrorCode::InvalidValue => false,
+            ControlErrorCode::UnknownSetting => false,
+            ControlErrorCode::TargetRequired => false,
+            ControlErrorCode::TargetAmbiguous => false,
+            ControlErrorCode::RootNotFound => false,
+            ControlErrorCode::RootNotRegistered => false,
+            ControlErrorCode::StackNotRunning => true,
+            ControlErrorCode::StackRunning => true,
+            ControlErrorCode::StartInProgress => true,
+            ControlErrorCode::RuntimeUnavailable => true,
+            ControlErrorCode::DependencyUnavailable => true,
+            ControlErrorCode::Unreachable => true,
+            ControlErrorCode::InstanceInUse => false,
+            ControlErrorCode::InstanceNotFound => false,
+            ControlErrorCode::ConfirmationRequired => false,
+            ControlErrorCode::UnreadableState => true,
+            ControlErrorCode::AlreadySignedIn => false,
+            ControlErrorCode::SignInFailed => true,
+            ControlErrorCode::Cancelled => false,
+            ControlErrorCode::Failed => true,
+        }
+    }
+}
