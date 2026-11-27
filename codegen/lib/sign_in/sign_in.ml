@@ -36,7 +36,7 @@ let go_entry (entry : Flat.t) =
       tag = Some ("json:\"" ^ f.name ^ omit ^ "\"");
     }
   in
-  let required = String.uncapitalize_ascii entry.title ^ "Required" in
+  let schema = String.uncapitalize_ascii entry.title ^ "Schema" in
   {
     Output.path = "go/signin_gen.go";
     text =
@@ -66,17 +66,15 @@ let go_entry (entry : Flat.t) =
                         spacing = G.Spaced;
                       };
                 };
-              G.Var
+              G.Const
                 (G.spec
                    ~doc:
-                     (G.verbatim
-                        (required ^ ": the properties every " ^ entry.title
-                       ^ " states. A member of the\n\
-                          document that lacks one is not a " ^ entry.title ^ "."
-                        ))
-                   required
-                   (G.inline ~of_:(G.Slice (G.Named "string"))
-                      (List.map (fun r -> G.item (G.Quoted r)) entry.required)));
+                     (G.prose
+                        (schema ^ ": the name package required holds a "
+                       ^ entry.title
+                       ^ " to by. A member of the document with a fault in it \
+                          is not one."))
+                   schema (G.Quoted Roots.sign_in_name));
             ];
         };
   }
@@ -265,12 +263,6 @@ let typescript (entry : Flat.t) (o : Owner_only.t) (names : Contract.t) =
     S.member ~about:[ Doc f.description ] ~optional:(not f.required)
       (Ident f.name) (T_name "string")
   in
-  let check (f : Flat.field) =
-    let member = S.Index (Name "value", Str f.name) in
-    let is_string = S.Call (Name "isString", [ member ]) in
-    if f.required then is_string
-    else Paren (Binary (Binary (member, Strict_eq, Undefined), Or, is_string))
-  in
   let constant name about value = S.const name ~about:[ Doc about ] value in
   let access_list name (l : Owner_only.access_list) =
     S.Function
@@ -303,35 +295,12 @@ let typescript (entry : Flat.t) (o : Owner_only.t) (names : Contract.t) =
               __FILE__;
           body =
             [
-              S.import [ "isObject"; "isString" ] "./type-guards";
               S.Interface
                 {
                   about = [ Doc entry.description ];
                   export = true;
                   name = entry.title;
                   members = List.map field entry.fields;
-                };
-              S.Function
-                {
-                  about =
-                    [
-                      Doc
-                        ("Whether `value` is a " ^ entry.title
-                       ^ ": what it requires is there, and every member it has \
-                          is text.");
-                    ];
-                  export = true;
-                  name = "is" ^ entry.title;
-                  params = [ { name = "value"; type_ = T_name "unknown" } ];
-                  returns = T_predicate ("value", T_name entry.title);
-                  body =
-                    [
-                      Return
-                        (Chain
-                           ( And,
-                             Call (Name "isObject", [ Name "value" ])
-                             :: List.map check entry.fields ));
-                    ];
                 };
               constant "OWNER_ONLY_DIRECTORY_MODE" o.directory.docs
                 (Octal o.directory.octal);

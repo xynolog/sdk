@@ -17,6 +17,9 @@ let client_types = "client/types/"
 (* One entry of the sign-in store [xynolog login] keeps. *)
 let sign_in_entry = "sign-in-store/SignIn.json"
 
+(* The entry's name, its file's stem. *)
+let sign_in_name = Filename.remove_extension (Filename.basename sign_in_entry)
+
 (* The tables the services keep to, which every SDK carries for them, each
    read as its own schema's model ([Places.schema_of]): every table of a
    service's area ([Places.services]) and of the services' shared

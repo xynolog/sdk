@@ -43,6 +43,11 @@ let field key fields =
   | Some (`String value) when value <> "" -> Some value
   | _ -> None
 
+let text key fields =
+  match List.assoc_opt key fields with
+  | Some (`String value) -> Some value
+  | _ -> None
+
 let parse_time value =
   match Ptime.of_rfc3339 value with
   | Ok (time, _, _) -> Some (Ptime.to_float_s time)
@@ -51,12 +56,15 @@ let parse_time value =
 let format_time value = Ptime.to_rfc3339 (Option.get (Ptime.of_float_s value))
 let ( let* ) = Option.bind
 
-let decode = function
-  | `Assoc fields ->
-      let* token = field "token" fields in
-      let* issuer = field "issuer" fields in
-      let* token_endpoint = field "tokenEndpoint" fields in
-      let* _ = Option.bind (field "obtainedAt" fields) parse_time in
+(* A member of the document as a sign-in: none for one with a fault as the
+   table holds a sign-in to (an empty token, a member it lacks). *)
+let decode json =
+  match (Models.decode Models.sign_in (Yojson.Safe.to_string json), json) with
+  | Ok _, `Assoc fields ->
+      let* token = text "token" fields in
+      let* issuer = text "issuer" fields in
+      let* token_endpoint = text "tokenEndpoint" fields in
+      let* _ = Option.bind (text "obtainedAt" fields) parse_time in
       let expires_at = Option.bind (field "expiresAt" fields) parse_time in
       Some
         {

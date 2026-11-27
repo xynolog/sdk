@@ -29,8 +29,8 @@ import {
   SIGN_IN_STORE_LOCK,
   SIGN_IN_STORE_WINDOWS_OFFSET_HIGH,
   SignInError,
+  faultOf,
   isObject,
-  isSignIn,
   ownerOnlyDirectoryAccessList,
   type SignIn,
 } from '@xynolog/core';
@@ -127,6 +127,11 @@ export interface SignInFiles {
    * sees half of it; the temporary file is removed when that fails.
    */
   replace(name: string, text: string, mode: number): void;
+}
+
+/** Whether a member of the document is a sign-in: it has no fault as the table holds a SignIn to (an empty token, a member it lacks). */
+function isSignIn(member: unknown): member is SignIn {
+  return faultOf('SignIn', member) === undefined;
 }
 
 /** A member of the document as a sign-in that can be renewed, as the sign-in a client holds; null when it is none. */

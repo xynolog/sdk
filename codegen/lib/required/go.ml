@@ -5,7 +5,10 @@
    is read as the type it names is ([read_of_go]): its shape may state of what
    it holds nothing that reading does not. What it
    states of the value itself (its enumeration, pattern, lengths and bounds)
-   the package holds a value to where a component refers to it. *)
+   the package holds a value to where a component refers to it. A schema
+   the SDK reads by its name ([by_name]) is the package's to find by that
+   name, not by a type of package api's: the sign-in store's entry, whose
+   type is package xynolog's. *)
 
 (* The kind a Go type that is no type of package api's is read as. *)
 let kind_of_go named : Shape.kind option =
@@ -70,29 +73,31 @@ let held : Shape.shape -> Shape.shape = function
           max_items = None;
         }
 
-let check ~declared (shapes : (string * Shape.shape) list) =
+let check ~declared ~by_name (shapes : (string * Shape.shape) list) =
   List.filter_map
     (fun (name, shape) ->
-      let refused message =
-        Some { Decode.file = Go_types.path; pointer = ""; message }
-      in
-      match List.assoc_opt name declared with
-      | None ->
-          refused
-            (Printf.sprintf
-               "declares no type %s, and %s is a component of openapi.json" name
-               name)
-      | Some None -> None
-      | Some (Some named) ->
-          let read_as = read_of_go shapes named in
-          if held shape = read_as then None
-          else
+      if List.mem name by_name then None
+      else
+        let refused message =
+          Some { Decode.file = Go_types.path; pointer = ""; message }
+        in
+        match List.assoc_opt name declared with
+        | None ->
             refused
               (Printf.sprintf
-                 "writes %s as an alias of %s, which is read as %s, and its \
-                  schema requires %s of it"
-                 name named
-                 (Yojson.Safe.to_string (Shape.to_json ~pairs:false read_as))
-                 (Yojson.Safe.to_string
-                    (Shape.to_json ~pairs:false (held shape)))))
+                 "declares no type %s, and %s is a component of openapi.json"
+                 name name)
+        | Some None -> None
+        | Some (Some named) ->
+            let read_as = read_of_go shapes named in
+            if held shape = read_as then None
+            else
+              refused
+                (Printf.sprintf
+                   "writes %s as an alias of %s, which is read as %s, and its \
+                    schema requires %s of it"
+                   name named
+                   (Yojson.Safe.to_string (Shape.to_json ~pairs:false read_as))
+                   (Yojson.Safe.to_string
+                      (Shape.to_json ~pairs:false (held shape)))))
     shapes

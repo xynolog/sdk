@@ -241,6 +241,20 @@ def test_an_entry_with_no_refresh_token_is_no_sign_in_to_hold(tmp_path: Path) ->
     assert run(SignInStore(path).entry("local").held()) is None
 
 
+def test_an_entry_whose_access_token_is_empty_is_no_sign_in(tmp_path: Path) -> None:
+    path = tmp_path / FILE_NAME
+
+    def stored(token: str) -> JsonObject:
+        return {"token": token, "refreshToken": "refresh-1", "obtainedAt": "x", "issuer": ISSUER, "tokenEndpoint": "t"}
+
+    path.write_text(json.dumps({"empty": stored(""), "held": stored("access-1")}))
+
+    assert run(SignInStore(path).entry("empty").held()) is None
+    held_now = run(SignInStore(path).entry("held").held())
+    assert held_now is not None
+    assert held_now.access == "access-1"
+
+
 def test_what_the_file_holds_that_is_not_this_sign_in_is_written_back_as_it_was(tmp_path: Path) -> None:
     path = tmp_path / FILE_NAME
     store = SignInStore(path)

@@ -8,6 +8,7 @@ import kotlinx.serialization.SerializationException
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
+import xynolog.bus.readOf
 import xynolog.errors.SignInError
 import xynolog.errors.SignInErrorCode
 import xynolog.session.textClaim
@@ -127,11 +128,13 @@ public class SignInStore(path: Path) {
     }
 }
 
-/** A member of the document as a sign-in. One that is not a sign-in is none. */
+/** A member of the document as a sign-in. One with a fault as the table holds a sign-in to (an empty token, a member it lacks) is none. */
 private fun signInOf(entry: JsonElement?): SignIn? {
     if (entry == null) return null
+    val read = readOf(SignIn.serializer().descriptor, entry)
+    if (read.fault != null) return null
     return try {
-        wireJson.decodeFromJsonElement(SignIn.serializer(), entry)
+        wireJson.decodeFromJsonElement(SignIn.serializer(), read.value)
     } catch (_: IllegalArgumentException) {
         null
     }

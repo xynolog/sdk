@@ -31413,6 +31413,14 @@ internal let requiredSchemas: [String: Shape] = {
       "apiVersion": Shape(ref: "ApiVersion"), "default": Shape(kinds: [.boolean]),
       "name": Shape(kinds: [.string], minLength: 1), "root": Shape(kinds: [.string], minLength: 1),
     ], closed: ["apiVersion", "default", "name", "root"])
+  shapes["SignIn"] = Shape(
+    kinds: [.object], required: ["token", "obtainedAt", "issuer", "tokenEndpoint"],
+    members: [
+      "email": Shape(kinds: [.string]), "expiresAt": Shape(kinds: [.string]),
+      "issuer": Shape(kinds: [.string]), "obtainedAt": Shape(kinds: [.string]),
+      "refreshToken": Shape(kinds: [.string]), "revocationEndpoint": Shape(kinds: [.string]),
+      "token": Shape(ref: "AccessToken"), "tokenEndpoint": Shape(kinds: [.string]),
+    ])
   shapes["SignInOutcome"] = Shape(
     kinds: [.object], required: ["kb"],
     members: ["expected": Shape(ref: "Expected"), "kb": Shape(ref: "KnowledgeBase")],

@@ -5,7 +5,8 @@ let path = "go/internal/required/schemas_gen.json"
 (* What every SDK's table is generated from ([Required.derive]). *)
 let authority =
   "every schema Protocol roots (codegen/lib/roots.ml), each record its tables \
-   state, each client type every SDK generates, and \
+   state, each client type every SDK generates, the sign-in store's entry \
+   (protocol/specs/src/sign-in-store/SignIn.json), and \
    protocol/specs/src/client/discovery-absent.json"
 
 let comment =

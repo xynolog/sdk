@@ -3,8 +3,6 @@
 // Authority:   protocol/specs/src/sign-in-store (SignIn.json, owner-only.json, README.md)
 // Regenerate:  make generate  (codegen/lib/sign_in/sign_in.ml)
 
-import { isObject, isString } from './type-guards';
-
 /** One sign-in to a running stack's knowledge base, as the sign-in store keeps it: the tokens an issuer issued to the script client, and what a renewal and a sign-out need of that issuer, learned once at sign-in. TOKENS, never a password. An entry of <stateDir>/tokens.json (see README.md). */
 export interface SignIn {
   /** The access token: short-lived, sent as a Bearer token. */
@@ -23,22 +21,6 @@ export interface SignIn {
   tokenEndpoint: string;
   /** The issuer's revocation endpoint (RFC 7009), where a sign-out tells it to forget the refresh token. Absent when the issuer has none. */
   revocationEndpoint?: string;
-}
-
-/** Whether `value` is a SignIn: what it requires is there, and every member it has is text. */
-export function isSignIn(value: unknown): value is SignIn {
-  return (
-    isObject(value) &&
-    isString(value['token']) &&
-    (value['refreshToken'] === undefined || isString(value['refreshToken'])) &&
-    (value['email'] === undefined || isString(value['email'])) &&
-    isString(value['obtainedAt']) &&
-    (value['expiresAt'] === undefined || isString(value['expiresAt'])) &&
-    isString(value['issuer']) &&
-    isString(value['tokenEndpoint']) &&
-    (value['revocationEndpoint'] === undefined ||
-      isString(value['revocationEndpoint']))
-  );
 }
 
 /** The directory's mode, in octal, on a system that has modes: its owner reads, writes and enters it, and nobody else does. */

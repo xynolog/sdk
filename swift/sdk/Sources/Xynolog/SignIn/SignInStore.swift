@@ -63,9 +63,11 @@ public final class SignInStore: Sendable {
 private struct StoreEntry: SignInKept {
   let store: SignInStore
   let key: String
-  private func decoded(_ value: JSONValue?) throws -> SignIn? {
+  /// A member of the document as a sign-in: nil for one with a fault as the table holds a sign-in
+  /// to (an empty token, a member it lacks).
+  private func decoded(_ value: JSONValue?) -> SignIn? {
     guard let value else { return nil }
-    return try? JSONDecoder().decode(SignIn.self, from: JSONEncoder().encode(value))
+    return readAs(SignIn.self, value)
   }
   func held() async throws -> StoredSession? {
     try await spawnDetached { try self.heldNow() }.value
@@ -110,7 +112,7 @@ private struct StoreEntry: SignInKept {
   func renewed(read: StoredSession, access: String, refresh: String) async throws -> String? {
     try await spawnDetached {
       try store.change { document -> (String?, Bool) in
-        guard let before = try decoded(document[key]) else { return (nil, false) }
+        guard let before = decoded(document[key]) else { return (nil, false) }
         guard before.token == read.access, before.refreshToken == read.refresh else {
           return (before.token, false)
         }

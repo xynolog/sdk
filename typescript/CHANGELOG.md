@@ -77,6 +77,9 @@ the coming release's, and gathers its changes as they land.
 
 ### Changed
 
+- The sign-in store holds each entry to the Required table's `SignIn`
+  (`faultOf('SignIn', …)`), as every SDK does: an entry with a fault as Protocol's `SignIn` states it, such as an empty
+  access token (an `AccessToken` is at least one character), is no sign-in.
 - A map whose schema names its keys by a schema of their own is keyed by that
   schema's type: `InferenceSpec.providers` is a
   `Partial<Record<InferenceProvider, Provider>>`, and
@@ -216,6 +219,8 @@ the coming release's, and gathers its changes as they land.
 
 ### Removed
 
+- `isSignIn`, which held a value only to the members `SignIn` requires: the
+  store holds an entry to the Required table's `SignIn`.
 - `STARTUP_FETCH_RETRY`. An agent's sign-in (`agentToken`, and so
   `startAgentSession`) is made once, as every SDK makes it: a failure is
   thrown as it came, and starting the sign-in again is the service's, on its

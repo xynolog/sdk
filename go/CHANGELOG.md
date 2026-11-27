@@ -58,6 +58,9 @@ the coming release's, and gathers its changes as they land.
 
 ### Changed
 
+- The sign-in store holds each entry to the Required table's `SignIn`, as
+  every SDK does: an entry with a fault as Protocol's `SignIn` states it, such as an empty
+  access token (an `AccessToken` is at least one character), is no sign-in. It held an entry only to the members it lacked.
 - Package `discovery` refuses a read that holds none of `DiscoveryRead`'s
   members, or a state that is none of `DiscoveryState`'s, where it panicked:
   `ParseDiscoveryDocument` returns `(api.DiscoveryState, error)`,

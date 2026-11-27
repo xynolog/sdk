@@ -14,7 +14,6 @@ type t = {
   title : string;  (** The type's name. *)
   description : string;
   fields : field list;
-  required : string list;
 }
 
 let is_word ~first name =
@@ -103,6 +102,5 @@ let read ~file (schema : Schema.t) =
               title;
               description = Option.value s.description ~default:"";
               fields;
-              required;
             }
       | errors -> Error errors)

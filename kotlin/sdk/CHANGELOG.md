@@ -52,6 +52,9 @@ the coming release's, and gathers its changes as they land.
 
 ### Changed
 
+- The sign-in store holds each entry to the Required table's `SignIn`, as
+  every SDK does: an entry with a fault as Protocol's `SignIn` states it, such as an empty
+  access token (an `AccessToken` is at least one character), is no sign-in.
 - A frame's refusal is Protocol's `xynolog.types.FrameRefusal`, where the SDK
   wrote its own `xynolog.transport.FrameRefusal`. A transport and a typed read
   carry it as `Refused`, the `Carried` and `Heard` beside `Frame` and
