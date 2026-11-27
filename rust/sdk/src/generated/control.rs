@@ -1,26 +1,5 @@
 // Generated from protocol/specs/src/control/methods.json; do not edit.
 // Regenerate: make generate (codegen/lib/rust_types/rust_types.ml)
-/// Which side of the control API sends a notification.
-#[derive(
-    Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, serde::Deserialize, serde::Serialize,
-)]
-pub enum ControlSender {
-    #[serde(rename = "client")]
-    Client,
-    #[serde(rename = "launcher")]
-    Launcher,
-}
-
-impl ControlSender {
-    /// The value as the wire spells it.
-    pub const fn as_str(&self) -> &'static str {
-        match self {
-            ControlSender::Client => "client",
-            ControlSender::Launcher => "launcher",
-        }
-    }
-}
-
 /// `launcher.about`: What the launcher is: its version, the API versions it speaks, the runtimes it detects. It reads none of the machine's state.
 pub struct LauncherAbout;
 impl ControlMethod for LauncherAbout {

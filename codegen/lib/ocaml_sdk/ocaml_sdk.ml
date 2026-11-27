@@ -35,7 +35,10 @@ let files ~root (spec : Spec.t) =
   in
   let* records = Records.derive spec typing table in
   let* held_job = Held_job_members.file spec records in
-  let* codes = Error_codes.Table.derive spec.tables.errors_codes in
+  let* codes =
+    Error_codes.Table.derive ~rpc_codes:spec.tables.control_rpc_codes
+      spec.tables.errors_codes
+  in
   let* http = Http_facts.file codes in
   let* facts = Facts.files spec in
   let* user_field = User_stamp.field spec.tables.identifiers_kinds in

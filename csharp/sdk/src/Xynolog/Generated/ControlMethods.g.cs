@@ -3,12 +3,6 @@
 // Regenerate: make generate (codegen/lib/csharp_sdk/control.ml)
 namespace Xynolog.Control;
 
-public enum ControlSender
-{
-    Client,
-    Launcher,
-}
-
 public static class ControlMethods
 {
     /// <summary>What the launcher is: its version, the API versions it speaks, the runtimes it detects. It reads none of the machine's state.</summary>
@@ -72,20 +66,20 @@ public static class ControlMethods
     public static ControlMethod<global::Xynolog.Types.ServiceSignalParams, global::Xynolog.Types.ServiceSignalResult> ServiceSignal { get; } = new("service.signal", false, []);
 
     /// <summary>A line of what a request is doing.</summary>
-    public static ControlNotification<global::Xynolog.Types.Progress> NotificationsProgress { get; } = new("notifications/progress", ControlSender.Launcher);
+    public static ControlNotification<global::Xynolog.Types.Progress> NotificationsProgress { get; } = new("notifications/progress", global::Xynolog.Types.ControlSender.Launcher);
 
     /// <summary>A sign-in waits for a person to enter a code.</summary>
-    public static ControlNotification<global::Xynolog.Types.UserAction> NotificationsUserAction { get; } = new("notifications/userAction", ControlSender.Launcher);
+    public static ControlNotification<global::Xynolog.Types.UserAction> NotificationsUserAction { get; } = new("notifications/userAction", global::Xynolog.Types.ControlSender.Launcher);
 
     /// <summary>A line a followed service wrote.</summary>
-    public static ControlNotification<global::Xynolog.Types.LogRecord> NotificationsLog { get; } = new("notifications/log", ControlSender.Launcher);
+    public static ControlNotification<global::Xynolog.Types.LogRecord> NotificationsLog { get; } = new("notifications/log", global::Xynolog.Types.ControlSender.Launcher);
 
     /// <summary>A run's instance is running.</summary>
-    public static ControlNotification<global::Xynolog.Types.ServiceStarted> NotificationsServiceStarted { get; } = new("notifications/serviceStarted", ControlSender.Launcher);
+    public static ControlNotification<global::Xynolog.Types.ServiceStarted> NotificationsServiceStarted { get; } = new("notifications/serviceStarted", global::Xynolog.Types.ControlSender.Launcher);
 
     /// <summary>A line a run's instance wrote.</summary>
-    public static ControlNotification<global::Xynolog.Types.ServiceOutput> NotificationsServiceOutput { get; } = new("notifications/serviceOutput", ControlSender.Launcher);
+    public static ControlNotification<global::Xynolog.Types.ServiceOutput> NotificationsServiceOutput { get; } = new("notifications/serviceOutput", global::Xynolog.Types.ControlSender.Launcher);
 
     /// <summary>The client gives up on a request.</summary>
-    public static ControlNotification<global::Xynolog.Types.Cancelled> NotificationsCancelled { get; } = new("notifications/cancelled", ControlSender.Client);
+    public static ControlNotification<global::Xynolog.Types.Cancelled> NotificationsCancelled { get; } = new("notifications/cancelled", global::Xynolog.Types.ControlSender.Client);
 }

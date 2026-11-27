@@ -132,16 +132,17 @@ public sealed partial class SignInStore
         }
     }
 
-    /// <summary>Where the store lives on an operating system (<c>macos</c>, <c>windows</c> or any other, which follows the
-    /// XDG layout), or null when no home directory is known.</summary>
-    public static string? StateDirectory(string os, string? home, string? xdgStateHome = null, string? localAppData = null)
+    /// <summary>Where the store lives on a system (macOS, Windows or any other, which follows the XDG layout), or null
+    /// when no home directory is known.</summary>
+    public static string? StateDirectory(global::Xynolog.Types.System system, string? home, string? xdgStateHome = null, string? localAppData = null)
     {
         if (string.IsNullOrEmpty(home)) return null;
-        return os switch
+        return system switch
         {
-            "macos" => home.TrimEnd('/') + "/Library/Application Support/xynolog",
-            "windows" => (string.IsNullOrEmpty(localAppData) ? home.TrimEnd('\\') + "\\AppData\\Local" : localAppData.TrimEnd('\\')) + "\\xynolog",
-            _ => (string.IsNullOrEmpty(xdgStateHome) ? home.TrimEnd('/') + "/.local/state" : xdgStateHome.TrimEnd('/')) + "/xynolog",
+            global::Xynolog.Types.System.Macos => home.TrimEnd('/') + "/Library/Application Support/xynolog",
+            global::Xynolog.Types.System.Windows => (string.IsNullOrEmpty(localAppData) ? home.TrimEnd('\\') + "\\AppData\\Local" : localAppData.TrimEnd('\\')) + "\\xynolog",
+            global::Xynolog.Types.System.Other => (string.IsNullOrEmpty(xdgStateHome) ? home.TrimEnd('/') + "/.local/state" : xdgStateHome.TrimEnd('/')) + "/xynolog",
+            _ => throw new ArgumentOutOfRangeException(nameof(system), system, "No system."),
         };
     }
 }

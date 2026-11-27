@@ -239,7 +239,10 @@ let files ~root (spec : Spec.t) =
                Error (refused "openapi.json" (name ^ ": " ^ message)))
          models.definitions)
   in
-  let* codes = Error_codes.Table.derive spec.tables.errors_codes in
+  let* codes =
+    Error_codes.Table.derive ~rpc_codes:spec.tables.control_rpc_codes
+      spec.tables.errors_codes
+  in
   let* round_trip =
     within "openapi.json"
       (Companions.round_trip_module

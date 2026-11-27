@@ -6,14 +6,6 @@ package control
 
 import "github.com/xynolog/sdk/go/api"
 
-// Sender is who sends a notification.
-type Sender string
-
-const (
-	SenderClient   Sender = "client"
-	SenderLauncher Sender = "launcher"
-)
-
 var (
 	// LauncherAbout: What the launcher is: its version, the API versions it
 	// speaks, the runtimes it detects. It reads none of the machine's state.
@@ -99,20 +91,20 @@ var (
 
 var (
 	// NotificationsProgress: A line of what a request is doing.
-	NotificationsProgress = Notification[api.Progress]{Name: "notifications/progress", From: SenderLauncher}
+	NotificationsProgress = Notification[api.Progress]{Name: "notifications/progress", From: api.ControlSenderLauncher}
 
 	// NotificationsUserAction: A sign-in waits for a person to enter a code.
-	NotificationsUserAction = Notification[api.UserAction]{Name: "notifications/userAction", From: SenderLauncher}
+	NotificationsUserAction = Notification[api.UserAction]{Name: "notifications/userAction", From: api.ControlSenderLauncher}
 
 	// NotificationsLog: A line a followed service wrote.
-	NotificationsLog = Notification[api.LogRecord]{Name: "notifications/log", From: SenderLauncher}
+	NotificationsLog = Notification[api.LogRecord]{Name: "notifications/log", From: api.ControlSenderLauncher}
 
 	// NotificationsServiceStarted: A run's instance is running.
-	NotificationsServiceStarted = Notification[api.ServiceStarted]{Name: "notifications/serviceStarted", From: SenderLauncher}
+	NotificationsServiceStarted = Notification[api.ServiceStarted]{Name: "notifications/serviceStarted", From: api.ControlSenderLauncher}
 
 	// NotificationsServiceOutput: A line a run's instance wrote.
-	NotificationsServiceOutput = Notification[api.ServiceOutput]{Name: "notifications/serviceOutput", From: SenderLauncher}
+	NotificationsServiceOutput = Notification[api.ServiceOutput]{Name: "notifications/serviceOutput", From: api.ControlSenderLauncher}
 
 	// NotificationsCancelled: The client gives up on a request.
-	NotificationsCancelled = Notification[api.Cancelled]{Name: "notifications/cancelled", From: SenderClient}
+	NotificationsCancelled = Notification[api.Cancelled]{Name: "notifications/cancelled", From: api.ControlSenderClient}
 )

@@ -42,6 +42,8 @@ use tokio::task::AbortHandle;
 /// How often a launcher's document is read again, unless told otherwise.
 pub const DISCOVERY_INTERVAL: Duration = crate::timing::DISCOVERY_INTERVAL;
 
+include!("generated/discovery_url_path.rs");
+
 fn absent(reason: DiscoveryAbsentReason, diagnostic: impl Into<String>) -> DiscoveryState {
     DiscoveryState::DiscoveryAbsent(DiscoveryAbsent {
         diagnostic: Some(diagnostic.into()),
@@ -111,19 +113,6 @@ pub fn parse_discovery_document(text: &str) -> DiscoveryState {
             );
         }
     };
-    if let Some(kb) = document
-        .kbs
-        .iter()
-        .find(|kb| !(1..=65535).contains(&kb.port))
-    {
-        return absent(
-            Invalid,
-            format!(
-                "kb entry at {} has port {}, which is not a port",
-                kb.host, kb.port
-            ),
-        );
-    }
     DiscoveryState::DiscoveryManaged(DiscoveryManaged::new(document.kbs))
 }
 

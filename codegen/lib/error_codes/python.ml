@@ -32,6 +32,55 @@ let union (v : Table.vocabulary) =
 let returning pairs =
   List.map (fun (case, result) -> (case, [ P.Return result ])) pairs
 
+let rpc_constant r = "CONTROL_RPC_" ^ Text.upper_snake (Table.rpc_pascal r)
+
+(* A function of a control code that returns what [value] says of it, a case
+   for each code. *)
+let answering (t : Table.t) ~doc ~returns name value =
+  P.Def
+    {
+      name;
+      params = [ ("code", P.Name t.control.name) ];
+      returns = P.Name returns;
+      doc = Some (As_is doc);
+      body =
+        [
+          P.Match
+            ( P.Name "code",
+              returning
+                (List.map
+                   (fun (a : Table.answered) ->
+                     (P.Str a.control_code.code, value a))
+                   t.answered)
+              @ [
+                  ( P.Name "_",
+                    [ P.Do (P.call "assert_never" [ P.item (P.Name "code") ]) ]
+                  );
+                ] );
+        ];
+    }
+
+(* The JSON-RPC codes the control API answers with, a constant each, and the
+   one each control code is answered under, with whether it is retryable. *)
+let control_answers (t : Table.t) =
+  List.map
+    (fun (r : Tables.Control_rpc_codes.codes_item) ->
+      P.assign (rpc_constant r) ~annotation:(P.Name "Final")
+        ~value:(P.Int r.number) ~doc:(Wrapped r.docs))
+    t.rpc_codes
+  @ [
+      answering t ~returns:"int" "control_rpc_code"
+        ~doc:
+          "The JSON-RPC code of control/rpc-codes.json an answer carries a \
+           control code under." (fun a -> P.Name (rpc_constant a.rpc));
+      answering t ~returns:"bool" "control_code_retryable"
+        ~doc:
+          "Whether the same request can succeed sent again unchanged, once \
+           something outside it changes: what `ErrorData.retryable` says of \
+           the code." (fun a ->
+          P.Name (if a.retryable then "True" else "False"));
+    ]
+
 let text (t : Table.t) =
   let vocabularies = Table.vocabularies t in
   let exported =
@@ -43,7 +92,10 @@ let text (t : Table.t) =
           "LIMIT_REFUSAL_TRANSPORT_CODES";
           "bus_request_code_for_wire_code";
           "transport_error_code_for_status";
-        ])
+          "control_rpc_code";
+          "control_code_retryable";
+        ]
+      @ List.map rpc_constant t.rpc_codes)
   in
   let str (c : Table.code) = P.Str c.code in
   P.text
@@ -179,7 +231,8 @@ let text (t : Table.t) =
                     too: its status, its `LimitRefusal` code, and the \
                     transport code it is.");
           ]
-        @ List.concat_map union (t.others @ [ t.control ]);
+        @ List.concat_map union (t.others @ [ t.control ])
+        @ control_answers t;
     }
 
 let file t = { Output.path; text = text t }

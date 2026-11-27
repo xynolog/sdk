@@ -8,34 +8,26 @@ package xynolog
 import (
 	"runtime"
 	"strings"
-)
 
-// System is what a state home differs by: macOS, Windows, and every other
-// system.
-type System string
-
-const (
-	SystemMacOS   System = "macos"
-	SystemWindows System = "windows"
-	SystemOther   System = "other"
+	"github.com/xynolog/sdk/go/api"
 )
 
 // ThisSystem is the system this program runs on.
-func ThisSystem() System {
+func ThisSystem() api.System {
 	switch runtime.GOOS {
 	case "darwin":
-		return SystemMacOS
+		return api.SystemMacos
 	case "windows":
-		return SystemWindows
+		return api.SystemWindows
 	}
-	return SystemOther
+	return api.SystemOther
 }
 
 // under is names below base, joined with system's separator, whichever system
 // this program runs on: a case gives one answer on any machine.
-func under(system System, base string, names ...string) string {
+func under(system api.System, base string, names ...string) string {
 	separator := "/"
-	if system == SystemWindows {
+	if system == api.SystemWindows {
 		separator = `\`
 	}
 	return strings.TrimRight(base, separator) + separator + strings.Join(names, separator)
@@ -46,13 +38,13 @@ func under(system System, base string, names ...string) string {
 // Windows), xdgStateHome is XDG_STATE_HOME and localAppData is LOCALAPPDATA,
 // each "" when it is not set. False when there is no home, and so no state
 // home: nothing is read or written.
-func StateDir(system System, home, xdgStateHome, localAppData string) (string, bool) {
+func StateDir(system api.System, home, xdgStateHome, localAppData string) (string, bool) {
 	switch {
 	case home == "":
 		return "", false
-	case system == SystemMacOS:
+	case system == api.SystemMacos:
 		return under(system, home, "Library", "Application Support", "xynolog"), true
-	case system == SystemWindows:
+	case system == api.SystemWindows:
 		if localAppData == "" {
 			localAppData = under(system, home, "AppData", "Local")
 		}

@@ -215,7 +215,7 @@ public sealed class SignInStoreTests
         foreach (var row in table.RootElement.GetProperty("cases").EnumerateArray())
         {
             string? Value(string name) => row.TryGetProperty(name, out var value) && value.ValueKind == JsonValueKind.String ? value.GetString() : null;
-            Assert.Equal(Value("dir"), SignInStore.StateDirectory(Value("os") ?? throw new InvalidOperationException("No OS"), Value("home"), Value("xdgStateHome"), Value("localAppData")));
+            Assert.Equal(Value("dir"), SignInStore.StateDirectory(row.GetProperty("os").Deserialize<global::Xynolog.Types.System>(), Value("home"), Value("xdgStateHome"), Value("localAppData")));
         }
     }
 }

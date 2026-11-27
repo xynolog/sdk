@@ -13,6 +13,7 @@ from spec import JsonObject
 
 from xynolog.discovery import (
     DISCOVERY_INTERVAL_MS,
+    DISCOVERY_URL_PATH,
     DiscoveryAbsentReason,
     DiscoveryTransport,
     parse_discovery_document,
@@ -35,7 +36,6 @@ _JSON: Final = TypeAdapter[JsonValue](JsonValue)
 
 A: Final = "did:web:example.org:kb-a"
 B: Final = "did:web:example.org:kb-b"
-PATH: Final = "/discovery/kbs.json"
 
 
 def entry(host: str, port: int, did: str) -> JsonObject:
@@ -310,15 +310,15 @@ def served(body: str, *, content_type: str = "application/json", etag: str | Non
 def test_a_document_that_has_not_changed_is_not_read_again() -> None:
     async def scenario() -> tuple[DiscoveryRead, DiscoveryRead, DiscoveryRead, list[str | None]]:
         async with GatewayServer() as gateway:
-            gateway.scripted[("GET", PATH)] = [
+            gateway.scripted[("GET", DISCOVERY_URL_PATH)] = [
                 served(document(entry("localhost", 4000, A)), etag='"v1"'),
                 Answer(status=304, body=b""),
                 # A new document has a new tag, and is read.
                 served(document(), content_type="application/json; charset=utf-8", etag='"v2"'),
             ]
-            reader = http_discovery(f"{gateway.origin}{PATH}")
+            reader = http_discovery(f"{gateway.origin}{DISCOVERY_URL_PATH}")
             reads = await reader.read(), await reader.read(), await reader.read()
-            return *reads, [asked.headers.get("if-none-match") for asked in gateway.of("GET", PATH)]
+            return *reads, [asked.headers.get("if-none-match") for asked in gateway.of("GET", DISCOVERY_URL_PATH)]
 
     first, second, third, tags = run(scenario())
     assert first == DiscoveryManaged(kind="managed", kbs=[kb(entry("localhost", 4000, A))])
@@ -330,7 +330,7 @@ def test_a_document_that_has_not_changed_is_not_read_again() -> None:
 def test_what_is_not_a_document_at_the_address_is_absent() -> None:
     async def scenario() -> tuple[list[DiscoveryRead], list[str | None], DiscoveryRead]:
         async with GatewayServer() as gateway:
-            gateway.scripted[("GET", PATH)] = [
+            gateway.scripted[("GET", DISCOVERY_URL_PATH)] = [
                 # A server that answers every path with its own page.
                 served("<!doctype html>", content_type="text/html", etag='"page"'),
                 served("<!doctype html>", content_type="text/html", etag='"page"'),
@@ -338,10 +338,10 @@ def test_what_is_not_a_document_at_the_address_is_absent() -> None:
                 served("{", etag='"bad"'),
                 served("{", etag='"bad"'),
             ]
-            reader = http_discovery(f"{gateway.origin}{PATH}")
+            reader = http_discovery(f"{gateway.origin}{DISCOVERY_URL_PATH}")
             reads = [await reader.read() for _ in range(5)]
-            tags = [asked.headers.get("if-none-match") for asked in gateway.of("GET", PATH)]
-        nowhere = await http_discovery(f"http://127.0.0.1:9{PATH}").read()
+            tags = [asked.headers.get("if-none-match") for asked in gateway.of("GET", DISCOVERY_URL_PATH)]
+        nowhere = await http_discovery(f"http://127.0.0.1:9{DISCOVERY_URL_PATH}").read()
         return reads, tags, nowhere
 
     reads, tags, nowhere = run(scenario())
@@ -361,8 +361,8 @@ def test_what_is_not_a_document_at_the_address_is_absent() -> None:
 def test_a_launchers_document_that_is_never_served_is_unreadable_at_the_deadline() -> None:
     async def scenario() -> tuple[DiscoveryRead, float]:
         async with GatewayServer() as gateway:
-            gateway.scripted[("GET", PATH)] = [Answer(hold=True)]
-            reader = http_discovery(f"{gateway.origin}{PATH}")
+            gateway.scripted[("GET", DISCOVERY_URL_PATH)] = [Answer(hold=True)]
+            reader = http_discovery(f"{gateway.origin}{DISCOVERY_URL_PATH}")
             loop = asyncio.get_running_loop()
             started = loop.time()
             read = await hurried(reader.read())
@@ -380,7 +380,7 @@ def test_a_reader_given_a_client_reads_through_it_follows_a_redirect_whatever_th
     def launcher(request: httpx.Request) -> httpx.Response:
         asked.append(request.url.path)
         if request.url.path == "/moved":
-            return httpx.Response(302, headers={"Location": PATH})
+            return httpx.Response(302, headers={"Location": DISCOVERY_URL_PATH})
         return httpx.Response(200, headers={"Content-Type": "application/json"}, text=document(entry("localhost", 4000, A)))
 
     async def scenario() -> tuple[DiscoveryRead, bool]:
@@ -391,5 +391,5 @@ def test_a_reader_given_a_client_reads_through_it_follows_a_redirect_whatever_th
 
     read, closed = run(scenario())
     assert read == DiscoveryManaged(kind="managed", kbs=[kb(entry("localhost", 4000, A))])
-    assert asked == ["/moved", PATH]
+    assert asked == ["/moved", DISCOVERY_URL_PATH]
     assert not closed

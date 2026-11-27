@@ -25,7 +25,7 @@ the coming release's, and gathers its changes as they land.
 - Package `control`, the launcher's control API: each method a
   `control.Method[P, R]` and each notification a `control.Notification[P]`,
   typed by `api`'s types of their schemas, with whether a method is exclusive,
-  what it may send, and who sends a notification (`control.Sender`).
+  what it may send, and who sends a notification (`api.ControlSender`).
 - `ControlErrorCode`, the control API's error codes, generated with the other
   error codes.
 - `RetryRuleJob`, the rule a job's retry budget follows. Every rule's sets
@@ -45,6 +45,13 @@ the coming release's, and gathers its changes as they land.
   type of its own schema, read from the table as Protocol holds it.
 - `ArchivistRoute`: each operation of the Archivist's HTTP surface, its method
   and its path (`ArchivistRouteGetHealth`, `ArchivistRouteStoreResource`, …).
+- `api.ControlRpcCode`, each code of `control/rpc-codes.json`
+  (`api.ControlRpcCodeInternalError`, …), and `ControlErrorCode.Rpc` and
+  `Retryable`: the JSON-RPC code each control error code is answered with, and
+  whether a request it failed is worth sending again, generated from
+  `control/rpc-codes.json` and `errors/codes.json`.
+- `discovery.DiscoveryURLPath`, where a launcher's discovery document is,
+  generated from `client/surface.json`.
 
 ### Changed
 
@@ -189,6 +196,9 @@ the coming release's, and gathers its changes as they land.
   when every option is nil), and `Match.Search` no longer sends
   `useSemanticScoring` true. A stated value is sent as stated, and a list or
   a search stating a limit of 100 is no longer the one stating none.
+- `StateDir` takes Protocol's `api.System` (`api.SystemMacos`,
+  `api.SystemWindows`, `api.SystemOther`), where the package declared its own
+  `System`.
 - The discovery types are Protocol's (protocol#126), in `api`, where they
   were hand-written in `discovery`: `ParseDiscoveryDocument` gives an
   `api.DiscoveryState`, `DiscoveryTransport.Read` an `api.DiscoveryRead`, and

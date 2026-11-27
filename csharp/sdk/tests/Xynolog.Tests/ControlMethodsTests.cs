@@ -46,7 +46,7 @@ public sealed class ControlMethodsTests
                 var stated = notifications[name];
                 Assert.True(seenNotifications.Add(name));
                 Assert.Equal<string>(new[] { Schema(stated, "params") }, arguments);
-                var from = Member<ControlSender>(value, nameof(ControlNotification<object>.From));
+                var from = Member<Xynolog.Types.ControlSender>(value, nameof(ControlNotification<object>.From));
                 Assert.Equal(stated.GetProperty("from").GetString(), from.ToString().ToLowerInvariant());
             }
         }

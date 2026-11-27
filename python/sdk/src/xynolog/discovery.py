@@ -30,6 +30,7 @@ from typing import Final, Protocol, final, get_args, override
 
 from pydantic import JsonValue, TypeAdapter, ValidationError
 
+from xynolog._discovery_url_path import DISCOVERY_URL_PATH
 from xynolog.required import Fault, read_as
 from xynolog.timing import DISCOVERY_INTERVAL_MS
 from xynolog.types import (
@@ -46,6 +47,7 @@ from xynolog.types import (
 
 __all__ = [
     "DISCOVERY_INTERVAL_MS",
+    "DISCOVERY_URL_PATH",
     "DiscoveryAbsentReason",
     "DiscoveryTransport",
     "parse_discovery_document",
@@ -97,11 +99,6 @@ def parse_discovery_document(text: str) -> DiscoveryState:
     document = read_as(DiscoveryDocument, text, lambda read: DiscoveryDocument.model_validate(read, strict=True))
     if isinstance(document, Fault):
         return DiscoveryAbsent(kind="absent", reason="invalid", diagnostic=f"the document is no discovery document: {document}")
-    for kb in document.kbs:
-        if not 1 <= kb.port <= 65535:
-            return DiscoveryAbsent(
-                kind="absent", reason="invalid", diagnostic=f"kb entry at {kb.host} has port {kb.port}, which is not a port"
-            )
     return DiscoveryManaged(kind="managed", kbs=document.kbs)
 
 

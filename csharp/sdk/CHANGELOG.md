@@ -15,8 +15,8 @@ the coming release's, and gathers its changes as they land.
   `SignInStoreOwnerOnly`.
 - `Xynolog.Control`: the launcher's control API. `ControlMethods` holds each
   method as a `ControlMethod<TParams, TResult>` and each notification as a
-  `ControlNotification<TParams>`, typed by the models of what it carries, and
-  `ControlSender` says which side sends a notification.
+  `ControlNotification<TParams>`, typed by the models of what it carries, with
+  the `Xynolog.Types.ControlSender` that sends a notification.
 - `Xynolog.Services.ServiceEnvironmentVariable`: every environment variable a
   Xynolog service reads, beside its configuration document, a constant of its
   name (`XynologBusLog`). The bus log reads its variable by it.
@@ -45,6 +45,13 @@ the coming release's, and gathers its changes as they land.
   token and response headers, and the archivist's layout and default entity
   types. `ArchivistRoutes` names each operation of the archivist's HTTP
   surface as a `ServiceRoute`.
+- `ControlRpcCode`, each code of `control/rpc-codes.json`, and
+  `ControlErrorCode.Rpc(code)` and `ControlErrorCode.Retryable(code)`: the
+  JSON-RPC code each control error code is answered with, and whether a
+  request it failed is worth sending again, generated from
+  `control/rpc-codes.json` and `errors/codes.json`.
+- `LauncherDiscovery.DiscoveryUrlPath`, where a launcher's discovery document
+  is, generated from `client/surface.json`.
 
 ### Changed
 
@@ -217,6 +224,8 @@ the coming release's, and gathers its changes as they land.
   `Match.Search` no `useSemanticScoring` of true, when the caller leaves them
   out: the service's own default applies. Options to `Gather.Annotation` that
   state nothing are not sent.
+- `SignInStore.StateDirectory` takes Protocol's `Xynolog.Types.System`, where
+  it took the system's name as a string.
 - The discovery types are Protocol's (protocol#126), in `Xynolog.Types`,
   where they were hand-written in `Xynolog.Discovery`: `DiscoveryState` is a
   `DiscoveryState.DiscoveryAbsent` or a `DiscoveryState.DiscoveryManaged`,
