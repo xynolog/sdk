@@ -215,8 +215,9 @@ writes:
   tests drive; its HTTP routes and
   what a refused credential is, from the reference transport; its
   transport's facts, from `TRANSPORT-HTTP.md`; its bus's channels and
-  operations, with each operation's failure; the worker's channels and
-  records, from `typescript/sdk/src/claims.ts`; the facts of tables no group
+  operations, with each operation's failure; the worker's channels, each
+  constant of `client/surface.json` that names them, as the
+  `worker-channels` group resolves it; the facts of tables no group
   writes for it; and its manifest, with the repository's `LICENSE`. A
   schema that states a keyword the SDK's validator does not read is refused,
   as is a model module no schema makes any more. The `error-codes`, `timing`,
