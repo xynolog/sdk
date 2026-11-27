@@ -1,8 +1,10 @@
 """The base of every shape the protocol states, and how one is written to the wire."""
 
+from typing import final
+
 from pydantic import BaseModel, JsonValue
 
-__all__ = ["WireModel", "stated", "written"]
+__all__ = ["Empty", "Response", "WireModel", "stated", "written"]
 
 
 class WireModel(BaseModel, frozen=True, validate_by_name=True, validate_by_alias=True, serialize_by_alias=True):
@@ -16,6 +18,18 @@ class WireModel(BaseModel, frozen=True, validate_by_name=True, validate_by_alias
     the class's own line, and refuses one that leaves it out. A class's
     configuration is its class keywords, here and in every subclass.
     """
+
+
+@final
+class Empty(WireModel, frozen=True, extra="forbid"):
+    """The payload of a channel that carries none: the empty object."""
+
+
+@final
+class Response[T](WireModel, frozen=True):
+    """The payload of a reply that wraps what it answers with: `{ response }`."""
+
+    response: T
 
 
 def written(model: WireModel) -> dict[str, JsonValue]:

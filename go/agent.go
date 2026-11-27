@@ -23,7 +23,6 @@ import (
 	cryptorand "crypto/rand"
 	"crypto/rsa"
 	"encoding/hex"
-	"encoding/json"
 	"fmt"
 	"io"
 	"math/rand/v2"
@@ -34,6 +33,7 @@ import (
 	"time"
 
 	"github.com/xynolog/sdk/go/api"
+	"github.com/xynolog/sdk/go/internal/required"
 )
 
 // Credential is a service account at an issuer, by how it proves itself: a
@@ -372,8 +372,8 @@ func named(ctx context.Context, config AgentConfig, token string) (api.UserId, e
 		wait, hasWait := RetryAfter(response.Header.Get(HeaderRetryAfter))
 		return api.UserId{}, refusal(fmt.Sprintf("the gateway did not name the agent (HTTP %d)", response.StatusCode), response.StatusCode, wait, hasWait, answered)
 	}
-	var user api.UserResponse
-	if err := json.Unmarshal(answered, &user); err != nil || user.Did.IsZero() {
+	user, read := required.ReadAs[api.UserResponse](answered)
+	if !read {
 		return api.UserId{}, &TransportError{Code: TransportErrorCodeError, Message: target + " did not answer a DID", status: response.StatusCode, hasStatus: true}
 	}
 	return user.Did, nil

@@ -1170,15 +1170,19 @@ export function createActorStateUnit(
               }
               // No count is reported as no count, never as a zero: an absent
               // `subscribers` is the gateway saying it could not count (a broker
-              // signal plane), and an unreadable body says nothing at all. Either way
-              // the emit was accepted, so neither may read as an empty room.
-              let accepted: components['schemas']['BusEmitAccepted'];
+              // signal plane), and a body that is no BusEmitAccepted, as the table
+              // holds it, says nothing at all. Either way the emit was accepted, so
+              // neither may read as an empty room.
+              let accepted: unknown;
               try {
                 accepted = await attempt.json();
               } catch {
                 return undefined;
               }
-              return accepted.subscribers;
+              if (faultOf('BusEmitAccepted', accepted) !== undefined)
+                return undefined;
+              return (accepted as components['schemas']['BusEmitAccepted'])
+                .subscribers;
             }),
           retryableUnlessRefused,
           emitRetry,

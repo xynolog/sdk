@@ -78,6 +78,20 @@ class OpenResourcesTest {
     // What is open in the active knowledge base.
 
     @Test
+    fun tabsStoredWithANullWhereAnOpenResourceAllowsNoneAreNotRead() = runBlocking {
+        // A null is refused, not read as absent.
+        val world = World().with(kbOfA())
+        world.storage.set(
+            OPEN_RESOURCES_BY_KB_KEY,
+            """{"$KB_A":[{"id":"r1","name":"One","openedAt":1,"order":0},{"id":"r2","name":"Two","openedAt":2,"order":1,"mediaType":null}]}""",
+        )
+        world.browser().use { browser ->
+            live(browser)
+            assertEquals(emptyList<String>(), shown(browser))
+        }
+    }
+
+    @Test
     fun resourcesAreOpenedRenamedClosedAndMovedInTheActiveKnowledgeBase() = runBlocking {
         val world = World().with(kbOfA())
         world.browser().use { browser ->

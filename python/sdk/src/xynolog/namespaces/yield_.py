@@ -2,11 +2,10 @@
 
 from typing import Final, final
 
-from xynolog.channel import Empty
 from xynolog.channels import YIELD_CLONE
 from xynolog.identifiers import ResourceId
 from xynolog.media_types import clone_format, storage_uri
-from xynolog.model import stated
+from xynolog.model import Empty, stated
 from xynolog.namespaces.follow import Delegation, follow
 from xynolog.namespaces.links import Links
 from xynolog.operations import YIELD_CLONE_RESOURCE_REQUESTED, YIELD_CLONE_TOKEN_REQUESTED

@@ -334,6 +334,32 @@ def test_a_refused_stream_is_reported_in_the_gateways_words() -> None:
     assert run(scenario()) == "SSE connect failed: 503: the gateway is draining"
 
 
+def test_a_refused_stream_whose_body_is_no_error_response_is_reported_with_no_words() -> None:
+    # A null where the response allows none is refused, not read as absent.
+    async def scenario() -> str:
+        async with GatewayServer() as gateway:
+            gateway.scripted[("POST", "/bus/subscribe")] = [Answer(status=503, body=b'{"error":"the gateway is draining","hint":null}')]
+            async with HttpTransport(gateway.origin, token=Variable[str | None]("t"), channels=CHANNELS, timing=QUICK) as transport:
+                refused = await soon(anext(transport.failures()))
+            return refused.message
+
+    assert run(scenario()) == "SSE connect failed: 503"
+
+
+@pytest.mark.parametrize(
+    ("body", "count"),
+    [(b'{"subscribers":2}', 2), (b"{}", None), (b'{"subscribers":null}', None), (b'{"subscribers":-1}', None)],
+)
+def test_an_accepted_emit_reports_the_count_its_body_states_as_a_bus_emit_accepted(body: bytes, count: int | None) -> None:
+    async def scenario() -> int | None:
+        async with GatewayServer() as gateway:
+            gateway.scripted[("POST", "/bus/emit")] = [Answer(status=202, body=body)]
+            async with HttpTransport(gateway.origin, token=Variable[str | None]("t"), channels=CHANNELS, timing=QUICK) as transport:
+                return await soon(transport.emit("beckon:focus", {"resourceId": "res-1"}))
+
+    assert run(scenario()) == count
+
+
 def test_a_refused_stream_whose_body_never_ends_is_reported_at_the_request_deadline_with_no_words() -> None:
     async def scenario() -> tuple[float, str, int | None]:
         hasty = Timing(reconnect_ms=10, http_request_ms=200)

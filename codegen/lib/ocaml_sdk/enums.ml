@@ -214,6 +214,15 @@ let impl e =
            @ [ O.case O.Pattern.any O.none ]));
     ]
 
+let spec e =
+  O.module_spec e.module_
+    [
+      O.type_spec (t e);
+      O.val_ "to_string" (O.arrow (O.type_ "t") (O.type_ "string"));
+      O.val_ "of_string"
+        (O.arrow (O.type_ "string") (O.type_ "option" ~args:[ O.type_ "t" ]));
+    ]
+
 (* Each enum's members, encoded and decoded, and an unknown value refused,
    with [rest] after. *)
 let test e rest =

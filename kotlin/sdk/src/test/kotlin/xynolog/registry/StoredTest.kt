@@ -91,6 +91,23 @@ private fun writtenOpen(): List<JsonObject> = runBlocking {
  */
 class StoredTest {
     @Test
+    fun whatIsStoredWithANullWhereItsSchemaAllowsNoneIsNotRead() {
+        // A null is refused, not read as absent: a session with one is none, and a knowledge base with one is dropped.
+        val storage = MemoryStorage()
+        storage.set(
+            sessionKey(KB_A),
+            """{"access":"a","refresh":"r","clientId":"xynolog-browser","tokenEndpoint":"https://issuer.test/token","personKey":null}""",
+        )
+        assertNull(storedSession(storage, KB_A))
+        storage.set(
+            KNOWLEDGE_BASES_KEY,
+            """[{"id":"kb-b","label":"KB B","did":"did:web:example.org:kb-b","lastRead":null,"endpoint":{"kind":"http","host":"localhost","port":4001,"protocol":"http"}},""" +
+                """{"id":"kb-a","label":"KB A","did":"did:web:example.org:kb-a","endpoint":{"kind":"http","host":"localhost","port":4000,"protocol":"http"}}]""",
+        )
+        assertEquals(listOf("kb-a"), loadKnowledgeBases(storage).map { it.id })
+    }
+
+    @Test
     fun aKnowledgeBasesSessionIsKeptUnderTheTablesPrefixAndItsId() {
         val prefix = table.getValue("sessionKeyPrefix").jsonObject.getValue("prefix").jsonPrimitive.content
         assertEquals("${prefix}$KB_A", sessionKey(KB_A))
