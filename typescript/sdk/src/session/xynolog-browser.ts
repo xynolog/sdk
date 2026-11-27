@@ -27,6 +27,7 @@ import {
   BusRequestError,
   CHECKS_AT_ONCE_COUNT,
   EventBus,
+  faultOf,
   FrameRefusal,
   getPrimaryRepresentation,
   kbDid,
@@ -92,32 +93,60 @@ function signalled<T>(payload: T | FrameRefusal): T {
   return payload;
 }
 
-/**
- * Tabs are per-KB state: Record<kbId, OpenResource[]>, read from what is
- * stored under `OPEN_RESOURCES_BY_KB_KEY`; none for what does not parse. A
- * flat `openDocuments` key in storage is deliberately ignored: it does not
- * record which KB its entries belong to.
- */
-function openResourcesByKbOf(
+/** What is stored under a per-KB key, as the object it is kept as; none for what is not one. */
+function keptByKbOf(
   stored: string | null,
-): Record<string, OpenResource[]> {
-  if (stored === null) return {};
+): Record<string, unknown> | undefined {
+  if (stored === null) return undefined;
+  let kept: unknown;
   try {
-    return JSON.parse(stored) as Record<string, OpenResource[]>;
+    kept = JSON.parse(stored);
   } catch {
-    return {};
+    return undefined;
   }
+  return typeof kept === 'object' && kept !== null && !Array.isArray(kept)
+    ? (kept as Record<string, unknown>)
+    : undefined;
 }
 
-/** Per-KB last-viewed resource: Record<kbId, resourceId>; none for what does not parse. */
-function lastViewedByKbOf(stored: string | null): Record<string, string> {
-  if (stored === null) return {};
-  try {
-    return JSON.parse(stored) as Record<string, string>;
-  } catch {
-    return {};
-  }
+/**
+ * Tabs are per-KB state: Record<kbId, OpenResource[]>, read from what is
+ * stored under `OPEN_RESOURCES_BY_KB_KEY`, each entry held to `OpenResource`
+ * by the table; none for what does not read as that. A flat `openDocuments`
+ * key in storage is deliberately ignored: it does not record which KB its
+ * entries belong to.
+ */
+function openResourcesByKbIn(
+  stored: string | null,
+): Record<string, OpenResource[]> | undefined {
+  const kept = keptByKbOf(stored);
+  const read =
+    kept !== undefined &&
+    Object.values(kept).every(
+      (entries) =>
+        Array.isArray(entries) &&
+        entries.every((entry) => faultOf('OpenResource', entry) === undefined),
+    );
+  return read ? (kept as Record<string, OpenResource[]>) : undefined;
 }
+
+const openResourcesByKbOf = (
+  stored: string | null,
+): Record<string, OpenResource[]> => openResourcesByKbIn(stored) ?? {};
+
+/** Per-KB last-viewed resource: Record<kbId, resourceId>; none for what does not read as that. */
+function lastViewedByKbIn(
+  stored: string | null,
+): Record<string, string> | undefined {
+  const kept = keptByKbOf(stored);
+  const read =
+    kept !== undefined &&
+    Object.values(kept).every((id) => faultOf('ResourceId', id) === undefined);
+  return read ? (kept as Record<string, string>) : undefined;
+}
+
+const lastViewedByKbOf = (stored: string | null): Record<string, string> =>
+  lastViewedByKbIn(stored) ?? {};
 
 /**
  * Whether a registry takes two endpoints for one place: for a gateway, its
@@ -293,20 +322,17 @@ export class XynologBrowser {
 
     // Sync the per-KB maps from other contexts (cross-tab/cross-process).
     this.unsubscribeStorage = this.storage.subscribe((key, newValue) => {
-      if (!newValue) return;
-      try {
-        if (key === OPEN_RESOURCES_BY_KB_KEY) {
-          this.openByKb = JSON.parse(newValue) as Record<
-            string,
-            OpenResource[]
-          >;
-          this.refreshOpenResources();
-        } else if (key === LAST_VIEWED_RESOURCE_BY_KB_KEY) {
-          this.lastViewedByKb = JSON.parse(newValue) as Record<string, string>;
-          this.refreshLastViewedResource();
-        }
-      } catch {
-        // Ignore parse errors
+      // What does not read as what the key keeps leaves what is held as it is.
+      if (key === OPEN_RESOURCES_BY_KB_KEY) {
+        const open = openResourcesByKbIn(newValue);
+        if (open === undefined) return;
+        this.openByKb = open;
+        this.refreshOpenResources();
+      } else if (key === LAST_VIEWED_RESOURCE_BY_KB_KEY) {
+        const viewed = lastViewedByKbIn(newValue);
+        if (viewed === undefined) return;
+        this.lastViewedByKb = viewed;
+        this.refreshLastViewedResource();
       }
     });
 

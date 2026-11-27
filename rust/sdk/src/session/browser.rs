@@ -55,6 +55,7 @@ use crate::errors::{BusRequestErrorCode, SessionError, TransportErrorCode, Xynol
 use crate::event_bus::EventBus;
 use crate::kept_for_first_reader::KeptForFirstReader;
 use crate::locked;
+use crate::required::read_as;
 use crate::resources::primary_media_type;
 use crate::state::{Held, Tasks};
 use crate::storage::{SessionStorage, StorageSubscription};
@@ -120,6 +121,26 @@ pub struct XynologBrowser {
     inner: Arc<Inner>,
 }
 
+/// What is stored of each knowledge base's open resources, each entry held
+/// to `OpenResource` by the table; none for what does not read as that.
+fn open_by_kb_in(stored: &str) -> Option<HashMap<String, Vec<OpenResource>>> {
+    let kept: HashMap<String, Vec<serde_json::Value>> = serde_json::from_str(stored).ok()?;
+    kept.into_iter()
+        .map(|(kb_id, entries)| {
+            let open = entries
+                .into_iter()
+                .map(read_as)
+                .collect::<Result<_, _>>()
+                .ok()?;
+            Some((kb_id, open))
+        })
+        .collect()
+}
+
+fn open_by_kb(stored: Option<&str>) -> HashMap<String, Vec<OpenResource>> {
+    stored.and_then(open_by_kb_in).unwrap_or_default()
+}
+
 fn by_kb<T: serde::de::DeserializeOwned>(stored: Option<&str>) -> HashMap<String, T> {
     stored
         .and_then(|stored| serde_json::from_str(stored).ok())
@@ -147,7 +168,7 @@ impl XynologBrowser {
             .or_else(|| kbs.first().map(|kb| kb.id.clone()));
         let inner = Arc::new(Inner {
             kept: Mutex::new(Kept {
-                open_by_kb: by_kb(storage.get(OPEN_RESOURCES_BY_KB_KEY).as_deref()),
+                open_by_kb: open_by_kb(storage.get(OPEN_RESOURCES_BY_KB_KEY).as_deref()),
                 last_viewed_by_kb: by_kb(storage.get(LAST_VIEWED_RESOURCE_BY_KB_KEY).as_deref()),
                 ..Kept::default()
             }),
@@ -951,7 +972,7 @@ impl Inner {
         let mut committed = None;
         self.storage
             .update(OPEN_RESOURCES_BY_KB_KEY, &mut |stored| {
-                let mut open: HashMap<String, Vec<OpenResource>> = by_kb(stored);
+                let mut open = open_by_kb(stored);
                 let list = open.remove(&kb_id).unwrap_or_default();
                 open.insert(kb_id.clone(), mutate(list));
                 // A map of lists of structs of strings and numbers always serializes.
@@ -1003,7 +1024,7 @@ impl Inner {
         let mut open = None;
         self.storage
             .update(OPEN_RESOURCES_BY_KB_KEY, &mut |stored| {
-                let mut by: HashMap<String, Vec<OpenResource>> = by_kb(stored);
+                let mut by = open_by_kb(stored);
                 by.remove(kb_id);
                 let written = serde_json::to_string(&by).unwrap_or_default();
                 open = Some(by);
@@ -1025,7 +1046,7 @@ impl Inner {
         let Some(value) = value else { return };
         match key {
             OPEN_RESOURCES_BY_KB_KEY => {
-                if let Ok(open) = serde_json::from_str(value) {
+                if let Some(open) = open_by_kb_in(value) {
                     locked(&self.kept).open_by_kb = open;
                 }
             }

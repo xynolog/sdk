@@ -23,9 +23,10 @@ type agentWorld struct {
 
 	mu     sync.Mutex
 	grants int
-	asked  []string      // each request the gateway was asked: its path and the Authorization it came with
-	refuse bool          // the issuer refuses every grant
-	takes  time.Duration // how long the issuer takes to answer a grant
+	asked  []string       // each request the gateway was asked: its path and the Authorization it came with
+	refuse bool           // the issuer refuses every grant
+	takes  time.Duration  // how long the issuer takes to answer a grant
+	user   map[string]any // what the gateway answers of the agent; nil: its UserResponse
 }
 
 // agentDID is the DID the gateway names the worker's account by.
@@ -65,7 +66,11 @@ func newAgentWorld(t *testing.T) *agentWorld {
 			http.NotFound(rw, r)
 			return
 		}
-		writeJSON(rw, http.StatusOK, map[string]any{"did": agentDID, "email": nil, "name": nil, "image": nil, "domain": "kb.example"})
+		user := map[string]any{"did": agentDID, "email": nil, "name": nil, "image": nil, "domain": "kb.example"}
+		if w.user != nil {
+			user = w.user
+		}
+		writeJSON(rw, http.StatusOK, user)
 	}))
 	t.Cleanup(w.gateway.Close)
 	return w
@@ -260,6 +265,18 @@ func TestAnAgentTheGatewayDoesNotNameIsNotSignedIn(t *testing.T) {
 	var failed *TransportError
 	if !errors.As(err, &failed) {
 		t.Errorf("signed in, or failed as %v, with no gateway to name it", err)
+	}
+}
+
+// A gateway that names the agent with what is no UserResponse fails the
+// sign-in: a null where its schema allows none is refused, not read as absent.
+func TestAnAgentNamedByNoUserResponseIsNotSignedIn(t *testing.T) {
+	w := newAgentWorld(t)
+	w.user = map[string]any{"did": agentDID, "email": nil, "name": nil, "image": nil, "domain": nil}
+	_, err := w.signIn(t, "s3cret")
+	var failed *TransportError
+	if !errors.As(err, &failed) || failed.Code != api.TransportErrorCodeError {
+		t.Errorf("signed in, or failed as %v, named with a null domain", err)
 	}
 }
 

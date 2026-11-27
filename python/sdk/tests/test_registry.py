@@ -374,6 +374,16 @@ def test_a_stored_value_that_lacks_a_member_of_a_session_is_none() -> None:
     assert read.revocation_endpoint is None
 
 
+def test_a_stored_value_with_a_null_where_a_session_allows_none_is_none() -> None:
+    # A null is refused, not read as absent.
+    storage = MemoryStorage()
+    storage.set(
+        session_key(KB_A),
+        '{"access":"a","refresh":"r","clientId":"xynolog-browser","tokenEndpoint":"https://issuer.test/token","personKey":null}',
+    )
+    assert stored_session(storage, KB_A) is None
+
+
 def test_a_session_key_names_its_knowledge_base() -> None:
     assert kb_of_session_key(session_key(KB_A)) == KB_A
     assert kb_of_session_key(ACTIVE_KEY) is None
@@ -1571,5 +1581,36 @@ def test_closing_from_within_the_registrys_own_work_ends_it_without_waiting_for_
             assert await ended(browser.active_session)
             assert browser.bus.destroyed
         # Leaving it closes it again, which is closing once.
+
+    run(scenario())
+
+
+def test_what_is_stored_with_a_null_where_its_schema_allows_none_is_not_read() -> None:
+    # A null is refused, not read as absent: a knowledge base with one is
+    # dropped, and tabs another context writes with one are not read.
+    async def scenario() -> None:
+        world = World()
+        world.storage.set(
+            KNOWLEDGE_BASES_KEY,
+            """[
+                {"id":"kb-b","label":"KB B","did":"did:web:example.org:kb-b","lastRead":null,
+                 "endpoint":{"kind":"http","host":"localhost","port":4001,"protocol":"http"}},
+                {"id":"kb-a","label":"KB A","did":"did:web:example.org:kb-a",
+                 "endpoint":{"kind":"http","host":"localhost","port":4000,"protocol":"http"}}
+            ]""",
+        )
+        store_session(world.storage, KB_A, tokens("r"))
+        world.storage.set(ACTIVE_KEY, KB_A)
+        elsewhere = world.storage.context()
+        async with world.browser() as browser:
+            assert kbs_of(browser) == (kb_of_a(),)
+            await live(browser)
+            browser.add_open_resource(ResourceId("mine"), "Mine")
+            elsewhere.set(
+                OPEN_RESOURCES_BY_KB_KEY,
+                '{"kb-a":[{"id":"theirs","name":"Theirs","openedAt":9,"order":0,"storageUri":null}]}',
+            )
+            await settle()
+            assert shown(browser) == ["mine"]
 
     run(scenario())

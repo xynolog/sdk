@@ -229,6 +229,20 @@ class AuthorizationTest {
     }
 
     @Test
+    fun whatIsPendingWithANullWhereASignInAllowsNoneIsNoSignInAndIsTaken() {
+        // A null is refused, not read as absent.
+        val storage = MemoryStorage()
+        storage.set(
+            PENDING_AUTHORIZATION_KEY,
+            """{"state":"s","verifier":"v","redirectUri":"$REDIRECT","target":{"kind":"http","host":"localhost","port":4000,"protocol":"http"},""" +
+                """"issuer":{"issuer":"https://issuer.test","authorization":"https://issuer.test/auth","token":"https://issuer.test/token"},"kbId":null}""",
+        )
+        val refused = assertThrows(SignInError::class.java) { runBlocking { completeAuthorization("$REDIRECT?state=s&code=the-code", storage) } }
+        assertEquals(SignInErrorCode.NoPending, refused.reason)
+        assertNull(storage.get(PENDING_AUTHORIZATION_KEY))
+    }
+
+    @Test
     fun aTokenEndpointThatRefusesTheCodeSaysWhatItSaidAndTheStatusItAnswered() = runBlocking {
         Realm().use { realm ->
             val storage = MemoryStorage()

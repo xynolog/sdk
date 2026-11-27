@@ -25,8 +25,7 @@ from typing import Final, Literal, TypeAliasType, final, override
 from pydantic import BaseModel, Field, JsonValue, TypeAdapter, ValidationError
 
 from xynolog._required_table import SCHEMAS
-from xynolog.channel import Empty, Response
-from xynolog.model import WireModel
+from xynolog.model import Empty, Response, WireModel
 from xynolog.types import FrameRefusalReason
 
 __all__ = ["UNDECODED", "Bounds", "Fault", "as_read", "bounds_of", "fault_of", "read_as"]

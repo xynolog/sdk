@@ -844,10 +844,11 @@ func refusal(message string, status int, wait time.Duration, hasWait bool, body 
 // limitRefusalTransportCode is the transport code a gateway's refusal of a
 // limit is too, when its status and its LimitRefusal code are one of
 // api.LimitRefusalTransportCodes: a refused credential's, whose holder has
-// had its allowance of refusals. Any other refusal is its status's.
+// had its allowance of refusals. A body that is no LimitRefusal, as the table
+// holds it, is none. Any other refusal is its status's.
 func limitRefusalTransportCode(status int, body []byte) (api.TransportErrorCode, bool) {
-	var limit api.LimitRefusal
-	if json.Unmarshal(body, &limit) != nil {
+	limit, read := required.ReadAs[api.LimitRefusal](body)
+	if !read {
 		return "", false
 	}
 	for _, known := range api.LimitRefusalTransportCodes {

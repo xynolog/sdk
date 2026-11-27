@@ -244,15 +244,19 @@ let start_open t ~verb ?resource ?stall_ms ~params ~on_report ~on_failure
                           status_request
                       in
                       if not !finished then (
-                        (match status with
-                        | Ok value -> (
-                            let response =
-                              Records.Job_status_response.project
-                                (Record_reader.fields_of
-                                   (Yojson.Raw.from_string
-                                      (Yojson.Safe.to_string value)))
-                            in
-                            match response.status with
+                        (match
+                           Result.map
+                             (fun value ->
+                               ( value,
+                                 Models.decode Models.job_status_response
+                                   (Yojson.Safe.to_string value) ))
+                             status
+                         with
+                        | Ok (value, Ok response) -> (
+                            match
+                              (Records.Job_status_response.of_model response)
+                                .status
+                            with
                             | Complete ->
                                 on_report Complete
                                   (`Assoc
@@ -272,7 +276,7 @@ let start_open t ~verb ?resource ?stall_ms ~params ~on_report ~on_failure
                             | Cancelled ->
                                 fail (Job Error_codes.Job.Cancelled) value
                             | Pending | Running -> ())
-                        | Error _ -> ());
+                        | Ok (_, Error _) | Error _ -> ());
                         if Mtime.equal !last_seen previous_activity then (
                           last_seen := Clock.monotonic_now t.clock;
                           polling := true);

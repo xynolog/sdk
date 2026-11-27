@@ -762,6 +762,25 @@ func TestAYieldJobFocusedOnAnAnnotationIsAnchoredToItAndSaysSo(t *testing.T) {
 	}
 }
 
+// A yield job whose context is no GatheredContext, as the table holds it, is
+// anchored to nothing: a null where the context allows none is refused, not
+// read as absent.
+func TestAYieldJobWhoseContextIsNoGatheredContextIsAnchoredToNothing(t *testing.T) {
+	w := newClaimWorld(t)
+	w.offer(running("job-1", "yield", `"maxRetries": 0`, `"context": {"focus": {"kind": "annotation", "annotation": `+annotationJSON("ann-7")+`,
+		"sourceResource": {"@context": "https://schema.org", "@id": "res-1", "name": "A resource", "representations": []}},
+		"graph": {"nodes": [], "edges": []}, "metadata": {}, "semanticContext": null}`))
+	claims := w.client.Job.Claim(claiming(t, everything))
+	defer claims.Close()
+	job, ok := pulling(t, claims).held(t).(*HeldYieldJob)
+	if !ok {
+		t.Fatal("a yield job is held as a *HeldYieldJob")
+	}
+	if !job.AnnotationId().IsZero() {
+		t.Fatalf("anchored to %q by a context with a null semanticContext", job.AnnotationId())
+	}
+}
+
 func TestAFailureSaysWhetherItWillBeRetriedAndACancelSaysOnlyWhatItsCommandNames(t *testing.T) {
 	w := newClaimWorld(t)
 	w.offer(running("job-1", "mark", `"retryCount": 0, "maxRetries": 1`, ""), running("job-2", "mark", `"retryCount": 1, "maxRetries": 1`, ""),

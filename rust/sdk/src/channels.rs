@@ -18,6 +18,8 @@
 //!   resource's scope carries, `Unscoped` for every other. A read of a scoped
 //!   channel names its resource, and one that names none does not compile.
 
+use crate::required::read_as;
+use crate::types::Schema;
 use serde::de::DeserializeOwned;
 use serde::{Deserialize, Serialize};
 
@@ -51,7 +53,7 @@ pub trait Request: Channel {
 /// A channel that carries events of the record: its payload is the stored
 /// event, and `Event` is the type of the event's own payload.
 pub trait Recorded: Channel {
-    type Event: DeserializeOwned;
+    type Event: DeserializeOwned + Schema;
 
     /// The event's own payload, out of the stored event that carries it.
     /// Refused for a stored event of another type: two events can carry
@@ -63,7 +65,7 @@ pub trait Recorded: Channel {
 /// The own payload of a stored event, where the event is of the type
 /// `recorded`, which is its channel's name. `kind`, `id` and `payload` are
 /// the stored event's.
-fn own<E: DeserializeOwned>(
+fn own<E: DeserializeOwned + Schema>(
     recorded: &str,
     kind: &str,
     id: &str,
@@ -73,7 +75,10 @@ fn own<E: DeserializeOwned>(
         let refused = format!("{kind} {id} is not a {recorded} event");
         return Err(<serde_json::Error as serde::de::Error>::custom(refused));
     }
-    serde_json::from_value(serde_json::Value::Object(payload.clone()))
+    read_as(serde_json::Value::Object(payload.clone())).map_err(|fault| {
+        let refused = format!("the payload of {kind} {id} is not its event's: {fault}");
+        <serde_json::Error as serde::de::Error>::custom(refused)
+    })
 }
 
 /// The payload of a reply that carries a response.

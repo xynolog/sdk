@@ -107,6 +107,11 @@ the coming release's, and gathers its changes as they land.
   in place of an id held to `PersistedEventId` by that schema's name.
 - A member that holds null where its schema does not allow null is refused
   as malformed, where it was read as absent.
+- So is one in what the SDK reads beside a request's answer: the emit reply,
+  the agent's `UserResponse`, a stored event, the job anchor, stored tabs and
+  last-viewed, and a 429's `LimitRefusal`. Each takes the way it already had
+  for what does not read. A last-viewed map that holds a null is not read,
+  where the null was read as `""`.
 - `GetAnnotationsResponse`'s `Motivation` carries Protocol's description of
   it. Protocol no longer allows it to be null: a null for it is refused as
   malformed.

@@ -25,7 +25,8 @@ from collections.abc import Mapping
 from types import MappingProxyType
 from typing import Final, Literal
 
-from xynolog.channel import AnyChannel, Channel, Empty, RecordedChannel, Response, ScopedChannel
+from xynolog.channel import AnyChannel, Channel, RecordedChannel, ScopedChannel
+from xynolog.model import Empty, Response
 from xynolog.types import (
     AnnotationAddedPayload,
     AnnotationBodyUpdatedPayload,
