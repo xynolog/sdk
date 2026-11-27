@@ -44,7 +44,7 @@ use crate::locked;
 use crate::session::CACHE_DOCUMENT_VERSION;
 use crate::state_unit::StateUnit;
 use crate::storage::SessionStorage;
-use crate::timing::SAVE_DEBOUNCE;
+use crate::timing::{MAX_STORED_BYTES_COUNT, SAVE_DEBOUNCE};
 use crate::transport::BoxFuture;
 use serde::Serialize;
 use serde::de::DeserializeOwned;
@@ -886,12 +886,11 @@ struct Document<'a> {
 ///
 /// A document whose structure is not that one reads as nothing kept, and an
 /// entry whose key or value is not this cache's is skipped. A document
-/// larger than `max_bytes` loses the entries received longest ago, until it
-/// fits.
+/// larger than `MAX_STORED_BYTES_COUNT` loses the entries received longest
+/// ago, until it fits.
 pub struct StoragePersister<K, V> {
     storage: Arc<dyn SessionStorage>,
     storage_key: String,
-    max_bytes: usize,
     /// Each key's value as last written, and when it was received: an entry
     /// whose value has not changed keeps its time.
     written: Mutex<HashMap<String, (String, u64)>>,
@@ -902,12 +901,10 @@ impl<K, V> StoragePersister<K, V> {
     pub fn new(
         storage: Arc<dyn SessionStorage>,
         storage_key: impl Into<String>,
-        max_bytes: usize,
     ) -> StoragePersister<K, V> {
         StoragePersister {
             storage,
             storage_key: storage_key.into(),
-            max_bytes,
             written: Mutex::new(HashMap::new()),
             of: PhantomData,
         }
@@ -1019,9 +1016,9 @@ impl<K: Serialize, V: Serialize> StoragePersister<K, V> {
             })
         };
         let mut text = serialized(&stored)?;
-        if text.len() > self.max_bytes {
+        if text.len() > MAX_STORED_BYTES_COUNT {
             stored.sort_by_key(|(_, _, at)| *at);
-            while !stored.is_empty() && text.len() > self.max_bytes {
+            while !stored.is_empty() && text.len() > MAX_STORED_BYTES_COUNT {
                 stored.remove(0);
                 text = serialized(&stored)?;
             }

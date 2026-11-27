@@ -209,6 +209,9 @@ the coming release's, and gathers its changes as they land.
   `client_timing` and `transport_timing` between its `http` and its `random`.
 - `Cache::persisted` no longer takes `save_debounce`: it saves
   `timing::SAVE_DEBOUNCE` after its values last changed.
+- `StoragePersister::new` no longer takes `max_bytes`: a document larger than
+  `timing::MAX_STORED_BYTES_COUNT` loses the entries received longest ago,
+  until it fits.
 
 ## 0.8.1
 

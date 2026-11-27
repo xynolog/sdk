@@ -28,11 +28,9 @@ import Xynolog.Internal.CacheDocument (Whole)
 import Xynolog.Internal.Coupled qualified as Coupled
 import Xynolog.Internal.Generated.CachePersistence (KeptQuery (..), keptQueryName)
 import Xynolog.Internal.Generated.CacheRefresh qualified as Fact
-import Xynolog.Internal.Generated.TimingSettings (settingsOf)
 import Xynolog.Internal.Kept qualified as Kept
 import Xynolog.Internal.Persistence qualified as Persistence
 import Xynolog.SessionStorage qualified as Storage
-import Xynolog.Timing.Settings qualified as Settings
 import Xynolog.Types (AnnotationId, ResourceId, resourceIdValue)
 
 type Using result =
@@ -111,7 +109,6 @@ persisterOf storage query = do
   Persistence.persister
     (Persistence.CachePersistence storage kb person (pure 1800000000000.6))
     coupled
-    (settingsOf Settings.protocolClientTiming Settings.protocolTransportTiming)
     query
     (\key _ -> parseJSON key)
 

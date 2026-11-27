@@ -202,6 +202,8 @@ the coming release's, and gathers its changes as they land.
 
 - A `Cache`'s `saveDebounceMs`: it saves after Protocol's `saveDebounceMs`.
   Java makes one with `Cache(fetch, persister, context)`.
+- `StoragePersister`'s `maxBytes`: a document larger than Protocol's
+  `maxStoredBytesCount` loses the entries received longest ago, until it fits.
 - `xynolog.types.Stated` is removed. No member of Protocol is both optional
   and nullable, so a model's optional property is a nullable type, absent when
   null.

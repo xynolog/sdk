@@ -31,7 +31,6 @@ import (
 	"github.com/xynolog/sdk/go/api"
 	"github.com/xynolog/sdk/go/bus"
 	"github.com/xynolog/sdk/go/internal/optional"
-	"github.com/xynolog/sdk/go/internal/timing"
 	"github.com/xynolog/sdk/go/registry"
 	"github.com/xynolog/sdk/go/xynologtest"
 )
@@ -638,7 +637,7 @@ func runPersistedCrossTab(t *testing.T, table persistedCases) {
 					t.Errorf("closing the registry: %v", err)
 				}
 
-				kept := xynolog.NewStoragePersister[api.ResourceId, api.ResourceDescriptor](shared, resource, timing.MaxStoredBytesCount).Load()
+				kept := xynolog.NewStoragePersister[api.ResourceId, api.ResourceDescriptor](shared, resource).Load()
 				value, has := kept[id("res-1")]
 				if saved := has && same(t, value, held); saved != row.Saved {
 					t.Errorf("saved: %v; the table's is %v", saved, row.Saved)
@@ -703,7 +702,7 @@ func runPersistedInProcess(t *testing.T, table persistedCases) {
 				}
 				ended()
 
-				kept := xynolog.NewStoragePersister[api.ResourceId, api.ResourceDescriptor](caches, resource, timing.MaxStoredBytesCount).Load()
+				kept := xynolog.NewStoragePersister[api.ResourceId, api.ResourceDescriptor](caches, resource).Load()
 				value, has := kept[id("res-1")]
 				if saved := has && same(t, value, held); saved != row.Saved {
 					t.Errorf("saved: %v; the table's is %v", saved, row.Saved)

@@ -10,7 +10,6 @@ import kotlinx.serialization.encoding.Encoder
 import kotlinx.serialization.json.JsonDecoder
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
-import xynolog.Timings
 import xynolog.bus.faultOfSchema
 import xynolog.cache.Cache
 import xynolog.cache.CacheQuery
@@ -91,7 +90,7 @@ internal class KeptQuery<K : Any, V : Any>(
 ) {
     /** What keeps the query's cache in `persistence`: one document, under the query's name, for the persistence's person. */
     fun persister(persistence: CachePersistence): StoragePersister<K, V> =
-        StoragePersister(persistence.storage, cacheKey(persistence.kbId, persistence.personKey, query.wire), key, value, CACHE_DOCUMENT_VERSION, Timings.MAX_STORED_BYTES_COUNT)
+        StoragePersister(persistence.storage, cacheKey(persistence.kbId, persistence.personKey, query.wire), key, value, CACHE_DOCUMENT_VERSION)
 
     /** The query's cache among `caches`. */
     fun cacheIn(caches: KeptCaches): Cache<K, V> = cache(caches)

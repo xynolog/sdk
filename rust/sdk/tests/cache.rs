@@ -1192,11 +1192,8 @@ async fn b17_disposal_makes_the_save_that_was_owed_and_nothing_is_saved_after() 
 
 // ── The persister over a storage ────────────────────────────────────────
 
-fn stored(
-    storage: &Arc<InMemorySessionStorage>,
-    max_bytes: usize,
-) -> StoragePersister<String, String> {
-    StoragePersister::new(storage.clone(), "xynolog.cache.kb.test", max_bytes)
+fn stored(storage: &Arc<InMemorySessionStorage>) -> StoragePersister<String, String> {
+    StoragePersister::new(storage.clone(), "xynolog.cache.kb.test")
 }
 
 fn entries(of: &[(&str, &str)]) -> HashMap<String, String> {
@@ -1208,7 +1205,7 @@ fn entries(of: &[(&str, &str)]) -> HashMap<String, String> {
 #[tokio::test]
 async fn a_stored_cache_is_one_document_and_is_read_back_as_it_was_written() {
     let storage = Arc::new(InMemorySessionStorage::new());
-    let persister = stored(&storage, MAX_STORED_BYTES_COUNT);
+    let persister = stored(&storage);
     assert_eq!(persister.load(), None);
     persister
         .save(&entries(&[("a", "one"), ("b", "two")]))
@@ -1222,7 +1219,7 @@ async fn a_stored_cache_is_one_document_and_is_read_back_as_it_was_written() {
     assert_eq!(document["entries"].as_array().map(Vec::len), Some(2));
 
     assert_eq!(
-        stored(&storage, MAX_STORED_BYTES_COUNT).load(),
+        stored(&storage).load(),
         Some(entries(&[("a", "one"), ("b", "two")]))
     );
 }
@@ -1237,19 +1234,16 @@ fn a_document_of_another_version_or_one_that_is_not_a_document_reads_as_nothing_
         r#"[1, [["a", "one", 1000]]]"#,
     ] {
         storage.set("xynolog.cache.kb.test", kept).expect("stored");
-        assert_eq!(
-            stored(&storage, MAX_STORED_BYTES_COUNT).load(),
-            None,
-            "{kept}"
-        );
+        assert_eq!(stored(&storage).load(), None, "{kept}");
     }
 }
 
 #[tokio::test]
 async fn a_document_over_its_size_loses_the_entries_longest_unwritten() {
     let storage = Arc::new(InMemorySessionStorage::new());
-    let value = "x".repeat(100);
-    let persister = stored(&storage, 400);
+    // Two such entries fit a document and three do not.
+    let value = "x".repeat(MAX_STORED_BYTES_COUNT / 3);
+    let persister = stored(&storage);
     persister
         .save(&entries(&[("oldest", &value)]))
         .await
@@ -1271,7 +1265,7 @@ async fn a_document_over_its_size_loses_the_entries_longest_unwritten() {
         .await
         .expect("stored");
 
-    let kept = stored(&storage, 400).load().expect("a document");
+    let kept = stored(&storage).load().expect("a document");
     assert!(kept.contains_key("newest"), "{kept:?}");
     assert!(!kept.contains_key("oldest"), "{kept:?}");
     assert!(
@@ -1279,7 +1273,7 @@ async fn a_document_over_its_size_loses_the_entries_longest_unwritten() {
             .get("xynolog.cache.kb.test")
             .expect("a document")
             .len()
-            <= 400
+            <= MAX_STORED_BYTES_COUNT
     );
 }
 

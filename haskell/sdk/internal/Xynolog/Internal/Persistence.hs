@@ -9,7 +9,6 @@ import Data.Text (Text)
 import Xynolog.Cache qualified as Cache
 import Xynolog.Internal.Coupled qualified as Coupled
 import Xynolog.Internal.Generated.CachePersistence (KeptQuery)
-import Xynolog.Internal.Generated.TimingSettings qualified as Timing
 import Xynolog.Internal.Kept (cacheKey)
 import Xynolog.SessionStorage qualified as Storage
 import Xynolog.StoragePersister qualified as Stored
@@ -29,16 +28,14 @@ persister ::
   (ToJSON key, ToJSON value, FromJSON value) =>
   CachePersistence ->
   Coupled.Coupled ->
-  Timing.Settings ->
   KeptQuery ->
   (Value -> value -> Parser key) ->
   IO (Cache.CachePersister key value)
-persister options coupled timing query =
+persister options coupled query =
   Stored.newStoragePersister
     ( Stored.StoragePersister
         (cacheStorage options)
         (cacheKey (cacheKbId options) (cachePersonKey options) query)
-        (Timing.maxStoredBytesCount timing)
         (cacheWallNow options)
         (Coupled.written coupled)
     )

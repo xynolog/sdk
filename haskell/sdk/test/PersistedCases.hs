@@ -382,7 +382,7 @@ holdsAsHeld why store key held = do
   identity <- resourceNamed why "res-1"
   persister <-
     newStoragePersister
-      (StoragePersister store key Timing.maxStoredBytesCount (pure 0) (pure ()))
+      (StoragePersister store key (pure 0) (pure ()))
       (\stored _ -> parseJSON stored) ::
       IO (Cache.CachePersister ResourceId ResourceDescriptor)
   kept <- lookup identity <$> Cache.load persister

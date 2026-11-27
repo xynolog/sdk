@@ -221,6 +221,9 @@ the coming release's, and gathers its changes as they land.
   A fixed timing is read from `Xynolog.Timing`, and cannot be set.
 - `CacheOptions` has no `cacheSaveDebounceMs`: a cache waits the protocol's
   `saveDebounceMs` before it saves.
+- `StoragePersister` has no `persisterMaxBytes`: a document larger than the
+  protocol's `maxStoredBytesCount` loses the entries received longest ago,
+  until it fits.
 - `Session.signInAgent` takes no `RetryBudget`, and signs the agent in once,
   as every SDK does: a failure is thrown as it came, and starting the sign-in
   again is the service's, on its own backoff (Protocol's WORKER-SERVICE R3).

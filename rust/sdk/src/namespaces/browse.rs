@@ -29,7 +29,6 @@ use crate::refresh::CacheQuery;
 use crate::resources::decode_representation;
 use crate::session::{WHOLE_KEY, cache_key};
 use crate::state_unit::StateUnit;
-use crate::timing::MAX_STORED_BYTES_COUNT;
 use crate::transport::{BoxFuture, ContentStream, ContentTransport, Envelope};
 use crate::types::{
     AnchorRect, AnchoredTextAnswer, Annotation, AttributedEvent, BrowseAnnotationHistoryRequest,
@@ -313,7 +312,6 @@ where
         persister: StoragePersister::new(
             persistence.storage.clone(),
             cache_key(&persistence.kb_id, &persistence.person_key, query),
-            MAX_STORED_BYTES_COUNT,
         ),
         writes: writes.clone(),
         person_key: persistence.person_key.clone(),
@@ -1111,7 +1109,7 @@ mod tests {
             says: Arc::new(move |code, message| locked(&saying).push((code, message))),
         });
         let through = Through {
-            persister: StoragePersister::new(storage.clone(), KEY, MAX_STORED_BYTES_COUNT),
+            persister: StoragePersister::new(storage.clone(), KEY),
             writes,
             person_key: person_key(ALICE),
         };

@@ -236,8 +236,8 @@
     "lib/state_value.mli": "c84e7db498c8d1f618daa2e6572f8d529f7f6da07622b3cdb8c700de370fdec0",
     "lib/storage.ml": "505555eebf627916590432c9556fa670b586c47fd52cb01698470d01560f3cb6",
     "lib/storage.mli": "0d967c727c51cbf65bcfefd25b8cf75c656e0bc9ab582054117d1e5286514015",
-    "lib/storage_persister.ml": "6a7d361bf32a9d83357ac7500162e61c0e71d127798fbb5beb47d4a2b088a527",
-    "lib/storage_persister.mli": "c12ba34f02a5aeaea05e24362bd5f944ad322a08512e6c6d3ca8490cd52ac91a",
+    "lib/storage_persister.ml": "5507a1c8cabf1c3cd3cde71c520319920b6632375bb27d5b2e6b508c09a7f285",
+    "lib/storage_persister.mli": "fdfcad14c314c05475eead1af50603793e2a30ced1c53bf686e3eeca91ff7cb6",
     "lib/store_lock.c": "eabd8be0cddddbbc42d15612aca09cadae3faff4b1da1dcb2b78df1c47e6c88f",
     "lib/store_policy.ml": "7bfd8187be45e4f0c13ed8ccfd0fb3de109e7437ad66d00f4e1de1cd4cbf68a6",
     "lib/strict_json.ml": "19a2f3c4c5a828e0fe55cd36eb25b685e965f0b79c21cd57cc4a17c53d0112d6",
@@ -43530,7 +43530,7 @@
     {
       "kind": "value",
       "path": "Xynolog.Storage_persister.make",
-      "declaration": "val make :\n  storage:Xynolog__.Storage.t ->\n  key:string ->\n  version:int ->\n  max_bytes:int -> clock:Xynolog__.Clock.t -> storage_persister"
+      "declaration": "val make :\n  storage:Xynolog__.Storage.t ->\n  key:string -> version:int -> clock:Xynolog__.Clock.t -> storage_persister"
     },
     {
       "kind": "value",

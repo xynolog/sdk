@@ -235,6 +235,9 @@ the coming release's, and gathers its changes as they land.
   `Client_timing`'s.
 - `Mark_state.make`'s `?silence_ms`: a quiet job is said after
   `Client_timing.delegate_silence_ms`.
+- `Storage_persister.make`'s `~max_bytes`: a document larger than
+  `Client_timing.max_stored_bytes_count` bytes loses the entries written
+  longest ago, until it fits.
 
 ## 0.8.1
 

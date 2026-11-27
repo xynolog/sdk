@@ -1403,7 +1403,7 @@ public abstract interface class xynolog/storage/SessionStorage {
 }
 
 public final class xynolog/storage/StoragePersister : xynolog/cache/CachePersister {
-	public fun <init> (Lxynolog/storage/SessionStorage;Ljava/lang/String;Lkotlinx/serialization/KSerializer;Lkotlinx/serialization/KSerializer;JJ)V
+	public fun <init> (Lxynolog/storage/SessionStorage;Ljava/lang/String;Lkotlinx/serialization/KSerializer;Lkotlinx/serialization/KSerializer;J)V
 	public fun load ()Ljava/util/Map;
 	public fun save (Ljava/util/Map;)V
 }

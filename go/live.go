@@ -14,7 +14,6 @@ import (
 
 	"github.com/xynolog/sdk/go/api"
 	"github.com/xynolog/sdk/go/bus"
-	"github.com/xynolog/sdk/go/internal/timing"
 )
 
 // whole is the key of a query the knowledge base has one of. It is written,
@@ -162,7 +161,7 @@ func newLive(l *links, content ContentTransport) *live {
 // keepIn attaches cache to a persister of what it holds, under query's key,
 // telling persistence's refused each write its storage refuses.
 func keepIn[K comparable, V any](cache *Cache[K, V], persistence *CachePersistence, query CacheQuery) {
-	cache.attach(NewStoragePersister[K, V](persistence.Storage, CacheKey(persistence.KbID, persistence.PersonKey, query), timing.MaxStoredBytesCount), persistence.refused)
+	cache.attach(NewStoragePersister[K, V](persistence.Storage, CacheKey(persistence.KbID, persistence.PersonKey, query)), persistence.refused)
 }
 
 // limitsOf is the engines one key holder reports the limits of. A holder

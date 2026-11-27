@@ -240,7 +240,7 @@ resourceViewed namespace identity =
 -- each beginning with what it kept, and every save writes the places noted.
 keepIn :: BrowseNamespace -> Persistence.CachePersistence -> Coupled.Coupled -> IO ()
 keepIn namespace persistence coupled = do
-  let kept query decodeKey cache = Persistence.persister persistence coupled (timing namespace) query decodeKey >>= Cache.attach cache
+  let kept query decodeKey cache = Persistence.persister persistence coupled query decodeKey >>= Cache.attach cache
   kept Persisted.Resource (\key _ -> parseJSON key) (resourceCache namespace)
   kept Persisted.Annotations (\key _ -> parseJSON key) (annotationsCache namespace)
   kept Persisted.Annotation (\key value -> AnnotationKey (Annotations.targetSource (annotationTarget value)) <$> parseJSON key) (annotationCache namespace)

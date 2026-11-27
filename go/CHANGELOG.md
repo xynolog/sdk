@@ -220,6 +220,9 @@ the coming release's, and gathers its changes as they land.
   remaining)` and `RefreshDelay(token, now)`.
 - `NewCache` takes no save wait: a cache saves `saveDebounceMs` after its
   values last changed.
+- `NewStoragePersister` takes no size: `NewStoragePersister(storage, key)`. A
+  document larger than `maxStoredBytesCount` loses the entries that have gone
+  longest without a new value, until it fits.
 - `state.HoverDelay` and `state.SearchDebounce` hold the table's
   `hoverDelayMs` and `searchDebounceMs`, which `DefaultTiming()` held:
   `state.NewHoverDwell` and `state.NewSearchPipeline` take the delay and the

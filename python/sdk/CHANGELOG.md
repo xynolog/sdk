@@ -183,6 +183,9 @@ the coming release's, and gathers its changes as they land.
   `transport_timing`, the timing of the client and of the transport they build.
 - `Cache` no longer takes `save_debounce_ms`: it saves `SAVE_DEBOUNCE_MS`
   after its values last changed.
+- `StoragePersister` no longer takes `max_bytes`: a document larger than
+  `MAX_STORED_BYTES_COUNT` loses the entries received longest ago, until it
+  fits.
 - `subscribe_discovery` takes `interval_ms`, in milliseconds, where it took
   `interval`, in seconds, and may be left out: it is then
   `DISCOVERY_INTERVAL_MS`. `xynolog.discovery.DISCOVERY_INTERVAL_MS` replaces

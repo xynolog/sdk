@@ -26,6 +26,7 @@ from pydantic import JsonValue, TypeAdapter, ValidationError
 
 from xynolog.cache import CachePersister
 from xynolog.stored import CACHE_DOCUMENT_VERSION
+from xynolog.timing import MAX_STORED_BYTES_COUNT
 
 __all__ = ["MemoryStorage", "SessionStorage", "StoragePersister"]
 
@@ -146,16 +147,16 @@ def _entries(raw: str) -> list[tuple[JsonValue, JsonValue, int]] | None:
 class StoragePersister[K: Hashable, V](CachePersister[K, V]):
     """A cache's values in `storage`, under `storage_key`.
 
-    `key` and `value` say how each is read and written, and `max_bytes` how
-    large the document may be.
+    `key` and `value` say how each is read and written. A document larger than
+    `MAX_STORED_BYTES_COUNT` loses the entries received longest ago, until it
+    fits.
     """
 
-    def __init__(self, storage: SessionStorage, storage_key: str, *, key: TypeAdapter[K], value: TypeAdapter[V], max_bytes: int) -> None:
+    def __init__(self, storage: SessionStorage, storage_key: str, *, key: TypeAdapter[K], value: TypeAdapter[V]) -> None:
         self._storage: Final = storage
         self._storage_key: Final = storage_key
         self._key: Final = key
         self._value: Final = value
-        self._max_bytes: Final = max_bytes
         self._written: dict[str, tuple[str, int]] = {}
         """Each key's value as last written, and when it was received: an entry whose value has not changed keeps its time."""
 
@@ -198,10 +199,10 @@ class StoragePersister[K: Hashable, V](CachePersister[K, V]):
             return f'{{"version":{CACHE_DOCUMENT_VERSION},"entries":[{kept}]}}'.encode()
 
         text = document()
-        if len(text) > self._max_bytes:
+        if len(text) > MAX_STORED_BYTES_COUNT:
             # The entries that have gone longest without a new value are the first to go.
             stored.sort(key=lambda entry: entry[2])
-            while stored and len(text) > self._max_bytes:
+            while stored and len(text) > MAX_STORED_BYTES_COUNT:
                 del stored[0]
                 text = document()
         self._written = {key_text: (value_text, at) for key_text, value_text, at in stored}

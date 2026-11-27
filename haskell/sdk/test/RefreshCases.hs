@@ -279,7 +279,6 @@ disposalCases fixtures = do
         Persistence.persister
           (Persistence.CachePersistence storage "kb" "person" (pure 1800000000000))
           coupled
-          tableSettings
           Persisted.Resource
           (\key _ -> parseJSON key)
       let event =
