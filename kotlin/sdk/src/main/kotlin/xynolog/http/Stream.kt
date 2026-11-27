@@ -405,7 +405,7 @@ internal class Stream(
                 return
             }
             is Line.Unaddressed -> {
-                failures.deliver(TransportError(TransportErrorCode.Error, "the stream carried what is not a frame: ${line.fault.said}"))
+                failures.deliver(TransportError(TransportErrorCode.Error, "the stream carried what is not a frame: ${line.fault.said()}"))
                 return
             }
         }

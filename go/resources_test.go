@@ -236,7 +236,7 @@ func TestEveryReaderOfAResourceGivesWhatTheTableSays(t *testing.T) {
 		_, fault, faulty := required.Read(stated.Resource, reflect.TypeFor[api.ResourceDescriptor]())
 		if stated.Refused != nil && *stated.Refused {
 			shapes["refused, "+string(*stated.Reason)] = true
-			if want := (required.Fault{Member: *stated.Member, Reason: *stated.Reason}); !faulty || fault != want {
+			if want := (api.Fault{Member: *stated.Member, Reason: *stated.Reason}); !faulty || fault != want {
 				t.Errorf("%s: has the fault %+v (%v), and the table says it is refused for %+v", stated.Why, fault, faulty, want)
 			}
 			if *stated.Member == "representations" && *stated.Reason == api.FrameRefusalReasonMalformed {

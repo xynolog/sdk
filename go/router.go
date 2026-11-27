@@ -12,6 +12,7 @@ import (
 	"slices"
 	"sync"
 
+	"github.com/xynolog/sdk/go/api"
 	"github.com/xynolog/sdk/go/bus"
 )
 
@@ -20,7 +21,7 @@ type awaitedReply struct {
 	// reply takes the one frame that answers; closed, no reply will come.
 	reply chan Frame
 	// refused takes the refusal of the frame that would have answered.
-	refused chan *FrameRefusal
+	refused chan *api.FrameRefusal
 }
 
 // ReplyRouter is the replies a transport's requests still await. A test double
@@ -43,7 +44,7 @@ type PendingReply struct {
 	router        *ReplyRouter
 	correlationID string
 	reply         chan Frame
-	refused       chan *FrameRefusal
+	refused       chan *api.FrameRefusal
 }
 
 // Reply gives the frame that answers, once; it is closed without one when
@@ -53,7 +54,7 @@ func (p *PendingReply) Reply() <-chan Frame { return p.reply }
 // Refused gives, once and in place of a Reply, the refusal of the frame
 // that would have answered: its transport refused it, and could read its
 // correlation id.
-func (p *PendingReply) Refused() <-chan *FrameRefusal { return p.refused }
+func (p *PendingReply) Refused() <-chan *api.FrameRefusal { return p.refused }
 
 // Release stops the wait.
 func (p *PendingReply) Release() { p.router.release(p.correlationID, p.reply) }
@@ -61,7 +62,7 @@ func (p *PendingReply) Release() { p.router.release(p.correlationID, p.reply) }
 // Track awaits the reply to correlationID on one of channels, until the
 // PendingReply is released.
 func (r *ReplyRouter) Track(correlationID string, channels []bus.Channel) *PendingReply {
-	pending := &PendingReply{router: r, correlationID: correlationID, reply: make(chan Frame, 1), refused: make(chan *FrameRefusal, 1)}
+	pending := &PendingReply{router: r, correlationID: correlationID, reply: make(chan Frame, 1), refused: make(chan *api.FrameRefusal, 1)}
 	r.mu.Lock()
 	defer r.mu.Unlock()
 	if r.closed {
@@ -93,10 +94,11 @@ func (r *ReplyRouter) Route(frame Frame) {
 // refused in place of, if one does: the request awaiting the correlation id
 // the refusal carries, on its channel. A refusal that carries none reaches
 // no request.
-func (r *ReplyRouter) RouteRefusal(refusal *FrameRefusal) {
+func (r *ReplyRouter) RouteRefusal(refusal *api.FrameRefusal) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
-	if awaited, ok := r.take(refusal.CorrelationID, refusal.Channel); ok {
+	named := refusedFrame(refusal)
+	if awaited, ok := r.take(named.CorrelationID, named.Channel); ok {
 		awaited.refused <- refusal
 	}
 }

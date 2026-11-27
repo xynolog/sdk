@@ -98,7 +98,7 @@ private fun <P> decode(channel: String, serializer: KSerializer<P>, stamps: Set<
 private fun <P> encoded(channel: Channel<P>, payload: P): JsonObject = wireJson.encodeToJsonElement(channel.payload, payload).jsonObject
 
 /** What is said of a payload on `channel` that has `fault`, in every SDK's words. */
-private fun notTheChannels(channel: String, fault: Fault): String = "a payload on $channel is not that channel's: ${fault.said}"
+private fun notTheChannels(channel: String, fault: Fault): String = "a payload on $channel is not that channel's: ${fault.said()}"
 
 /**
  * Send `payload` as the request of `operation`, and wait for its reply, all
@@ -169,7 +169,7 @@ internal suspend fun resultOf(transport: Transport, operation: Operation<*, *, *
             listOf(pending.frame())
         } ?: throw timedOut()
         when (val reply = came.single() ?: throw BusRequestError(BusRequestErrorCode.Closed, "Bus closed before a reply on $result")) {
-            is Refused -> throw TransportError(TransportErrorCode.Error, "a frame on ${reply.channel} is not that channel's: ${Fault(reply.refusal.member, reply.refusal.reason).said}")
+            is Refused -> throw TransportError(TransportErrorCode.Error, "a frame on ${reply.channel} is not that channel's: ${Fault(reply.refusal.member, reply.refusal.reason).said()}")
             is Frame -> {
                 if (reply.channel == result) return reply
                 throw answered(operation.failure, reply.payload)

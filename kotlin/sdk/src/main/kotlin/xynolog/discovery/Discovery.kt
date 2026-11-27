@@ -10,6 +10,7 @@ import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.longOrNull
 import xynolog.Timings
 import xynolog.bus.faultOf
+import xynolog.bus.said
 import xynolog.bus.valuesOf
 import xynolog.telemetry.futureOf
 import xynolog.transport.Events
@@ -82,7 +83,7 @@ public fun parseDiscoveryDocument(text: String): DiscoveryState {
             diagnostic = "discovery document version $version is not one this client speaks (${VERSIONS.joinToString()}); it is not read in part",
         )
     }
-    faultOf(DiscoveryDocument.serializer().descriptor, document)?.let { return DiscoveryAbsent(reason = DiscoveryAbsentReason.Invalid, diagnostic = "the document is no discovery document: $it") }
+    faultOf(DiscoveryDocument.serializer().descriptor, document)?.let { return DiscoveryAbsent(reason = DiscoveryAbsentReason.Invalid, diagnostic = "the document is no discovery document: ${it.said()}") }
     val read = try {
         wireJson.decodeFromJsonElement(DiscoveryDocument.serializer(), document)
     } catch (invalid: IllegalArgumentException) {

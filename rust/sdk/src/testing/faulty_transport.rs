@@ -30,10 +30,11 @@ use crate::errors::{BusRequestError, BusRequestErrorCode, TransportError, Transp
 use crate::event_bus::EventBus;
 use crate::locked;
 use crate::transport::{
-    BoxFuture, Envelope, Events, FailureListener, FailureStream, Failures, Frame, FrameHub,
-    FrameRefusal, Frames, PendingReply, ReplyRouter, ResourceHold, StreamId, Transport,
+    BoxFuture, Envelope, Events, FailureListener, FailureStream, Failures, Frame, FrameHub, Frames,
+    PendingReply, ReplyRouter, ResourceHold, StreamId, Transport,
 };
 use crate::types::ConnectionState;
+use crate::types::FrameRefusal;
 use crate::types::{BusFrame, ResourceId};
 use serde_json::{Map, Value};
 use std::collections::{HashMap, VecDeque};

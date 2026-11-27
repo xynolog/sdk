@@ -90,12 +90,11 @@ internal object TermSerializer : JsonContentPolymorphicSerializer<Term>(Term::cl
 internal data class Discriminator(val property: String, val mapping: Map<String, Int>)
 
 /** What every SDK says of the fault. */
-internal val Fault.said: String
-    get() = when {
-        reason == FrameRefusalReason.Lacks -> "it has no `$member`"
-        member.isEmpty() -> "it is malformed"
-        else -> "its `$member` is malformed"
-    }
+internal fun Fault.said(): String = when {
+    reason == FrameRefusalReason.Lacks -> "it has no `$member`"
+    member.isEmpty() -> "it is malformed"
+    else -> "its `$member` is malformed"
+}
 
 /** The fault of a value its decoder refuses that has no fault the table states: the value itself is malformed. */
 internal val UNDECODED: Fault = Fault("", FrameRefusalReason.Malformed)

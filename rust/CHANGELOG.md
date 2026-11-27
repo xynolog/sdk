@@ -79,6 +79,14 @@ the coming release's, and gathers its changes as they land.
   `ServiceTelemetryTelemetrySpansItemServicesItem`.
 - Each `DiscoveryAbsentReason` variant says what it means, as
   `client/discovery-absent.json` says it.
+- A frame's refusal is `types::FrameRefusal`, the type of Protocol's
+  `client/types/FrameRefusal.json`, where it was `transport::FrameRefusal`.
+  It says itself as before, and is `FrameRefusal::of` a frame as before.
+- A value's first fault is `types::Fault`, the type of Protocol's
+  `client/types/Fault.json`, which the SDK held privately. It says itself in
+  every SDK's words (`Display`): "it has no `member`", "its `member` is
+  malformed", or "it is malformed". `testing::schema_fault` gives a `Fault`,
+  where it gave a `(String, FrameRefusalReason)`.
 - What a worker says of itself and of its claims is the generated client
   types, in `xynolog::types` as Protocol states them: `ClaimRefusal`,
   `WorkerVitals` and its `WorkerActiveJob` (where `ActiveJob` was; its job's

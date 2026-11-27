@@ -263,7 +263,7 @@ func (w *wire) listen(args protocol.Arguments) (any, error) {
 			// The suite's backend sends only frames BusFrame allows, and its protocol has no line for
 			// a refusal: a frame the transport refused is its bug, which ends the driver.
 			if refused != nil {
-				refusal := refused.(*xynolog.FrameRefusal)
+				refusal := refused.(*api.FrameRefusal)
 				panic(fmt.Sprintf("the transport refused a frame on %s: %s, at its `%s`", channel, refusal.Reason, refusal.Member))
 			}
 			line := api.ConformanceDriverLineFrameFrame{Channel: string(channel), Payload: frame.Payload}

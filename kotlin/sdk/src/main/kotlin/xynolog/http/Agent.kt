@@ -346,7 +346,7 @@ public class AgentToken @JvmOverloads constructor(
             UNDECODED
         }
         // Its first fault, and none of what it holds.
-        throw TransportError(TransportErrorCode.Error, "$url did not answer who the agent is: ${fault.said}", status)
+        throw TransportError(TransportErrorCode.Error, "$url did not answer who the agent is: ${fault.said()}", status)
     }
 
     /**

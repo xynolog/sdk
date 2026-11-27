@@ -249,6 +249,6 @@ internal class Exchange(
         } catch (_: IllegalArgumentException) {
             UNDECODED
         }
-        throw failed(TransportError(TransportErrorCode.Error, "$method $path answered what is not its declared body: ${fault.said}"))
+        throw failed(TransportError(TransportErrorCode.Error, "$method $path answered what is not its declared body: ${fault.said()}"))
     }
 }

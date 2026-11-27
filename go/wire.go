@@ -36,7 +36,7 @@ func (w *Wire) EmitOn(ctx context.Context, channel bus.Channel, payload map[stri
 // FramesOn is the frames delivered on any of channels from now on, in the
 // order they were delivered, until the loop stops or ctx is done. A frame
 // the transport refused is given as the channel and scope it names, with
-// its *FrameRefusal as the error.
+// its *api.FrameRefusal as the error.
 func (w *Wire) FramesOn(ctx context.Context, channels ...bus.Channel) (iter.Seq2[Frame, error], error) {
 	return w.transport.Frames(ctx, channels...)
 }
@@ -178,7 +178,7 @@ type Delivered[P any] struct {
 // delivered is frame with its payload decoded as P; or, for a payload with a
 // fault as P's, the refusal its channel's reader gives in its place, as every
 // SDK's does: its fault named by its way from the frame.
-func delivered[P any](frame Frame) (Delivered[P], *FrameRefusal) {
+func delivered[P any](frame Frame) (Delivered[P], *api.FrameRefusal) {
 	read, fault, faulty := payloadAs[P](frame)
 	if faulty {
 		return Delivered[P]{}, refusedPayload(frame, fault)
@@ -188,15 +188,15 @@ func delivered[P any](frame Frame) (Delivered[P], *FrameRefusal) {
 
 // refusedPayload is the refusal of frame, whose payload has fault, named from
 // the payload.
-func refusedPayload(frame Frame, fault required.Fault) *FrameRefusal {
-	return &FrameRefusal{Channel: frame.Channel, Member: fault.Within(busFramePayload).Member, Reason: fault.Reason, Payload: frame.Payload, Envelope: frame.Envelope}
+func refusedPayload(frame Frame, fault api.Fault) *api.FrameRefusal {
+	return frameRefusal(frame, required.Within(fault, busFramePayload))
 }
 
 // payloadAs is frame with its payload decoded as P, as P's reader reads it;
 // or, true, the payload's first fault as P's, named from the payload, which
 // is the payload itself for one Go's decoding refuses. What a gateway stamps
 // on a payload is the bus's, and P does not read it unless P declares it.
-func payloadAs[P any](frame Frame) (Delivered[P], required.Fault, bool) {
+func payloadAs[P any](frame Frame) (Delivered[P], api.Fault, bool) {
 	read, fault, faulty := required.ReadFramePayload(frame.Payload, reflect.TypeFor[P]())
 	if faulty {
 		return Delivered[P]{}, fault, true
@@ -213,11 +213,11 @@ func payloadAs[P any](frame Frame) (Delivered[P], required.Fault, bool) {
 			userID = parsed
 		}
 	}
-	return Delivered[P]{Payload: payload, Envelope: frame.Envelope, UserID: userID, Trace: frame.Trace}, required.Fault{}, false
+	return Delivered[P]{Payload: payload, Envelope: frame.Envelope, UserID: userID, Trace: frame.Trace}, api.Fault{}, false
 }
 
 // typed is frames, each with its payload decoded as P. One whose payload is
-// not P's is given as its *FrameRefusal, as is the refusal of one its
+// not P's is given as its *api.FrameRefusal, as is the refusal of one its
 // transport refused, and the frames after it follow.
 func typed[P any](frames iter.Seq2[Frame, error]) iter.Seq2[Delivered[P], error] {
 	return func(yield func(Delivered[P], error) bool) {
@@ -229,7 +229,7 @@ func typed[P any](frames iter.Seq2[Frame, error]) iter.Seq2[Delivered[P], error]
 	}
 }
 
-// heardAs is a frame read as P's, or the *FrameRefusal given in its place:
+// heardAs is a frame read as P's, or the *api.FrameRefusal given in its place:
 // the one its transport delivered, or its payload's as P's.
 func heardAs[P any](frame Frame, refused error) (Delivered[P], error) {
 	if refused != nil {
@@ -271,7 +271,7 @@ func Emit[P any](ctx context.Context, w *Wire, c bus.Emittable[P], payload P, en
 // Frames is the frames delivered on c from now on, each with its payload
 // decoded, until the loop stops or ctx is done. A frame refused, by its
 // transport or as one whose payload is not c's, is given as its
-// *FrameRefusal, and the frames after it follow. A channel the transport can
+// *api.FrameRefusal, and the frames after it follow. A channel the transport can
 // never deliver is refused, as unsubscribed. A channel a resource's scope
 // carries is read for a resource (FramesOf), and does not compile here, where
 // nothing would be delivered to it.

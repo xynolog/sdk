@@ -63,6 +63,9 @@ the coming release's, and gathers its changes as they land.
   keyed by `ServiceTelemetryTelemetrySpansItemServicesItem`.
 - Each `DiscoveryAbsentReason` entry says what it means, as
   `client/discovery-absent.json` says it.
+- A value's first fault is read as `xynolog.types.Fault`, the type of
+  Protocol's `client/types/Fault.json`, where the SDK held a copy of its own;
+  what it says of a fault is unchanged.
 - A schema a `$ref` names at a place within a file is one type, named where
   that place is stated, wherever it is referred to: the Archivist layout's
   trees are all `ArchivistLayoutEventStreamTree`, every error vocabulary

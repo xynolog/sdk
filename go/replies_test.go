@@ -215,14 +215,14 @@ func TestARequestIsToldAtOnceOfAReplyItsTransportRefused(t *testing.T) {
 	awaited := transport.PendingReplies()[0]
 	result := bus.BrowseResourceRequested.Result().Channel()
 
-	transport.DeliverRefusal(&xynolog.FrameRefusal{Channel: result, Member: "correlationId", Reason: api.FrameRefusalReasonMalformed})
+	transport.DeliverRefusal(&api.FrameRefusal{Channel: string(result), Member: "correlationId", Reason: api.FrameRefusalReasonMalformed})
 	select {
 	case err := <-asked:
 		t.Fatalf("a refusal that carries no correlation id ended the request: %v", err)
 	case <-time.After(50 * time.Millisecond):
 	}
 
-	transport.DeliverRefusal(&xynolog.FrameRefusal{Channel: result, Member: "addedByALaterGateway", Reason: api.FrameRefusalReasonMalformed, Envelope: xynolog.Envelope{CorrelationID: awaited}})
+	transport.DeliverRefusal(&api.FrameRefusal{Channel: string(result), Member: "addedByALaterGateway", Reason: api.FrameRefusalReasonMalformed, CorrelationId: &awaited})
 	select {
 	case err := <-asked:
 		refusedAs(t, "a reply its transport refused", err, "a frame on browse:resource-result is not that channel's: its `addedByALaterGateway` is malformed")

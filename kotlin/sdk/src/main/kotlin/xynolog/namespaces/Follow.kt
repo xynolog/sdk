@@ -288,7 +288,7 @@ private class Follower<C : JobCompleteCommand>(
             JobType.Yield -> wireJson.encodeToJsonElement(YieldJobCompleteCommand.serializer(), YieldJobCompleteCommand(resourceId = resourceId, jobId = status.jobId))
         }.jsonObject
         fun notCompleted(fault: Fault) =
-            TransportError(TransportErrorCode.Error, "The status of job ${status.jobId.value} is not a completed ${create.delegated} job's: ${fault.said}")
+            TransportError(TransportErrorCode.Error, "The status of job ${status.jobId.value} is not a completed ${create.delegated} job's: ${fault.said()}")
         // A job completed without a result is stored with an empty one: an object that holds nothing.
         val payload = status.result?.takeUnless { it == JobStoredResult.Empty }
             ?.let { JsonObject(stated + ("result" to wireJson.encodeToJsonElement(JobStoredResult.serializer(), it))) }

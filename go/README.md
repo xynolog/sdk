@@ -440,7 +440,7 @@ Every method returns one of nine shapes, and the table says which:
 | a worker's claims | `*Claims` | `All()`: each job the worker comes to hold, or a claim it was refused; a held job says its own lifecycle and commits its own annotations, and `Complete`, `Fail` and `Cancel` each settle it once |
 | a signal | no result | published on the client's own bus, or sent and not awaited |
 | a drive | `(subscribers int, counted bool, err error)` | how many participants the gateway reached; `counted` is false when it kept no count |
-| a channel's events | `iter.Seq2[Delivered[P], error]`, given a context | each event's payload decoded, until the context is done; a frame refused, or whose payload is not its channel's, is a `*FrameRefusal` in its place |
+| a channel's events | `iter.Seq2[Delivered[P], error]`, given a context | each event's payload decoded, until the context is done; a frame refused, or whose payload is not its channel's, is a `*api.FrameRefusal` in its place |
 
 - **A delegated job** (`Mark.Delegate`, `Yield.Delegate`) is described by
   its parameters, which are the protocol's own shapes: `api.MarkJobParams`,

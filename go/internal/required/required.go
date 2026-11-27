@@ -141,38 +141,18 @@ var (
 	byType sync.Map
 )
 
-// Fault is the first thing wrong with a value: the way to the member it is
-// at (the names of the members it is within, and its own, joined by dots;
-// the empty way is the value itself), and why.
-type Fault struct {
-	Member string
-	Reason api.FrameRefusalReason
-}
-
-// Within is f as a fault of the value that holds the faulty value as its
+// Within is fault as a fault of the value that holds the faulty value as its
 // member name: a fault of that value itself is at name.
-func (f Fault) Within(name string) Fault {
-	if f.Member == "" {
-		return Fault{Member: name, Reason: f.Reason}
+func Within(fault api.Fault, name string) api.Fault {
+	if fault.Member == "" {
+		return api.Fault{Member: name, Reason: fault.Reason}
 	}
-	return Fault{Member: name + "." + f.Member, Reason: f.Reason}
-}
-
-// String is what every SDK says of the fault.
-func (f Fault) String() string {
-	switch {
-	case f.Reason == api.FrameRefusalReasonLacks:
-		return fmt.Sprintf("it has no `%s`", f.Member)
-	case f.Member == "":
-		return "it is malformed"
-	default:
-		return fmt.Sprintf("its `%s` is malformed", f.Member)
-	}
+	return api.Fault{Member: name + "." + fault.Member, Reason: fault.Reason}
 }
 
 // Undecoded is the fault of a value Go's decoding refuses that has no fault
 // the table states: the value itself is malformed.
-var Undecoded = Fault{Reason: api.FrameRefusalReasonMalformed}
+var Undecoded = api.Fault{Reason: api.FrameRefusalReasonMalformed}
 
 // shapeOf is what a value of generated must be.
 func shapeOf(generated reflect.Type) *shape {
@@ -255,16 +235,16 @@ func kindsOf(generated reflect.Type) []string {
 // reads the table by: the JSON it decodes, which is payload without each
 // member it leaves out; or, true, payload's first fault. Payload that is not
 // JSON is given as it is, with no fault, for whatever decodes it to say so.
-func Read(payload []byte, generated reflect.Type) ([]byte, Fault, bool) {
+func Read(payload []byte, generated reflect.Type) ([]byte, api.Fault, bool) {
 	var value any
 	if json.Unmarshal(payload, &value) != nil {
-		return payload, Fault{}, false
+		return payload, api.Fault{}, false
 	}
 	return readOf(shapeOf(generated), payload, value)
 }
 
 // readOf is payload, which decodes to value, as a reader of s reads it.
-func readOf(s *shape, payload []byte, value any) ([]byte, Fault, bool) {
+func readOf(s *shape, payload []byte, value any) ([]byte, api.Fault, bool) {
 	fault, left, faulty := faultOf(s, value, "")
 	if faulty {
 		return nil, fault, true
@@ -275,7 +255,7 @@ func readOf(s *shape, payload []byte, value any) ([]byte, Fault, bool) {
 			return nil, Undecoded, true
 		}
 	}
-	return payload, Fault{}, false
+	return payload, api.Fault{}, false
 }
 
 // Carries is whether payload is JSON with no fault as a value of generated.
@@ -303,10 +283,10 @@ func ReadAs[T any](payload []byte) (T, bool) {
 // gateway stamps on a payload (a member whose name begins `_`) that a value of
 // generated does not name is the bus's, not the payload's, and is left out
 // before the payload is held to its shape. What is read keeps it.
-func ReadFramePayload(payload []byte, generated reflect.Type) ([]byte, Fault, bool) {
+func ReadFramePayload(payload []byte, generated reflect.Type) ([]byte, api.Fault, bool) {
 	var value any
 	if json.Unmarshal(payload, &value) != nil {
-		return payload, Fault{}, false
+		return payload, api.Fault{}, false
 	}
 	read := shapeOf(generated)
 	return readOf(read, payload, unstamped(read, value))
@@ -452,17 +432,17 @@ func allows(kinds []string, value any) bool {
 
 // faultOf is the first fault value has as a value of s, from way; or, with
 // none, each member a reader leaves out of it.
-func faultOf(s *shape, value any, way string) (Fault, []unread, bool) {
+func faultOf(s *shape, value any, way string) (api.Fault, []unread, bool) {
 	s = resolved(s)
 	if !allows(s.Kinds, value) || !isOneOf(s.Enum, value) || !inBounds(s, value) {
-		return Fault{Member: way, Reason: api.FrameRefusalReasonMalformed}, nil, true
+		return api.Fault{Member: way, Reason: api.FrameRefusalReasonMalformed}, nil, true
 	}
 	var left []unread
 	if object, isObject := value.(map[string]any); isObject {
 		for _, name := range s.Required {
 			held, has := object[name]
 			if !has || (held == nil && !allowsNull(memberShape(s, name))) {
-				return Fault{Member: within(way, name), Reason: api.FrameRefusalReasonLacks}, nil, true
+				return api.Fault{Member: within(way, name), Reason: api.FrameRefusalReasonLacks}, nil, true
 			}
 		}
 		for _, name := range sortedKeys(s.Members) {
@@ -483,20 +463,20 @@ func faultOf(s *shape, value any, way string) (Fault, []unread, bool) {
 		if s.Closed != nil {
 			for _, name := range sortedKeys(object) {
 				if !slices.Contains(s.Closed, name) {
-					return Fault{Member: within(way, name), Reason: api.FrameRefusalReasonMalformed}, nil, true
+					return api.Fault{Member: within(way, name), Reason: api.FrameRefusalReasonMalformed}, nil, true
 				}
 			}
 		}
 		if s.Names != nil {
 			for _, name := range sortedKeys(object) {
 				if _, _, faulty := faultOf(s.Names, name, ""); faulty {
-					return Fault{Member: within(way, name), Reason: api.FrameRefusalReasonMalformed}, nil, true
+					return api.Fault{Member: within(way, name), Reason: api.FrameRefusalReasonMalformed}, nil, true
 				}
 			}
 		}
 		for _, set := range s.NotAll {
 			if !slices.ContainsFunc(set, func(name string) bool { _, has := object[name]; return !has }) {
-				return Fault{Member: way, Reason: api.FrameRefusalReasonMalformed}, nil, true
+				return api.Fault{Member: way, Reason: api.FrameRefusalReasonMalformed}, nil, true
 			}
 		}
 		if s.Values != nil {
@@ -532,7 +512,7 @@ func faultOf(s *shape, value any, way string) (Fault, []unread, bool) {
 		}
 		left = append(left, inner...)
 	}
-	return Fault{}, left, false
+	return api.Fault{}, left, false
 }
 
 // isOneOf is whether value is one of values, where there are any: a number
@@ -622,7 +602,7 @@ func memberShape(s *shape, name string) *shape {
 // it. None when one of them has none, with what a reader leaves out of the
 // value as that one; the first one's when each has one; and a value no
 // variant allows is malformed.
-func faultOfOneOf(s *shape, value any, way string) (Fault, []unread, bool) {
+func faultOfOneOf(s *shape, value any, way string) (api.Fault, []unread, bool) {
 	var candidates []*shape
 	for _, one := range s.OneOf {
 		if allows(resolved(one).Kinds, value) {
@@ -637,13 +617,13 @@ func faultOfOneOf(s *shape, value any, way string) (Fault, []unread, bool) {
 		}
 	}
 	if len(candidates) == 0 {
-		return Fault{Member: way, Reason: api.FrameRefusalReasonMalformed}, nil, true
+		return api.Fault{Member: way, Reason: api.FrameRefusalReasonMalformed}, nil, true
 	}
-	var first Fault
+	var first api.Fault
 	for i, candidate := range candidates {
 		fault, left, faulty := faultOf(candidate, value, way)
 		if !faulty {
-			return Fault{}, left, false
+			return api.Fault{}, left, false
 		}
 		if i == 0 {
 			first = fault
