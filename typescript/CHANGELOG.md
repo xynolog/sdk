@@ -209,6 +209,9 @@ the coming release's, and gathers its changes as they land.
   nothing wrote or read.
 - `createCache`'s `saveDebounceMs`: a cache saves `SAVE_DEBOUNCE_MS` after
   its values change.
+- `ResourceGatherOptions`, for `@xynolog/core`'s generated
+  `GatherResourceOptions`. A gather state unit's `gatherAnnotation` takes
+  the generated `GatherAnnotationOptions`.
 
 ## 0.8.1
 

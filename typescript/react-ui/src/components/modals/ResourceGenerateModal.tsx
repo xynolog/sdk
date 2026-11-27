@@ -1,8 +1,11 @@
 'use client';
 
 import { useState, useEffect, useCallback, useRef } from 'react';
-import type { EngineWithLimits, GatheredContext } from '@xynolog/core';
-import type { ResourceGatherOptions } from '@xynolog/sdk';
+import type {
+  EngineWithLimits,
+  GatheredContext,
+  GatherResourceOptions,
+} from '@xynolog/core';
 import {
   Dialog,
   DialogPanel,
@@ -113,7 +116,7 @@ export interface ResourceGenerateModalProps {
    * No resourceId in the payload: the owner already holds it. `gatherResource`
    * clears its slots at start, so no reset threading is needed.
    */
-  onGather: (options: ResourceGatherOptions) => void;
+  onGather: (options: GatherResourceOptions) => void;
   translations: ResourceGenerateModalTranslations;
 }
 
