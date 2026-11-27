@@ -120,17 +120,17 @@
     "lib/claims.mli": "4996e729b6dc400b97b4854e7f00e3b07e8a5a956d67441d2bd6f54d0250cf2d",
     "lib/client.ml": "bd8b8934d2931bd1037c34763287324828ae26e726ecaa832e3e11cbc91340ad",
     "lib/client.mli": "6e08b6b7851820acced98ca320e6ec093455f2d0340828149b2f43e255d30e39",
-    "lib/client_core.ml": "e10660f70fad6191b92a39db552ccb0e9996c98c7d5fc30fa3db22093d1983b1",
-    "lib/client_core.mli": "6447ce3fa3e333c2d325e99556c31833416a8589950613a0703d9017c710ff3f",
-    "lib/client_query.ml": "93a5d538eea97cefee9000a06454a1885ba7328e6a74f13b6542e9a75a7277df",
-    "lib/client_record.ml": "bab8e90abf6e54c353d077b90334bda3f9895673179f70bf70641dd92a09b6a2",
-    "lib/client_timing.ml": "f0eba736f2f18a07c65f734c629fa94cfe6648e3e967b8b9e03447ba04cb2606",
-    "lib/client_timing.mli": "09c3204e45443ed9764d70785a9a4f33a3b76818c9901f0e870322cc8c0168af",
+    "lib/client_core.ml": "57e9fbee449ba234b23404593bd1a97d997de3d832dfc1a1c4658f68b472707f",
+    "lib/client_core.mli": "35aaaed3e6d2e409e9edb07120415a24b999bf98b686543938e60b2a978a974e",
+    "lib/client_query.ml": "3b6ac0b18f6355d48c820f630413af174a5cb395a3dce5af93d9f4f8a55e2785",
+    "lib/client_record.ml": "d09a4ac6b0d5158b9250a03ae798ff8237d2f2ef5c1482990ffb1f3f9b207f77",
+    "lib/client_timing.ml": "d2e1c504c3f2fc6a9f5941244cb241b4d12aaacf236e3195b447b3e19bd6fe84",
+    "lib/client_timing.mli": "ec472cfb9d3f778a1e8df92364478a6492b2fc69d759cd9a5b174f8c8ba3a057",
     "lib/clock.ml": "71063b036aa3069ad2ed649ba8a73505b4eb4a00631c48af43a01f732c6623ab",
     "lib/clock.mli": "5333b1d2447f81415c54bfc99d87ae98362a4ce249695d7783c35df41cdab364",
     "lib/control.ml": "1a8991f00221f2d47425beb0992ca7189631df63f0db36a895390b8968c78b31",
-    "lib/delegation.ml": "86867a17f93d178c52b52e5dc0f3d5c1bee05f636b58f484411df48ff4cb53dd",
-    "lib/delegation.mli": "acf0397656d1185b5f3308a9e9858cf967a3630c52500957c3aeb109a1cf0838",
+    "lib/delegation.ml": "efd09fc2f5e1c692190acea0b772ed73e59d8e43643725845adb5287d3e7a8bd",
+    "lib/delegation.mli": "80280d85e9950ea481bcebeed16c884239334f37d9cb17aaaf7d49cdbe9f3c44",
     "lib/discovery.ml": "ad7c0d6f0507ca0b7f19d310404895d60ac1f08275c3f63a33ce7eb462a1fab2",
     "lib/discovery.mli": "9b498e1514c2215afdef4f827e3d6a6e3ec67b53446cb28ad44ec2e4e78d83f4",
     "lib/discovery_url_path.ml": "68d586e56767a12ccba8624b58da93855c8b0a8f38230b38dd223c6a442b6ceb",
@@ -155,8 +155,8 @@
     "lib/hover_dwell.ml": "2a8e9fef90c75ce18569793c04f553523e3dc523d53d869ceef4dab6a7702122",
     "lib/hover_dwell.mli": "3bf63911f6482ad960a6e4d3881e4a637caa0d9929dc8d62dbf7b69421fa19af",
     "lib/http_facts.ml": "22bb288902aa4a0b628b9d02e7b694480c375b2b9e7ae856c3e27965055271d8",
-    "lib/http_wire.ml": "1da16b6cb2a908e14149fbf5419c726f7b7a5ce6fd797f1f8ca246bb06d4b9b4",
-    "lib/http_wire.mli": "58084103f9912529028b884db447d5327ac0774c517d0feac8343cbc31f5f541",
+    "lib/http_wire.ml": "2e312542c1005af7ef92846513678dcceeed3b534732d8d44466bdf9a477bd5d",
+    "lib/http_wire.mli": "e48b45932242a9efe9b594a0daf569b2096ae8fe597a56721ed775d7ff5d1c32",
     "lib/identifiers.ml": "1ee61e8298715512590d2e8045869efb0687ace6df642970da0d54baffe26448",
     "lib/identifiers.mli": "d344831d9323c9ab0934e9027f4e8269b5d3554ef347c1d71b04cedc65d6a92b",
     "lib/identity.ml": "926a5ae2b89b08a294af2bbee6975347194bdaea78109f82a777b9fcff388e58",
@@ -173,8 +173,8 @@
     "lib/log_facts.ml": "1bf6dc1bb379d78ebf88e28eaad640364552b8f2f469926f7f62333313d04d97",
     "lib/mark.ml": "7bb5dc6de229d81c29c5349f719a2902263b1026d02a10e274facc4781d82b82",
     "lib/mark.mli": "daa70a35284997cf8b5796bda5f3262c19e8690a40090dc415729c4e3dddbbb3",
-    "lib/mark_state.ml": "dd18f41167e9d76656478ae699b4bbca40ddf737596f0d6897b9b0b05416ff5c",
-    "lib/mark_state.mli": "bf975ad19fabb066cc94f6815911fe1fd39c7fcfd8274525a97539af770e5afb",
+    "lib/mark_state.ml": "8b90c42dfaa937d0f5eb09e20371c16fbe2e347a8681f45c5f2636281980482c",
+    "lib/mark_state.mli": "f58f22c5da0e978832c2dbfa15f1554472912379a798135f81640b812c25c90d",
     "lib/match.ml": "688566865cf768c0b4bfb6cddeda957366e7dedce57ddd19d8a2588927f821e6",
     "lib/match.mli": "54ac094a6a9f8e8a09b7bc5f175ae198788c3d82b9b80a1f7efc9014fd135179",
     "lib/match_state.ml": "8d3d588b7ab99009b18a659570975d30f14c349e9c6aedd145e84333c7720107",
@@ -191,7 +191,7 @@
     "lib/pattern.ml": "12ed6cf3cfc66a5fcf191d72d25367f6b3279244fc45f647c98d5a4fe8d2f58f",
     "lib/record_reader.ml": "19a654dd8a7c61a4a60bfb6306c7c7c0f8ce41fc13fa06178361ca7f1f9dd180",
     "lib/record_reader.mli": "8fb0c34c1116a5ab43113c3c0d0b24bd5ed5bfa1e3137b210938f098c0bd0bbd",
-    "lib/records.ml": "7390a40c439d0a9c5178251814ba5b98433229b4569d0868d49f1cfb395883a2",
+    "lib/records.ml": "e19922fc9c32ce7722a6ce2480538d96361cd26a2cac09c58ad043ec4e82613f",
     "lib/redirect_sign_in.ml": "80c9bafb2de127baf0cd4f7148041d5445e442b17737be235afdee854eb821e9",
     "lib/refusals.ml": "c0a3bde6ba2077f34560c132a6c6feaa6d33c2d4cae8f01aeb668497dd6e61ca",
     "lib/registry.ml": "b0ae885fbe618775bb821efbba0a6acd233557ba043cfa160ba1469994e86e7f",
@@ -237,14 +237,14 @@
     "lib/state_value.mli": "c84e7db498c8d1f618daa2e6572f8d529f7f6da07622b3cdb8c700de370fdec0",
     "lib/storage.ml": "505555eebf627916590432c9556fa670b586c47fd52cb01698470d01560f3cb6",
     "lib/storage.mli": "0d967c727c51cbf65bcfefd25b8cf75c656e0bc9ab582054117d1e5286514015",
-    "lib/storage_persister.ml": "6a7d361bf32a9d83357ac7500162e61c0e71d127798fbb5beb47d4a2b088a527",
-    "lib/storage_persister.mli": "c12ba34f02a5aeaea05e24362bd5f944ad322a08512e6c6d3ca8490cd52ac91a",
+    "lib/storage_persister.ml": "5507a1c8cabf1c3cd3cde71c520319920b6632375bb27d5b2e6b508c09a7f285",
+    "lib/storage_persister.mli": "fdfcad14c314c05475eead1af50603793e2a30ced1c53bf686e3eeca91ff7cb6",
     "lib/store_lock.c": "eabd8be0cddddbbc42d15612aca09cadae3faff4b1da1dcb2b78df1c47e6c88f",
     "lib/store_policy.ml": "7bfd8187be45e4f0c13ed8ccfd0fb3de109e7437ad66d00f4e1de1cd4cbf68a6",
     "lib/strict_json.ml": "19a2f3c4c5a828e0fe55cd36eb25b685e965f0b79c21cd57cc4a17c53d0112d6",
     "lib/strict_json.mli": "818f38488855a5ce525bbf7fa483feb6aad993670115a63065029201999b50a7",
-    "lib/subscription.ml": "9983c994547862c90e13e4b623828189ce9d2e7e72da14daf50f0e8fc69e9ecf",
-    "lib/subscription.mli": "6a87af157d49f51fad7c42eb99d36c6546625babd5c4a87fe30681077b9d3879",
+    "lib/subscription.ml": "a1da148608d6bc9a3d9dfb6be1ed0655f203b18a594f3c677ccb9b1caa7ec07b",
+    "lib/subscription.mli": "d48af5ae5c39888e5cd6c4cd5d103e3682465dfaec639b04944b4e6fa6c1df70",
     "lib/system.ml": "2b48cd685aa8882505bcdb8b75ba376730082ff377aeb67caeaabde6b4070459",
     "lib/table_codec.ml": "7feebb4db456d0038484a1cbac9ac08004acf9ac4b1b2ac6d89c1ef265c2c5ea",
     "lib/telemetry.ml": "34a37e065b0e01d85e631334204d4f6df3432544a3909227ee3e9722841c6e61",
@@ -20619,106 +20619,6 @@
     },
     {
       "kind": "module",
-      "path": "Xynolog.Records.Errors_codes_session_codes_item",
-      "declaration": "module Errors_codes_session_codes_item :\n  sig\n    type t = { code : string; docs : string; }\n    val project : (string * Yojson.Raw.t) list -> t\n    val to_json : t -> Yojson.Raw.t\n  end"
-    },
-    {
-      "kind": "type",
-      "path": "Xynolog.Records.Errors_codes_session_codes_item.t",
-      "declaration": "type t = { code : string; docs : string; }",
-      "representation": "record",
-      "fields": [
-        "code",
-        "docs"
-      ]
-    },
-    {
-      "kind": "value",
-      "path": "Xynolog.Records.Errors_codes_session_codes_item.project",
-      "declaration": "val project : (string * Yojson.Raw.t) list -> t"
-    },
-    {
-      "kind": "value",
-      "path": "Xynolog.Records.Errors_codes_session_codes_item.to_json",
-      "declaration": "val to_json : t -> Yojson.Raw.t"
-    },
-    {
-      "kind": "module",
-      "path": "Xynolog.Records.Errors_codes_sign_in_codes_item",
-      "declaration": "module Errors_codes_sign_in_codes_item :\n  sig\n    type t = { code : string; docs : string; }\n    val project : (string * Yojson.Raw.t) list -> t\n    val to_json : t -> Yojson.Raw.t\n  end"
-    },
-    {
-      "kind": "type",
-      "path": "Xynolog.Records.Errors_codes_sign_in_codes_item.t",
-      "declaration": "type t = { code : string; docs : string; }",
-      "representation": "record",
-      "fields": [
-        "code",
-        "docs"
-      ]
-    },
-    {
-      "kind": "value",
-      "path": "Xynolog.Records.Errors_codes_sign_in_codes_item.project",
-      "declaration": "val project : (string * Yojson.Raw.t) list -> t"
-    },
-    {
-      "kind": "value",
-      "path": "Xynolog.Records.Errors_codes_sign_in_codes_item.to_json",
-      "declaration": "val to_json : t -> Yojson.Raw.t"
-    },
-    {
-      "kind": "module",
-      "path": "Xynolog.Records.Errors_codes_kb_identity_codes_item",
-      "declaration": "module Errors_codes_kb_identity_codes_item :\n  sig\n    type t = { code : string; docs : string; }\n    val project : (string * Yojson.Raw.t) list -> t\n    val to_json : t -> Yojson.Raw.t\n  end"
-    },
-    {
-      "kind": "type",
-      "path": "Xynolog.Records.Errors_codes_kb_identity_codes_item.t",
-      "declaration": "type t = { code : string; docs : string; }",
-      "representation": "record",
-      "fields": [
-        "code",
-        "docs"
-      ]
-    },
-    {
-      "kind": "value",
-      "path": "Xynolog.Records.Errors_codes_kb_identity_codes_item.project",
-      "declaration": "val project : (string * Yojson.Raw.t) list -> t"
-    },
-    {
-      "kind": "value",
-      "path": "Xynolog.Records.Errors_codes_kb_identity_codes_item.to_json",
-      "declaration": "val to_json : t -> Yojson.Raw.t"
-    },
-    {
-      "kind": "module",
-      "path": "Xynolog.Records.Errors_codes_span_refusal_codes_item",
-      "declaration": "module Errors_codes_span_refusal_codes_item :\n  sig\n    type t = { code : string; docs : string; }\n    val project : (string * Yojson.Raw.t) list -> t\n    val to_json : t -> Yojson.Raw.t\n  end"
-    },
-    {
-      "kind": "type",
-      "path": "Xynolog.Records.Errors_codes_span_refusal_codes_item.t",
-      "declaration": "type t = { code : string; docs : string; }",
-      "representation": "record",
-      "fields": [
-        "code",
-        "docs"
-      ]
-    },
-    {
-      "kind": "value",
-      "path": "Xynolog.Records.Errors_codes_span_refusal_codes_item.project",
-      "declaration": "val project : (string * Yojson.Raw.t) list -> t"
-    },
-    {
-      "kind": "value",
-      "path": "Xynolog.Records.Errors_codes_span_refusal_codes_item.to_json",
-      "declaration": "val to_json : t -> Yojson.Raw.t"
-    },
-    {
-      "kind": "module",
       "path": "Xynolog.Records.Errors_codes_control_codes_item",
       "declaration": "module Errors_codes_control_codes_item :\n  sig\n    type t = { code : string; docs : string; rpc : int; retryable : bool; }\n    val project : (string * Yojson.Raw.t) list -> t\n    val to_json : t -> Yojson.Raw.t\n  end"
     },
@@ -20881,31 +20781,6 @@
     {
       "kind": "value",
       "path": "Xynolog.Records.Identifiers_kinds_kinds_item_accepts_item.to_json",
-      "declaration": "val to_json : t -> Yojson.Raw.t"
-    },
-    {
-      "kind": "module",
-      "path": "Xynolog.Records.Identifiers_kinds_kinds_item_refuses_item",
-      "declaration": "module Identifiers_kinds_kinds_item_refuses_item :\n  sig\n    type t = { id : string; why : string; }\n    val project : (string * Yojson.Raw.t) list -> t\n    val to_json : t -> Yojson.Raw.t\n  end"
-    },
-    {
-      "kind": "type",
-      "path": "Xynolog.Records.Identifiers_kinds_kinds_item_refuses_item.t",
-      "declaration": "type t = { id : string; why : string; }",
-      "representation": "record",
-      "fields": [
-        "id",
-        "why"
-      ]
-    },
-    {
-      "kind": "value",
-      "path": "Xynolog.Records.Identifiers_kinds_kinds_item_refuses_item.project",
-      "declaration": "val project : (string * Yojson.Raw.t) list -> t"
-    },
-    {
-      "kind": "value",
-      "path": "Xynolog.Records.Identifiers_kinds_kinds_item_refuses_item.to_json",
       "declaration": "val to_json : t -> Yojson.Raw.t"
     },
     {
@@ -21274,31 +21149,6 @@
     },
     {
       "kind": "module",
-      "path": "Xynolog.Records.Sign_in_store_owner_only_file_mode",
-      "declaration": "module Sign_in_store_owner_only_file_mode :\n  sig\n    type t = { value : string; docs : string; }\n    val project : (string * Yojson.Raw.t) list -> t\n    val to_json : t -> Yojson.Raw.t\n  end"
-    },
-    {
-      "kind": "type",
-      "path": "Xynolog.Records.Sign_in_store_owner_only_file_mode.t",
-      "declaration": "type t = { value : string; docs : string; }",
-      "representation": "record",
-      "fields": [
-        "value",
-        "docs"
-      ]
-    },
-    {
-      "kind": "value",
-      "path": "Xynolog.Records.Sign_in_store_owner_only_file_mode.project",
-      "declaration": "val project : (string * Yojson.Raw.t) list -> t"
-    },
-    {
-      "kind": "value",
-      "path": "Xynolog.Records.Sign_in_store_owner_only_file_mode.to_json",
-      "declaration": "val to_json : t -> Yojson.Raw.t"
-    },
-    {
-      "kind": "module",
       "path": "Xynolog.Records.Sign_in_store_owner_only_directory_access_list",
       "declaration": "module Sign_in_store_owner_only_directory_access_list :\n  sig\n    type t = { value : string; docs : string; }\n    val project : (string * Yojson.Raw.t) list -> t\n    val to_json : t -> Yojson.Raw.t\n  end"
     },
@@ -21320,31 +21170,6 @@
     {
       "kind": "value",
       "path": "Xynolog.Records.Sign_in_store_owner_only_directory_access_list.to_json",
-      "declaration": "val to_json : t -> Yojson.Raw.t"
-    },
-    {
-      "kind": "module",
-      "path": "Xynolog.Records.Sign_in_store_owner_only_file_access_list",
-      "declaration": "module Sign_in_store_owner_only_file_access_list :\n  sig\n    type t = { value : string; docs : string; }\n    val project : (string * Yojson.Raw.t) list -> t\n    val to_json : t -> Yojson.Raw.t\n  end"
-    },
-    {
-      "kind": "type",
-      "path": "Xynolog.Records.Sign_in_store_owner_only_file_access_list.t",
-      "declaration": "type t = { value : string; docs : string; }",
-      "representation": "record",
-      "fields": [
-        "value",
-        "docs"
-      ]
-    },
-    {
-      "kind": "value",
-      "path": "Xynolog.Records.Sign_in_store_owner_only_file_access_list.project",
-      "declaration": "val project : (string * Yojson.Raw.t) list -> t"
-    },
-    {
-      "kind": "value",
-      "path": "Xynolog.Records.Sign_in_store_owner_only_file_access_list.to_json",
       "declaration": "val to_json : t -> Yojson.Raw.t"
     },
     {
@@ -24833,12 +24658,12 @@
     {
       "kind": "module",
       "path": "Xynolog.Records.Sign_in_store_owner_only",
-      "declaration": "module Sign_in_store_owner_only :\n  sig\n    type t = {\n      field_comment : string;\n      directory_mode : Sign_in_store_owner_only_directory_mode.t;\n      file_mode : Sign_in_store_owner_only_file_mode.t;\n      directory_access_list :\n        Sign_in_store_owner_only_directory_access_list.t;\n      file_access_list : Sign_in_store_owner_only_file_access_list.t;\n    }\n    val project : (string * Yojson.Raw.t) list -> t\n    val of_model : [ `SignInStoreOwnerOnly ] Xynolog__.Models.t -> t\n    val to_json : t -> Yojson.Raw.t\n    val to_model :\n      t ->\n      ([ `SignInStoreOwnerOnly ] Xynolog__.Models.t,\n       Xynolog__.Models.decode_error)\n      result\n  end"
+      "declaration": "module Sign_in_store_owner_only :\n  sig\n    type t = {\n      field_comment : string;\n      directory_mode : Sign_in_store_owner_only_directory_mode.t;\n      file_mode : Sign_in_store_owner_only_directory_mode.t;\n      directory_access_list :\n        Sign_in_store_owner_only_directory_access_list.t;\n      file_access_list : Sign_in_store_owner_only_directory_access_list.t;\n    }\n    val project : (string * Yojson.Raw.t) list -> t\n    val of_model : [ `SignInStoreOwnerOnly ] Xynolog__.Models.t -> t\n    val to_json : t -> Yojson.Raw.t\n    val to_model :\n      t ->\n      ([ `SignInStoreOwnerOnly ] Xynolog__.Models.t,\n       Xynolog__.Models.decode_error)\n      result\n  end"
     },
     {
       "kind": "type",
       "path": "Xynolog.Records.Sign_in_store_owner_only.t",
-      "declaration": "type t = {\n  field_comment : string;\n  directory_mode : Sign_in_store_owner_only_directory_mode.t;\n  file_mode : Sign_in_store_owner_only_file_mode.t;\n  directory_access_list : Sign_in_store_owner_only_directory_access_list.t;\n  file_access_list : Sign_in_store_owner_only_file_access_list.t;\n}",
+      "declaration": "type t = {\n  field_comment : string;\n  directory_mode : Sign_in_store_owner_only_directory_mode.t;\n  file_mode : Sign_in_store_owner_only_directory_mode.t;\n  directory_access_list : Sign_in_store_owner_only_directory_access_list.t;\n  file_access_list : Sign_in_store_owner_only_directory_access_list.t;\n}",
       "representation": "record",
       "fields": [
         "field_comment",
@@ -26392,106 +26217,6 @@
     },
     {
       "kind": "module",
-      "path": "Xynolog.Records.Errors_codes_session",
-      "declaration": "module Errors_codes_session :\n  sig\n    type t = {\n      docs : string;\n      codes : Errors_codes_session_codes_item.t list;\n    }\n    val project : (string * Yojson.Raw.t) list -> t\n    val to_json : t -> Yojson.Raw.t\n  end"
-    },
-    {
-      "kind": "type",
-      "path": "Xynolog.Records.Errors_codes_session.t",
-      "declaration": "type t = { docs : string; codes : Errors_codes_session_codes_item.t list; }",
-      "representation": "record",
-      "fields": [
-        "docs",
-        "codes"
-      ]
-    },
-    {
-      "kind": "value",
-      "path": "Xynolog.Records.Errors_codes_session.project",
-      "declaration": "val project : (string * Yojson.Raw.t) list -> t"
-    },
-    {
-      "kind": "value",
-      "path": "Xynolog.Records.Errors_codes_session.to_json",
-      "declaration": "val to_json : t -> Yojson.Raw.t"
-    },
-    {
-      "kind": "module",
-      "path": "Xynolog.Records.Errors_codes_sign_in",
-      "declaration": "module Errors_codes_sign_in :\n  sig\n    type t = {\n      docs : string;\n      codes : Errors_codes_sign_in_codes_item.t list;\n    }\n    val project : (string * Yojson.Raw.t) list -> t\n    val to_json : t -> Yojson.Raw.t\n  end"
-    },
-    {
-      "kind": "type",
-      "path": "Xynolog.Records.Errors_codes_sign_in.t",
-      "declaration": "type t = { docs : string; codes : Errors_codes_sign_in_codes_item.t list; }",
-      "representation": "record",
-      "fields": [
-        "docs",
-        "codes"
-      ]
-    },
-    {
-      "kind": "value",
-      "path": "Xynolog.Records.Errors_codes_sign_in.project",
-      "declaration": "val project : (string * Yojson.Raw.t) list -> t"
-    },
-    {
-      "kind": "value",
-      "path": "Xynolog.Records.Errors_codes_sign_in.to_json",
-      "declaration": "val to_json : t -> Yojson.Raw.t"
-    },
-    {
-      "kind": "module",
-      "path": "Xynolog.Records.Errors_codes_kb_identity",
-      "declaration": "module Errors_codes_kb_identity :\n  sig\n    type t = {\n      docs : string;\n      codes : Errors_codes_kb_identity_codes_item.t list;\n    }\n    val project : (string * Yojson.Raw.t) list -> t\n    val to_json : t -> Yojson.Raw.t\n  end"
-    },
-    {
-      "kind": "type",
-      "path": "Xynolog.Records.Errors_codes_kb_identity.t",
-      "declaration": "type t = {\n  docs : string;\n  codes : Errors_codes_kb_identity_codes_item.t list;\n}",
-      "representation": "record",
-      "fields": [
-        "docs",
-        "codes"
-      ]
-    },
-    {
-      "kind": "value",
-      "path": "Xynolog.Records.Errors_codes_kb_identity.project",
-      "declaration": "val project : (string * Yojson.Raw.t) list -> t"
-    },
-    {
-      "kind": "value",
-      "path": "Xynolog.Records.Errors_codes_kb_identity.to_json",
-      "declaration": "val to_json : t -> Yojson.Raw.t"
-    },
-    {
-      "kind": "module",
-      "path": "Xynolog.Records.Errors_codes_span_refusal",
-      "declaration": "module Errors_codes_span_refusal :\n  sig\n    type t = {\n      docs : string;\n      codes : Errors_codes_span_refusal_codes_item.t list;\n    }\n    val project : (string * Yojson.Raw.t) list -> t\n    val to_json : t -> Yojson.Raw.t\n  end"
-    },
-    {
-      "kind": "type",
-      "path": "Xynolog.Records.Errors_codes_span_refusal.t",
-      "declaration": "type t = {\n  docs : string;\n  codes : Errors_codes_span_refusal_codes_item.t list;\n}",
-      "representation": "record",
-      "fields": [
-        "docs",
-        "codes"
-      ]
-    },
-    {
-      "kind": "value",
-      "path": "Xynolog.Records.Errors_codes_span_refusal.project",
-      "declaration": "val project : (string * Yojson.Raw.t) list -> t"
-    },
-    {
-      "kind": "value",
-      "path": "Xynolog.Records.Errors_codes_span_refusal.to_json",
-      "declaration": "val to_json : t -> Yojson.Raw.t"
-    },
-    {
-      "kind": "module",
       "path": "Xynolog.Records.Errors_codes_control",
       "declaration": "module Errors_codes_control :\n  sig\n    type t = {\n      docs : string;\n      codes : Errors_codes_control_codes_item.t list;\n    }\n    val project : (string * Yojson.Raw.t) list -> t\n    val to_json : t -> Yojson.Raw.t\n  end"
     },
@@ -26518,12 +26243,12 @@
     {
       "kind": "module",
       "path": "Xynolog.Records.Identifiers_kinds_kinds_item",
-      "declaration": "module Identifiers_kinds_kinds_item :\n  sig\n    type t = {\n      schema : string;\n      properties : string list;\n      accepts : Identifiers_kinds_kinds_item_accepts_item.t list;\n      refuses : Identifiers_kinds_kinds_item_refuses_item.t list;\n    }\n    val project : (string * Yojson.Raw.t) list -> t\n    val to_json : t -> Yojson.Raw.t\n  end"
+      "declaration": "module Identifiers_kinds_kinds_item :\n  sig\n    type t = {\n      schema : string;\n      properties : string list;\n      accepts : Identifiers_kinds_kinds_item_accepts_item.t list;\n      refuses : Identifiers_kinds_kinds_item_accepts_item.t list;\n    }\n    val project : (string * Yojson.Raw.t) list -> t\n    val to_json : t -> Yojson.Raw.t\n  end"
     },
     {
       "kind": "type",
       "path": "Xynolog.Records.Identifiers_kinds_kinds_item.t",
-      "declaration": "type t = {\n  schema : string;\n  properties : string list;\n  accepts : Identifiers_kinds_kinds_item_accepts_item.t list;\n  refuses : Identifiers_kinds_kinds_item_refuses_item.t list;\n}",
+      "declaration": "type t = {\n  schema : string;\n  properties : string list;\n  accepts : Identifiers_kinds_kinds_item_accepts_item.t list;\n  refuses : Identifiers_kinds_kinds_item_accepts_item.t list;\n}",
       "representation": "record",
       "fields": [
         "schema",
@@ -33249,12 +32974,12 @@
     {
       "kind": "module",
       "path": "Xynolog.Records.Errors_codes",
-      "declaration": "module Errors_codes :\n  sig\n    type t = {\n      field_comment : string;\n      bus_request : Errors_codes_bus_request.t;\n      transport : Errors_codes_transport.t;\n      job : Errors_codes_job.t;\n      session : Errors_codes_session.t;\n      sign_in : Errors_codes_sign_in.t;\n      kb_identity : Errors_codes_kb_identity.t;\n      span_refusal : Errors_codes_span_refusal.t;\n      control : Errors_codes_control.t;\n    }\n    val project : (string * Yojson.Raw.t) list -> t\n    val of_model : [ `ErrorsCodes ] Xynolog__.Models.t -> t\n    val to_json : t -> Yojson.Raw.t\n    val to_model :\n      t ->\n      ([ `ErrorsCodes ] Xynolog__.Models.t, Xynolog__.Models.decode_error)\n      result\n  end"
+      "declaration": "module Errors_codes :\n  sig\n    type t = {\n      field_comment : string;\n      bus_request : Errors_codes_bus_request.t;\n      transport : Errors_codes_transport.t;\n      job : Errors_codes_job.t;\n      session : Errors_codes_job.t;\n      sign_in : Errors_codes_job.t;\n      kb_identity : Errors_codes_job.t;\n      span_refusal : Errors_codes_job.t;\n      control : Errors_codes_control.t;\n    }\n    val project : (string * Yojson.Raw.t) list -> t\n    val of_model : [ `ErrorsCodes ] Xynolog__.Models.t -> t\n    val to_json : t -> Yojson.Raw.t\n    val to_model :\n      t ->\n      ([ `ErrorsCodes ] Xynolog__.Models.t, Xynolog__.Models.decode_error)\n      result\n  end"
     },
     {
       "kind": "type",
       "path": "Xynolog.Records.Errors_codes.t",
-      "declaration": "type t = {\n  field_comment : string;\n  bus_request : Errors_codes_bus_request.t;\n  transport : Errors_codes_transport.t;\n  job : Errors_codes_job.t;\n  session : Errors_codes_session.t;\n  sign_in : Errors_codes_sign_in.t;\n  kb_identity : Errors_codes_kb_identity.t;\n  span_refusal : Errors_codes_span_refusal.t;\n  control : Errors_codes_control.t;\n}",
+      "declaration": "type t = {\n  field_comment : string;\n  bus_request : Errors_codes_bus_request.t;\n  transport : Errors_codes_transport.t;\n  job : Errors_codes_job.t;\n  session : Errors_codes_job.t;\n  sign_in : Errors_codes_job.t;\n  kb_identity : Errors_codes_job.t;\n  span_refusal : Errors_codes_job.t;\n  control : Errors_codes_control.t;\n}",
       "representation": "record",
       "fields": [
         "field_comment",
@@ -35747,27 +35472,6 @@
     },
     {
       "kind": "type",
-      "path": "Xynolog.Subscription.timing",
-      "declaration": "type timing = {\n  stream_open_timeout_ms : int;\n  reconnect_ms : int;\n  max_reconnect_ms : int;\n  degraded_threshold_ms : int;\n  reconnect_debounce_ms : int;\n  lazy_remove_ms : int;\n  linger_ms : int;\n  bus_request_timeout_ms : int;\n}",
-      "representation": "record",
-      "fields": [
-        "stream_open_timeout_ms",
-        "reconnect_ms",
-        "max_reconnect_ms",
-        "degraded_threshold_ms",
-        "reconnect_debounce_ms",
-        "lazy_remove_ms",
-        "linger_ms",
-        "bus_request_timeout_ms"
-      ]
-    },
-    {
-      "kind": "value",
-      "path": "Xynolog.Subscription.default_timing",
-      "declaration": "val default_timing : timing"
-    },
-    {
-      "kind": "type",
       "path": "Xynolog.Subscription.open_error",
       "declaration": "type open_error = Retry | Retry_after of int | No_credential",
       "representation": "variant",
@@ -35835,7 +35539,7 @@
     {
       "kind": "value",
       "path": "Xynolog.Subscription.start",
-      "declaration": "val start :\n  ?timing:timing ->\n  ?telemetry:Xynolog__.Telemetry.t ->\n  ?positions:(string * string) list ->\n  sw:Eio.Switch.t ->\n  clock:Xynolog__.Clock.t ->\n  client_id:string ->\n  global:Xynolog__.Bus_registry.packed_channel list ->\n  scopes:scope list ->\n  connect:(sw:Eio.Switch.t -> snapshot -> (Eio.Buf_read.t, open_error) result) ->\n  on_event:((Xynolog__.Wire_stream.frame, Xynolog__.Wire_stream.refusal)\n            result -> unit) ->\n  unit -> t"
+      "declaration": "val start :\n  ?timing:Xynolog__.Client_timing.transport ->\n  ?telemetry:Xynolog__.Telemetry.t ->\n  ?positions:(string * string) list ->\n  sw:Eio.Switch.t ->\n  clock:Xynolog__.Clock.t ->\n  client_id:string ->\n  global:Xynolog__.Bus_registry.packed_channel list ->\n  scopes:scope list ->\n  connect:(sw:Eio.Switch.t -> snapshot -> (Eio.Buf_read.t, open_error) result) ->\n  on_event:((Xynolog__.Wire_stream.frame, Xynolog__.Wire_stream.refusal)\n            result -> unit) ->\n  unit -> t"
     },
     {
       "kind": "value",
@@ -35945,7 +35649,7 @@
     {
       "kind": "value",
       "path": "Xynolog.Subscription.request",
-      "declaration": "val request :\n  t ->\n  ?timeout_ms:int ->\n  ?normalize_refusals:bool ->\n  correlation_id:string ->\n  ('request, 'result, 'failure) Xynolog__.Bus_registry.operation ->\n  send:(unit -> unit) -> (('result, 'failure) reply, request_error) result"
+      "declaration": "val request :\n  t ->\n  timeout_ms:int ->\n  ?normalize_refusals:bool ->\n  correlation_id:string ->\n  ('request, 'result, 'failure) Xynolog__.Bus_registry.operation ->\n  send:(unit -> unit) -> (('result, 'failure) reply, request_error) result"
     },
     {
       "kind": "value",
@@ -36071,19 +35775,6 @@
     },
     {
       "kind": "type",
-      "path": "Xynolog.Http_wire.timing",
-      "declaration": "type timing = {\n  emit_attempts : int;\n  emit_initial_delay_ms : int;\n  emit_max_delay_ms : int;\n  emit_timeout_ms : int;\n  request_timeout_ms : int;\n}",
-      "representation": "record",
-      "fields": [
-        "emit_attempts",
-        "emit_initial_delay_ms",
-        "emit_max_delay_ms",
-        "emit_timeout_ms",
-        "request_timeout_ms"
-      ]
-    },
-    {
-      "kind": "type",
       "path": "Xynolog.Http_wire.failure",
       "declaration": "type failure = {\n  code : Xynolog__.Error_codes.Transport.t;\n  status : int option;\n  message : string;\n}",
       "representation": "record",
@@ -36127,13 +35818,8 @@
     },
     {
       "kind": "value",
-      "path": "Xynolog.Http_wire.default_timing",
-      "declaration": "val default_timing : timing"
-    },
-    {
-      "kind": "value",
       "path": "Xynolog.Http_wire.make",
-      "declaration": "val make :\n  ?timing:timing ->\n  ?telemetry:Xynolog__.Telemetry.t ->\n  clock:Xynolog__.Clock.t ->\n  session:Xynolog__.Session.t ->\n  key:(unit -> string) ->\n  on_error:(failure -> unit) ->\n  call:(sw:Eio.Switch.t ->\n        meth:string ->\n        path:string ->\n        headers:(string * string) list ->\n        body:string ->\n        progress:(int -> unit) option ->\n        int * (string * string) list * Eio.Flow.source_ty Eio.Resource.t) ->\n  unit -> t"
+      "declaration": "val make :\n  ?timing:Xynolog__.Client_timing.transport ->\n  ?telemetry:Xynolog__.Telemetry.t ->\n  clock:Xynolog__.Clock.t ->\n  session:Xynolog__.Session.t ->\n  key:(unit -> string) ->\n  on_error:(failure -> unit) ->\n  call:(sw:Eio.Switch.t ->\n        meth:string ->\n        path:string ->\n        headers:(string * string) list ->\n        body:string ->\n        progress:(int -> unit) option ->\n        int * (string * string) list * Eio.Flow.source_ty Eio.Resource.t) ->\n  unit -> t"
     },
     {
       "kind": "value",
@@ -37400,7 +37086,7 @@
     {
       "kind": "value",
       "path": "Xynolog.Delegation.make",
-      "declaration": "val make :\n  ?silence_ms:int ->\n  ?poll_ms:int ->\n  sw:Eio.Switch.t ->\n  clock:Xynolog__.Clock.t ->\n  subscription:Xynolog__.Subscription.t ->\n  http:Xynolog__.Http_wire.t ->\n  client_id:string -> correlation_id:(unit -> string) -> unit -> t"
+      "declaration": "val make :\n  ?timing:Xynolog__.Client_timing.client ->\n  sw:Eio.Switch.t ->\n  clock:Xynolog__.Clock.t ->\n  subscription:Xynolog__.Subscription.t ->\n  http:Xynolog__.Http_wire.t ->\n  client_id:string -> correlation_id:(unit -> string) -> unit -> t"
     },
     {
       "kind": "value",
@@ -37551,7 +37237,7 @@
     {
       "kind": "value",
       "path": "Xynolog.Client.connect",
-      "declaration": "val connect :\n  ?timing:Xynolog__.Subscription.timing ->\n  ?http_timing:Xynolog__.Http_wire.timing ->\n  ?telemetry:Xynolog__.Telemetry.t ->\n  ?delegation_silence_ms:int ->\n  ?delegation_poll_ms:int ->\n  ?invalidation_window_ms:int ->\n  ?restore:(Xynolog__.Live_query.key -> Yojson.Safe.t option) ->\n  ?save:(Xynolog__.Live_query.key -> Yojson.Safe.t option -> unit) ->\n  ?persister:Xynolog__.Storage_persister.storage_persister ->\n  sw:Eio.Switch.t ->\n  clock:Xynolog__.Clock.t ->\n  session:Xynolog__.Session.t ->\n  client_id:string ->\n  key:(unit -> string) ->\n  call:(sw:Eio.Switch.t ->\n        meth:string ->\n        path:string ->\n        headers:(string * string) list ->\n        body:string ->\n        progress:(int -> unit) option ->\n        int * (string * string) list * Eio.Flow.source_ty Eio.Resource.t) ->\n  global:Xynolog__.Bus_registry.packed_channel list ->\n  on_event:((Xynolog__.Wire_stream.frame, Xynolog__.Wire_stream.refusal)\n            result -> unit) ->\n  unit -> t"
+      "declaration": "val connect :\n  ?client_timing:Xynolog__.Client_timing.client ->\n  ?transport_timing:Xynolog__.Client_timing.transport ->\n  ?telemetry:Xynolog__.Telemetry.t ->\n  ?restore:(Xynolog__.Live_query.key -> Yojson.Safe.t option) ->\n  ?save:(Xynolog__.Live_query.key -> Yojson.Safe.t option -> unit) ->\n  ?persister:Xynolog__.Storage_persister.storage_persister ->\n  sw:Eio.Switch.t ->\n  clock:Xynolog__.Clock.t ->\n  session:Xynolog__.Session.t ->\n  client_id:string ->\n  key:(unit -> string) ->\n  call:(sw:Eio.Switch.t ->\n        meth:string ->\n        path:string ->\n        headers:(string * string) list ->\n        body:string ->\n        progress:(int -> unit) option ->\n        int * (string * string) list * Eio.Flow.source_ty Eio.Resource.t) ->\n  global:Xynolog__.Bus_registry.packed_channel list ->\n  on_event:((Xynolog__.Wire_stream.frame, Xynolog__.Wire_stream.refusal)\n            result -> unit) ->\n  unit -> t"
     },
     {
       "kind": "value",
@@ -42649,7 +42335,7 @@
     {
       "kind": "value",
       "path": "Xynolog.State_units.Mark.make",
-      "declaration": "val make :\n  ?silence_ms:int ->\n  Xynolog__.Client.t -> resource:Xynolog__.Identifiers.Resource_id.t -> t"
+      "declaration": "val make :\n  Xynolog__.Client.t -> resource:Xynolog__.Identifiers.Resource_id.t -> t"
     },
     {
       "kind": "value",
@@ -43564,6 +43250,43 @@
       "declaration": "val checks_at_once_count : int"
     },
     {
+      "kind": "type",
+      "path": "Xynolog.Client_timing.client",
+      "declaration": "type client = {\n  bus_request_timeout_ms : int;\n  invalidation_window_ms : int;\n  job_silence_ms : int;\n  job_status_poll_ms : int;\n}",
+      "representation": "record",
+      "fields": [
+        "bus_request_timeout_ms",
+        "invalidation_window_ms",
+        "job_silence_ms",
+        "job_status_poll_ms"
+      ]
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Client_timing.client_defaults",
+      "declaration": "val client_defaults : client"
+    },
+    {
+      "kind": "type",
+      "path": "Xynolog.Client_timing.transport",
+      "declaration": "type transport = {\n  emit_retry : Xynolog__.Records.Retry_budget.t;\n  http_request_timeout_ms : int;\n  stream_open_timeout_ms : int;\n  reconnect_ms : int;\n  linger_ms : int;\n  seen_event_ids_count : int;\n  lazy_remove_ms : int;\n}",
+      "representation": "record",
+      "fields": [
+        "emit_retry",
+        "http_request_timeout_ms",
+        "stream_open_timeout_ms",
+        "reconnect_ms",
+        "linger_ms",
+        "seen_event_ids_count",
+        "lazy_remove_ms"
+      ]
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Client_timing.transport_defaults",
+      "declaration": "val transport_defaults : transport"
+    },
+    {
       "kind": "module",
       "path": "Xynolog.Storage_persister",
       "declaration": "module Storage_persister = Xynolog__.Storage_persister",
@@ -43578,7 +43301,7 @@
     {
       "kind": "value",
       "path": "Xynolog.Storage_persister.make",
-      "declaration": "val make :\n  storage:Xynolog__.Storage.t ->\n  key:string ->\n  version:int ->\n  max_bytes:int -> clock:Xynolog__.Clock.t -> storage_persister"
+      "declaration": "val make :\n  storage:Xynolog__.Storage.t ->\n  key:string -> version:int -> clock:Xynolog__.Clock.t -> storage_persister"
     },
     {
       "kind": "value",
