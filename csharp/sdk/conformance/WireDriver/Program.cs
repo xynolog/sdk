@@ -172,9 +172,9 @@ internal sealed class WireDriver : IDisposable
                     break;
                 // The suite's backend sends only frames BusFrame allows, and its lines have none for a refusal: a frame
                 // the transport refused is its bug, which ends the driver.
-                case Xynolog.FrameRefusal refusal:
+                case RefusedBusFrame refused:
                     Console.Error.WriteLine("the transport refused a frame on " + channel + ": " +
-                        JsonSerializer.SerializeToElement(refusal.Reason).GetString() + ", at its `" + refusal.Member + "`");
+                        JsonSerializer.SerializeToElement(refused.Refusal.Reason).GetString() + ", at its `" + refused.Refusal.Member + "`");
                     Environment.Exit(1);
                     break;
             }

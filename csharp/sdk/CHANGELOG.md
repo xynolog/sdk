@@ -55,6 +55,13 @@ the coming release's, and gathers its changes as they land.
 
 ### Changed
 
+- A frame's refusal is `Xynolog.Types.FrameRefusal`, the type of Protocol's
+  `client/types/FrameRefusal.json`, where `Xynolog` declared a
+  `FrameRefusal` record of its own. A transport delivers it as a
+  `RefusedBusFrame`, `Carried` beside `ReceivedBusFrame`, that holds it as
+  `Refusal`; `Heard<T>.Refused` holds it as before. A refusal is made with an
+  object initializer (`new FrameRefusal { Channel = …, Member = …, Reason =
+  … }`).
 - A schema a `$ref` names at a place within a file is one type, named where
   that place is stated, wherever it is referred to: the Archivist layout's
   trees are all `ArchivistLayoutEventStreamTree`, every error vocabulary
