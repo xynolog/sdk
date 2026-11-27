@@ -14,7 +14,7 @@ from xynolog.cached import Cached
 from xynolog.client import XynologClient
 from xynolog.model import WireModel, written
 from xynolog.testing import FaultyTransport
-from xynolog.transport import FrameRefusal
+from xynolog.types import FrameRefusal
 
 type Client = XynologClient[FaultyTransport]
 type Args = Mapping[str, JsonValue]

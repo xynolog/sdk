@@ -131,6 +131,8 @@ export type LastEventIds = records['LastEventIds'];
  */
 export type AnchorMethod = records['AnchorMethod'];
 export type MatchQuality = records['MatchQuality'];
+export type Fault = records['Fault'];
+export type FrameRefusal = records['FrameRefusal'];
 export type FrameRefusalReason = records['FrameRefusalReason'];
 export type DiscoveryAbsentReason =
   components['schemas']['DiscoveryAbsentReason'];

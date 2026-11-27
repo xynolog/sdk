@@ -34,7 +34,7 @@ import type { ResourceId } from './identifiers';
 import type { EventMap } from './bus-protocol';
 import type { BusEnvelope, BusFrame } from './event-bus';
 import type { EventBus } from './event-bus';
-import type { FrameRefusal } from './bus';
+import type { Refused } from './bus';
 import type { XynologError } from './errors';
 import type { AnchoredTextAnswer } from './pdf-anchoring';
 
@@ -91,11 +91,11 @@ export interface ITransport {
   ): Promise<number | undefined>;
   on<K extends keyof EventMap>(
     channel: K,
-    handler: (payload: EventMap[K] | FrameRefusal) => void,
+    handler: (payload: EventMap[K] | Refused) => void,
   ): () => void;
   stream<K extends keyof EventMap>(
     channel: K,
-  ): Observable<EventMap[K] | FrameRefusal>;
+  ): Observable<EventMap[K] | Refused>;
 
   /**
    * Subscribe to a resource-scoped channel set. HTTP attaches a scope to
@@ -122,7 +122,7 @@ export interface ITransport {
    * means: HTTP bridges every channel it observes on its SSE wire;
    * a transport with no wire bridges from its own source. Each payload is
    * published as its channel types it (`asDeclared`), and one that has a
-   * fault as its channel's is published as its frame's `FrameRefusal`, in
+   * fault as its channel's is published as its frame's `Refused`, in
    * its place, as a frame the transport refused is.
    */
   bridgeInto(bus: EventBus): void;
@@ -163,13 +163,13 @@ export interface ITransport {
 
   /**
    * The ENVELOPE view (`BusPrimitive.frames`): each frame, or in place of
-   * one the transport refused that names the channel, its `FrameRefusal`.
+   * one the transport refused that names the channel, its `Refused`.
    * `Bus.request` matches a reply on `frame.correlationId`, so the key never
    * enters a channel's domain type. Required: every transport can answer it.
    */
   frames<K extends keyof EventMap>(
     channel: K,
-  ): Observable<BusFrame<EventMap[K] | FrameRefusal>>;
+  ): Observable<BusFrame<EventMap[K] | Refused>>;
 
   /**
    * Stream of transport-level errors surfaced from typed-wire methods or

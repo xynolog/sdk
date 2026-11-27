@@ -13,7 +13,7 @@
  * that genuinely owns a scope (the Archivist's fact pump) emits directly.
  */
 import type { Observable, Subscription } from 'rxjs';
-import type { FrameRefusal } from './bus';
+import type { Refused } from './bus';
 import type { BusEnvelope, BusFrame } from './event-bus';
 import type { EventMap } from './bus-protocol';
 
@@ -25,7 +25,7 @@ import type { EventMap } from './bus-protocol';
 export interface FrameSource {
   frames<K extends keyof EventMap>(
     channel: K,
-  ): Observable<BusFrame<EventMap[K] | FrameRefusal>>;
+  ): Observable<BusFrame<EventMap[K] | Refused>>;
 }
 
 /**
@@ -36,7 +36,7 @@ export interface FrameSource {
 export interface FrameSink {
   emit<K extends keyof EventMap>(
     channel: K,
-    payload: EventMap[K] | FrameRefusal,
+    payload: EventMap[K] | Refused,
     envelope: BusEnvelope,
   ): unknown;
 }

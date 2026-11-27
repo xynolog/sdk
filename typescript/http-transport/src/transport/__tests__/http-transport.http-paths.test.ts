@@ -728,7 +728,7 @@ describe('HttpTransport — HTTP wire shape', () => {
     });
 
     test("a payload that lacks a member its channel's schema requires is published as a refusal in its place, and said nowhere else", async () => {
-      const { EventBus, FrameRefusal } = await import('@xynolog/core');
+      const { EventBus, Refused } = await import('@xynolog/core');
       const bus = new EventBus();
       transport.bridgeInto(bus);
       const warned = vi.spyOn(console, 'warn');
@@ -755,13 +755,12 @@ describe('HttpTransport — HTTP wire shape', () => {
         failed,
       ]);
       expect(bridged).toStrictEqual([
-        new FrameRefusal(
-          'job:fail',
-          'payload.jobId',
-          'lacks',
-          lacking,
-          undefined,
-        ),
+        new Refused({
+          channel: 'job:fail',
+          member: 'payload.jobId',
+          reason: 'lacks',
+          payload: lacking,
+        }),
         failed,
       ]);
       expect(warned).not.toHaveBeenCalled();

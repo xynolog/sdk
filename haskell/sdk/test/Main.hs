@@ -544,7 +544,7 @@ retryCases root = do
   putStrLn "PASS all retry rules and Retry-After cases"
 
 -- | Holds the JSON text to the shape written as the table writes one.
-faultsAs :: Bytes.ByteString -> Bytes.ByteString -> Maybe Required.Fault -> IO ()
+faultsAs :: Bytes.ByteString -> Bytes.ByteString -> Maybe Types.Fault -> IO ()
 faultsAs written text expected = do
   shape <- either (ioError . userError . (("no required shape " ++ show written ++ ": ") ++)) pure (eitherDecodeStrict' written)
   value <- either (ioError . userError) pure (eitherDecodeStrict' text)
@@ -558,8 +558,8 @@ faultsAs written text expected = do
 -- as names says. A reader refuses a part it does not know.
 requiredWalkerCases :: IO ()
 requiredWalkerCases = do
-  let malformed way = Just (Required.Fault way Types.FrameRefusalReasonMalformed)
-      lacks way = Just (Required.Fault way Types.FrameRefusalReasonLacks)
+  let malformed way = Just (Types.Fault way Types.FrameRefusalReasonMalformed)
+      lacks way = Just (Types.Fault way Types.FrameRefusalReasonLacks)
       letter = "{\"of\":[[97,122]],\"min\":1,\"max\":1}"
       anything = "{\"of\":[[0,1114111]],\"min\":0}"
       methodThen end = "{\"kinds\":[\"string\"],\"pattern\":[{\"either\":[[{\"of\":[[71,71]],\"min\":1,\"max\":1},{\"of\":[[69,69]],\"min\":1,\"max\":1},{\"of\":[[84,84]],\"min\":1,\"max\":1}],[{\"of\":[[80,80]],\"min\":1,\"max\":1},{\"of\":[[79,79]],\"min\":1,\"max\":1},{\"of\":[[83,83]],\"min\":1,\"max\":1},{\"of\":[[84,84]],\"min\":1,\"max\":1}]],\"min\":1,\"max\":1},{\"of\":[[32,32]],\"min\":1,\"max\":1},{\"of\":[[47,47]],\"min\":1,\"max\":1}" <> end <> "]}"

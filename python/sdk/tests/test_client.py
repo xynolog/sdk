@@ -29,7 +29,6 @@ from xynolog.testing import FaultyTransport, GetAnchoredText, InMemoryContent, S
 from xynolog.transport import (
     ConnectionState,
     Frame,
-    FrameRefusal,
     FrameSink,
     PendingReply,
     ResourceHold,
@@ -38,6 +37,7 @@ from xynolog.transport import (
 from xynolog.types import (
     AnchoredTextAbsent,
     EngineWithLimits,
+    FrameRefusal,
     GatheredContext,
     JobStatusResponse,
     MatchSearchResult,

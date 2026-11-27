@@ -2,7 +2,7 @@ import type { Observable } from 'rxjs';
 import type {
   EventBus,
   EventMap,
-  FrameRefusal,
+  Refused,
   JobId,
   components,
 } from '@xynolog/core';
@@ -34,24 +34,24 @@ export class JobNamespace implements IJobNamespace {
    * underlying bus channel for consumers (CLIs, MCP handlers, widgets)
    * that orchestrate jobs and need to react to lifecycle transitions. Each
    * stream here gives, in place of an event whose payload is not its
-   * channel's, its `FrameRefusal`.
+   * channel's, its `Refused`.
    */
-  get queued$(): Observable<EventMap['job:queued'] | FrameRefusal> {
+  get queued$(): Observable<EventMap['job:queued'] | Refused> {
     return this.bus.on('job:queued');
   }
 
   /** Live stream of `job:report-progress` events. */
-  get progress$(): Observable<EventMap['job:report-progress'] | FrameRefusal> {
+  get progress$(): Observable<EventMap['job:report-progress'] | Refused> {
     return this.bus.on('job:report-progress');
   }
 
   /** Live stream of `job:complete` events (global; filter by `jobId`). */
-  get complete$(): Observable<EventMap['job:complete'] | FrameRefusal> {
+  get complete$(): Observable<EventMap['job:complete'] | Refused> {
     return this.bus.on('job:complete');
   }
 
   /** Live stream of `job:fail` events (global; filter by `jobId`). */
-  get fail$(): Observable<EventMap['job:fail'] | FrameRefusal> {
+  get fail$(): Observable<EventMap['job:fail'] | Refused> {
     return this.bus.on('job:fail');
   }
 

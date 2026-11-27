@@ -43,11 +43,11 @@ from xynolog.http.exchange import refusal
 from xynolog.http.gateway_http import GET_CURRENT_USER, RETRY_AFTER, client_secret_form
 from xynolog.http.oauth import issuer_client, object_in, post_form, seconds_in, text_in
 from xynolog.identifiers import UserId
-from xynolog.required import Fault, read_as
+from xynolog.required import read_as, said
 from xynolog.retry import REFRESH, RetryFacts, retry_after_ms, retry_with_backoff
 from xynolog.session import refresh_delay, renew_when_due, renewal_delay
 from xynolog.timing import HTTP_REQUEST_TIMEOUT_MS, REFRESH_RETRY
-from xynolog.types import UserResponse
+from xynolog.types import Fault, UserResponse
 from xynolog.watched import Variable, Watched
 
 __all__ = [
@@ -386,5 +386,5 @@ class AgentToken:
             )
         principal = read_as(UserResponse, response.content, UserResponse.model_validate)
         if isinstance(principal, Fault):
-            raise TransportError("error", f"{url} did not answer who the agent is: {principal}", status=status)
+            raise TransportError("error", f"{url} did not answer who the agent is: {said(principal)}", status=status)
         return principal.did

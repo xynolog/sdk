@@ -7,8 +7,8 @@ from typing import Annotated, Protocol, TypeAliasType, Union, final, get_args, g
 from pydantic import JsonValue, TypeAdapter
 
 from xynolog.model import WireModel, written
-from xynolog.required import Fault, as_read
-from xynolog.types import StoredEventResponse
+from xynolog.required import as_read, said
+from xynolog.types import Fault, StoredEventResponse
 
 __all__ = ["AnyChannel", "AnyOperation", "Channel", "Operation", "RecordedChannel", "ScopedChannel"]
 
@@ -81,9 +81,10 @@ class _OfPayload[P: WireModel]:
         stamps = frozenset[str]().union(*declared.values())
         if any(of_one != stamps for of_one in declared.values()):
             # A stamp is kept or dropped before the frame is read, and so before it is known which member the frame is.
-            said = "; ".join(f"{name} declares {sorted(of_one)}" for name, of_one in declared.items())
+            declarations = "; ".join(f"{name} declares {sorted(of_one)}" for name, of_one in declared.items())
             raise TypeError(
-                f"{self.name}: its shapes do not declare the same stamps ({said}). Write how a frame's are read by the member it names."
+                f"{self.name}: its shapes do not declare the same stamps ({declarations}). "
+                "Write how a frame's are read by the member it names."
             )
         object.__setattr__(self, "members", members)
         object.__setattr__(self, "stamps", stamps)
@@ -111,7 +112,7 @@ def _own[E: WireModel](recorded: str, shape: type[E], stored: StoredEventRespons
         raise ValueError(f"{stored.type} {stored.id} is not a {recorded} event")
     read = as_read(shape, stored.payload)
     if isinstance(read, Fault):
-        raise ValueError(f"the payload of {stored.type} {stored.id} is not its event's: {read}")
+        raise ValueError(f"the payload of {stored.type} {stored.id} is not its event's: {said(read)}")
     return shape.model_validate(read)
 
 

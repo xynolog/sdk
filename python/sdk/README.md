@@ -913,8 +913,7 @@ from xynolog.errors import BusRequestError
 from xynolog.http import HttpTransport
 from xynolog.identifiers import ResourceId
 from xynolog.operations import BROWSE_RESOURCE_REQUESTED
-from xynolog.transport import FrameRefusal
-from xynolog.types import BrowseResourceRequest
+from xynolog.types import BrowseResourceRequest, FrameRefusal
 from xynolog.watched import Variable
 
 
@@ -956,7 +955,7 @@ async def read(origin: str, token: str, resource: ResourceId) -> None:
   failure must; otherwise it is not answered.
 - **Frames** are a sequence: each reader is given every one, in order, however
   far behind it falls. Each is a `Heard`: a `Delivered`, its payload its
-  channel's, or a `FrameRefusal` (`xynolog.transport`) in place of a frame
+  channel's, or a `FrameRefusal` (`xynolog.types`) in place of a frame
   the transport refused or whose payload is not its channel's. It names the
   channel and the frame's first fault, as every SDK names it: `member`, the
   way to the member it is at from the frame (`payload` for the payload

@@ -210,7 +210,7 @@ export function delegated<C extends JobCompletion>(
     // A refusal is no word of the job: neither the silence nor the stall
     // deadline starts again.
     const refusedSub = frames.refused$.subscribe(
-      ({ channel, member, reason }) => {
+      ({ refusal: { channel, member, reason } }) => {
         if (done) return;
         subscriber.next({ kind: 'refused', data: { channel, member, reason } });
       },

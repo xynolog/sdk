@@ -46,7 +46,7 @@ import {
   BusRequestError,
   ERRORS_KEPT_FOR_FIRST_READER_COUNT,
   EventBus,
-  FrameRefusal,
+  Refused,
   type BusEnvelope,
   type ConnectionState,
   type EventMap,
@@ -246,7 +246,12 @@ function fakeBus(initialState: ConnectionState = 'open') {
     pushRefused: (channel: keyof EventMap) =>
       eventBus.emit(
         channel,
-        new FrameRefusal(channel, 'payload', 'malformed', 'j', undefined),
+        new Refused({
+          channel,
+          member: 'payload',
+          reason: 'malformed',
+          payload: 'j',
+        }),
       ),
     /** Every `job:claim` emitted so far, in order. */
     claims,

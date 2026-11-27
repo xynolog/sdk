@@ -167,6 +167,8 @@ export type {
   JobFailure,
   JobReached,
   HeldJobRecord,
+  Fault,
+  FrameRefusal,
 } from './payload-types';
 
 // Event utilities
@@ -297,7 +299,7 @@ export {
 export { replyChannelsFor, BusRequestError } from './bus-request';
 export {
   Bus,
-  FrameRefusal,
+  Refused,
   asDeclared,
   type BusPrimitive,
   type Delivered,
@@ -457,7 +459,7 @@ export { privateKeyFromPem } from './client-assertion';
 export { SignInError } from './sign-in-error';
 export { UnansweredError, jsonOf, whyUnanswered } from './unanswered';
 export { withinDeadline } from './deadline';
-export { faultOf, isPlace, isSchemaName, said, type Fault } from './required';
+export { faultOf, isPlace, isSchemaName, said } from './required';
 
 // Knowledge-graph view derivation — pure fn over the KnowledgeGraph type,
 // run by @xynolog/react-ui.

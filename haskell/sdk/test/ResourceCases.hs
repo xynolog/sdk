@@ -13,7 +13,7 @@ import Data.Text qualified as Text
 import System.FilePath ((</>))
 import Xynolog.Internal.Required qualified as Required
 import Xynolog.Resources qualified as Resources
-import Xynolog.Types (ResourceDescriptor)
+import Xynolog.Types (Fault (..), ResourceDescriptor)
 
 member :: Text -> Value -> Value
 member name (Object fields) = maybe (error ("missing resource case member " ++ Text.unpack name)) id (KM.lookup (Key.fromText name) fields)
@@ -32,8 +32,8 @@ resourceCases root = do
     case Required.faultOf "ResourceDescriptor" raw of
       Just issue -> do
         require ("valid resource refused: " ++ show row) refused
-        require "resource refusal names the wrong member" (String (Required.member issue) == member "member" row)
-        require "resource refusal names the wrong reason" (toJSON (Required.reason issue) == member "reason" row)
+        require "resource refusal names the wrong member" (String (faultMember issue) == member "member" row)
+        require "resource refusal names the wrong reason" (toJSON (faultReason issue) == member "reason" row)
       Nothing -> do
         require ("malformed resource passed its shared shape: " ++ show row) (not refused)
         resource <- case fromJSON raw of Error message -> ioError (userError message); Success value -> pure (value :: ResourceDescriptor)

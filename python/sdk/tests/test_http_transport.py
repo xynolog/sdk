@@ -27,8 +27,8 @@ from xynolog.identifiers import ResourceId
 from xynolog.operations import BROWSE_RESOURCE_REQUESTED
 from xynolog.testing.liveness import DeliverySubject, assert_exactly_once_delivery
 from xynolog.timing import ERRORS_KEPT_FOR_FIRST_READER_COUNT, MAX_RECONNECT_MS, RECONNECT_MS
-from xynolog.transport import ConnectionState, Frame, FrameRefusal, ResourceHold
-from xynolog.types import RetryBudget
+from xynolog.transport import ConnectionState, Frame, ResourceHold
+from xynolog.types import FrameRefusal, RetryBudget
 from xynolog.watched import Variable, reached
 
 QUICK = TransportTiming(

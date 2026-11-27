@@ -1,7 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
-module Xynolog.Internal.Required (Fault (..), Shape, walk, faultOf, faultChannel, faultSaid, undecoded, channelValue, channelRead, faultHttp) where
+module Xynolog.Internal.Required (Shape, walk, faultOf, faultChannel, faultSaid, undecoded, channelValue, channelRead, faultHttp) where
 
 import Control.Applicative ((<|>))
 import Control.Monad (unless)
@@ -19,10 +19,9 @@ import Data.Text (Text)
 import Data.Text qualified as Text
 import Data.Text.Encoding (encodeUtf8)
 import Data.Vector qualified as Vector
+import Xynolog.Internal.Generated.Models.Fault (Fault (..))
 import Xynolog.Internal.Generated.Models.FrameRefusalReason (FrameRefusalReason (..))
 import Xynolog.Internal.Generated.Required (shapesJSON)
-
-data Fault = Fault {member :: Text, reason :: FrameRefusalReason} deriving (Eq, Show)
 
 undecoded :: Fault
 undecoded = Fault "" FrameRefusalReasonMalformed

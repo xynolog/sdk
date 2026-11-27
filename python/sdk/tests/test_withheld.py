@@ -51,10 +51,10 @@ from xynolog.http.oauth import discover_issuer, issuer_client, refresh_at_issuer
 from xynolog.identifiers import ResourceId
 from xynolog.model import WireModel
 from xynolog.operations import YIELD_CLONE_TOKEN_REQUESTED
-from xynolog.required import Fault, fault_of
+from xynolog.required import fault_of
 from xynolog.testing import FaultyTransport
-from xynolog.transport import Frame, FrameRefusal
-from xynolog.types import RetryBudget, YieldCloneTokenRequest
+from xynolog.transport import Frame
+from xynolog.types import Fault, FrameRefusal, RetryBudget, YieldCloneTokenRequest
 from xynolog.watched import Variable, reached
 
 MEDIA: Final = "/api/tokens/media"

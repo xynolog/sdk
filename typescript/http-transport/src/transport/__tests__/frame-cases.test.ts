@@ -14,7 +14,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { filter, firstValueFrom } from 'rxjs';
 import {
   Bus,
-  FrameRefusal,
+  Refused,
   XynologError,
   isObject,
   type EventMap,
@@ -231,15 +231,16 @@ describe('frame-cases.json', () => {
         expect(members?.['channel']).toBe(channel);
         expect(before).toHaveLength(1);
         const [refusal] = before;
-        expect(refusal).toBeInstanceOf(FrameRefusal);
-        expect({ ...refusal }).toEqual({
-          status: 'refused',
-          channel,
-          member: stated.member,
-          reason: stated.reason,
-          payload: members?.['payload'],
-          ...(carried === undefined ? {} : { correlationId: carried }),
-        });
+        expect(refusal).toBeInstanceOf(Refused);
+        expect(refusal).toEqual(
+          new Refused({
+            channel,
+            member: stated.member,
+            reason: stated.reason,
+            payload: members?.['payload'],
+            ...(carried === undefined ? {} : { correlationId: carried }),
+          }),
+        );
         expect(told).toEqual([]);
       } else {
         expect(before).toEqual([]);

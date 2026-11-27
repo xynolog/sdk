@@ -5,7 +5,7 @@ import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import '@testing-library/jest-dom';
 import { CommentsPanel } from '../CommentsPanel';
-import { FrameRefusal, type EventBus, type EventMap } from '@xynolog/core';
+import { Refused, type EventBus, type EventMap } from '@xynolog/core';
 import type { CommentEntry } from '../CommentEntry';
 import {
   createMarkStateUnit,
@@ -34,9 +34,9 @@ function createEventTracker() {
       panelEvents.forEach((eventName) => {
         eventBus.on(eventName).subscribe((payload) => {
           // Nothing bridges into this test's bus: a refusal on it is the test's own fault.
-          if (payload instanceof FrameRefusal)
+          if (payload instanceof Refused)
             throw new Error(
-              `refused: ${payload.channel} ${payload.reason} ${payload.member}`,
+              `refused: ${payload.refusal.channel} ${payload.refusal.reason} ${payload.refusal.member}`,
             );
           events.push({ event: eventName, payload });
         });

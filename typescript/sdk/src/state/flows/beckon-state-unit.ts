@@ -1,7 +1,7 @@
 import { BehaviorSubject, type Subscription } from 'rxjs';
 import type { XynologClient } from '../../client';
 import {
-  FrameRefusal,
+  Refused,
   HOVER_DELAY_MS,
   watched,
   type AnnotationId,
@@ -26,7 +26,7 @@ export function createBeckonStateUnit(
   // A signal whose payload is not its channel's names nothing to hover or focus.
   subs.push(
     client.bus.on('beckon:hover').subscribe((hover) => {
-      if (hover instanceof FrameRefusal) return;
+      if (hover instanceof Refused) return;
       const { annotationId } = hover;
       hovered$.next(annotationId as AnnotationId | null);
       if (annotationId) {
@@ -37,7 +37,7 @@ export function createBeckonStateUnit(
 
   subs.push(
     client.bus.on('browse:click').subscribe((click) => {
-      if (click instanceof FrameRefusal) return;
+      if (click instanceof Refused) return;
       client.bus.emit('beckon:focus', {
         resourceId,
         annotationId: click.annotationId,

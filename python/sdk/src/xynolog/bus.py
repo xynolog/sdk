@@ -51,10 +51,10 @@ from xynolog.errors import BusRequestError, TransportError
 from xynolog.events import Events
 from xynolog.identifiers import ResourceId, UserId
 from xynolog.model import WireModel, written
-from xynolog.required import UNDECODED, Fault, as_read
+from xynolog.required import UNDECODED, as_read, said, within
 from xynolog.timing import BUS_REQUEST_TIMEOUT_MS
-from xynolog.transport import ConnectionState, Frame, FrameRefusal, ResourceHold, Transport
-from xynolog.types import CommandError, TraceCarrier
+from xynolog.transport import ConnectionState, Frame, ResourceHold, Transport
+from xynolog.types import CommandError, Fault, FrameRefusal, TraceCarrier
 from xynolog.watched import NeverReached, reached
 
 __all__ = ["Bus", "Delivered", "Heard", "Typed", "decoded", "reply_channels_for", "request"]
@@ -144,7 +144,7 @@ async def _result_of(transport: Transport, operation: AnyOperation, payload: Map
         raise BusRequestError("bus.closed", f"Bus closed before a reply on {result}")
     if isinstance(reply, FrameRefusal):
         raise TransportError(
-            "error", f"a frame on {reply.channel} is not that channel's: {Fault(member=reply.member, reason=reply.reason)}"
+            "error", f"a frame on {reply.channel} is not that channel's: {said(Fault(member=reply.member, reason=reply.reason))}"
         )
     if reply.channel == result:
         return reply
@@ -166,14 +166,14 @@ def _answered(channel: AnyChannel, failure: Mapping[str, JsonValue]) -> BusReque
         fault = read
     elif isinstance(read, dict):
         try:
-            said = CommandError.model_validate(read)
+            answered = CommandError.model_validate(read)
         except ValidationError:
             fault = UNDECODED
         else:
-            return BusRequestError.answered(said, read)
+            return BusRequestError.answered(answered, read)
     else:
         fault = UNDECODED
-    return TransportError("error", f"a payload on {channel.name} is not that channel's: {fault}")
+    return TransportError("error", f"a payload on {channel.name} is not that channel's: {said(fault)}")
 
 
 # ── By type ─────────────────────────────────────────────────────────────
@@ -262,7 +262,7 @@ def heard[P: WireModel](channel: Channel[P] | ScopedChannel[P, WireModel], carri
         return carried
     read = _read(channel, carried)
     if isinstance(read, Fault):
-        fault = read.within("payload")
+        fault = within(read, "payload")
         return FrameRefusal(
             channel=channel.name,
             member=fault.member,
@@ -394,7 +394,7 @@ class Bus:
                 if asked.correlation_id is None or not isinstance(asked.payload, dict):
                     return
                 fault = Fault(member=asked.member, reason=asked.reason)
-                refused = CommandError(message=f"The request on {asked.channel} is not what that channel carries: {fault}")
+                refused = CommandError(message=f"The request on {asked.channel} is not what that channel carries: {said(fault)}")
                 failure = _failure_of(operation.failure, asked.payload, refused)
                 if failure is not None:
                     await self.emit(operation.failure, failure, correlation_id=asked.correlation_id)
@@ -440,5 +440,5 @@ async def answer_of[Q: WireModel, R: WireModel, F: WireModel](
     reply = await _result_of(transport, operation, operation.request.encode(payload), timeout_ms)
     read = _read(operation.result, reply)
     if isinstance(read, Fault):
-        raise TransportError("error", f"a payload on {operation.result.name} is not that channel's: {read}")
+        raise TransportError("error", f"a payload on {operation.result.name} is not that channel's: {said(read)}")
     return read

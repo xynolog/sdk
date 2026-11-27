@@ -4,8 +4,7 @@ from xynolog.errors import BusRequestError
 from xynolog.http import HttpTransport
 from xynolog.identifiers import ResourceId
 from xynolog.operations import BROWSE_RESOURCE_REQUESTED
-from xynolog.transport import FrameRefusal
-from xynolog.types import BrowseResourceRequest
+from xynolog.types import BrowseResourceRequest, FrameRefusal
 from xynolog.watched import Variable
 
 

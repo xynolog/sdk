@@ -170,7 +170,7 @@ export {
   // What a read of a channel gives in place of a frame whose payload is not
   // the channel's (defined in @xynolog/core next to `Bus`): a reader of
   // `client.bus` tells one apart with `instanceof`.
-  FrameRefusal,
+  Refused,
   // The read-only view a state unit hands out of a state it holds.
   watched,
 } from '@xynolog/core';

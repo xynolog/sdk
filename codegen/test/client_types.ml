@@ -34,6 +34,8 @@ let refused_frame members =
           } );
     ]
 
+(* The members a FrameRefusal always holds. *)
+let holds = [ "channel"; "member"; "reason" ]
 let text (file : Output.file) = file.text
 
 let contains needle haystack =
@@ -155,7 +157,7 @@ let reconciled_union quality : M.shape =
 
 let cases =
   [
-    case "a refused frame's report is stated by the transport's FrameRefusal"
+    case "a refused frame's report is stated by Xynolog.Types' FrameRefusal"
       (fun () ->
         match
           W.operation_reports
@@ -167,20 +169,22 @@ let cases =
                    member "reason"
                      (Named { name = "FrameRefusalReason"; union = false });
                  ])
+            ~holds
         with
         | Ok file ->
             Alcotest.(check bool)
               "the reason is the generated FrameRefusalReason" true
-              (contains "\"reason\" .= reason (fault value0)" (text file))
+              (contains "\"reason\" .= frameRefusalReason value0" (text file))
         | Error errors ->
             Alcotest.failf "refused: %s"
               (String.concat "; " (List.map Decode.error_to_string errors)));
     case
-      "a refused frame's report of a member no FrameRefusal states is refused"
-      (fun () ->
+      "a refused frame's report of a member FrameRefusal does not always hold \
+       is refused" (fun () ->
         refused
           (W.operation_reports
-             ~shape:(refused_frame [ member "payload" (Scalar String) ])));
+             ~shape:(refused_frame [ member "payload" (Scalar String) ])
+             ~holds));
     case "a record's optional member is refused" (fun () ->
         refused
           (W.pending_annotation

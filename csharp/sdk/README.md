@@ -434,9 +434,9 @@ its channel's fails it with a `TransportError` saying "a payload on `<channel>` 
 channel's: " and the payload's first fault. A typed read gives a `Heard<T>` for each frame:
 a `Heard<T>.Delivered`, the frame with its envelope and trace context and its payload
 decoded, or, in the place of a frame the transport refused or whose payload is not its
-channel's, a `Heard<T>.Refused` holding its `FrameRefusal`. The refusal names the channel,
-the `Member` the frame's first fault is at, its way from the frame (`payload.resourceId`,
-or `payload` for the payload itself), and the `Reason`, `FrameRefusalReason.Lacks` or
+channel's, a `Heard<T>.Refused` holding its `FrameRefusal`, the type Protocol states. The
+refusal names the channel, the `Member` the frame's first fault is at, its way from the
+frame (`payload.resourceId`, or `payload` for the payload itself), and the `Reason`, `FrameRefusalReason.Lacks` or
 `FrameRefusalReason.Malformed`; it holds the payload as it came, the scope, and the frame's
 correlation id whenever that can be read. The read goes on to the frames after it. A scoped
 read keeps its resource subscribed until the enumerator ends. A failure whose `code` is none
@@ -459,8 +459,8 @@ credential renewal, and cancellation. Each frame observer has its own queue; a v
 several channels preserves their delivery order. It holds every frame to `BusFrame` before
 it delivers it. `Frames(channel)` and `On(channel, handler)` give each frame as a
 `ReceivedBusFrame`, and, in the place of a frame `BusFrame` does not allow whose channel is a
-text of at least one character and whose scope is absent or a resource's id, its
-`FrameRefusal`: both are `Carried`. A request awaiting the reply such a refusal's correlation
+text of at least one character and whose scope is absent or a resource's id, a
+`RefusedBusFrame` holding its `FrameRefusal`: both are `Carried`. A request awaiting the reply such a refusal's correlation
 id names fails at once with a `TransportError` saying "a frame on `<channel>` is not that
 channel's: " and the fault. Any other line the stream carries that is not a frame is told to
 `Errors()` as a `TransportError` with no status, saying "the stream carried what is not a

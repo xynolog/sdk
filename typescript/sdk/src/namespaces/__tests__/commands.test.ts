@@ -7,7 +7,7 @@ import { mockResource } from '../../__tests__/fixtures/resource';
 import {
   BUS_REQUEST_TIMEOUT_MS,
   EventBus,
-  FrameRefusal,
+  Refused,
   JOB_SILENCE_MS,
   JOB_STATUS_POLL_MS,
   resourceId,
@@ -647,25 +647,23 @@ describe('MarkNamespace', () => {
     // Before the reply to job:create is handled.
     bus.emit(
       'job:fail',
-      new FrameRefusal(
-        'job:fail',
-        'payload.error',
-        'lacks',
-        { jobId: JID },
-        undefined,
-      ),
+      new Refused({
+        channel: 'job:fail',
+        member: 'payload.error',
+        reason: 'lacks',
+        payload: { jobId: JID },
+      }),
     );
     await new Promise((r) => setTimeout(r, 0));
 
     bus.emit(
       'job:report-progress',
-      new FrameRefusal(
-        'job:report-progress',
-        'payload.jobId',
-        'lacks',
-        { percentage: 10 },
-        undefined,
-      ),
+      new Refused({
+        channel: 'job:report-progress',
+        member: 'payload.jobId',
+        reason: 'lacks',
+        payload: { percentage: 10 },
+      }),
     );
     expect(completed).toBe(false);
     bus.emit('job:complete', { jobId: JID, resourceId: RID, jobType: 'mark' });
@@ -710,13 +708,12 @@ describe('MarkNamespace', () => {
     await vi.advanceTimersByTimeAsync(JOB_SILENCE_MS - 1_000);
     bus.emit(
       'job:complete',
-      new FrameRefusal(
-        'job:complete',
-        'payload.jobId',
-        'lacks',
-        { resourceId: RID, jobType: 'mark' },
-        undefined,
-      ),
+      new Refused({
+        channel: 'job:complete',
+        member: 'payload.jobId',
+        reason: 'lacks',
+        payload: { resourceId: RID, jobType: 'mark' },
+      }),
     );
     await vi.advanceTimersByTimeAsync(1_000);
 

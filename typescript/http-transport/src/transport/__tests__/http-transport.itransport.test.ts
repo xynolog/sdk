@@ -19,7 +19,7 @@ import {
   baseUrl,
   type AccessToken,
   type EventMap,
-  type FrameRefusal,
+  type Refused,
   annotationId,
   resourceId,
 } from '@xynolog/core';
@@ -103,7 +103,7 @@ describe('HttpTransport ITransport delegation', () => {
       token$: token(),
     });
 
-    const seen: (EventMap['beckon:focus'] | FrameRefusal)[] = [];
+    const seen: (EventMap['beckon:focus'] | Refused)[] = [];
     const off = transport.on('beckon:focus', (p) => seen.push(p));
     await vi.waitFor(() => expect(mockFetch).toHaveBeenCalled());
 
@@ -171,7 +171,7 @@ describe('HttpTransport ITransport delegation', () => {
       token$: token(),
     });
 
-    const seen: (EventMap['beckon:focus'] | FrameRefusal)[] = [];
+    const seen: (EventMap['beckon:focus'] | Refused)[] = [];
     const sub = transport.stream('beckon:focus').subscribe((p) => seen.push(p));
     await vi.waitFor(() => expect(mockFetch).toHaveBeenCalled());
 

@@ -47,7 +47,7 @@ from xynolog.http.endpoint import gateway_url
 from xynolog.http.transport import HttpTransport
 from xynolog.identity import encode_uri_component
 from xynolog.oauth_clients import BROWSER_CLIENT_ID, SCRIPT_CLIENT_ID, SIGN_IN_SCOPE
-from xynolog.required import Fault, read_as
+from xynolog.required import read_as
 from xynolog.retry import REFRESH, RetryFacts, retry_with_backoff
 from xynolog.session import SignInKept, is_token_expired
 from xynolog.storage import SessionStorage
@@ -56,6 +56,7 @@ from xynolog.timing import DEVICE_POLL_FLOOR_MS, DEVICE_POLL_MS, DEVICE_SLOW_DOW
 from xynolog.types import (
     BeginAuthorizationOptions,
     DeviceCode,
+    Fault,
     IssuedTokens,
     PendingAuthorization,
     PendingAuthorizationIssuer,

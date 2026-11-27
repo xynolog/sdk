@@ -3,11 +3,12 @@
 import pytest
 from pydantic import JsonValue
 
-from xynolog.required import Bounds, Fault, bounds_of, fault_of
+from xynolog.required import Bounds, bounds_of, fault_of
 from xynolog.types import (
     BrowseProfilesRequest,
     BusPingMessage,
     ConformanceStep,
+    Fault,
     GatherAnnotationOptions,
     GenerationJobParams,
     Inference,

@@ -9,11 +9,7 @@ import type {
   ResourceDescriptor,
   ResourceId,
 } from '@xynolog/core';
-import {
-  FrameRefusal,
-  jobId,
-  resourceId as makeResourceId,
-} from '@xynolog/core';
+import { Refused, jobId, resourceId as makeResourceId } from '@xynolog/core';
 import type {
   CacheObservable,
   CacheState,
@@ -91,9 +87,9 @@ function createEventTracker() {
       // `yield:clone` is a local-bus UI signal emitted by `client.yield.clone()`.
       eventBus.on('yield:clone').subscribe((payload) => {
         // Nothing bridges into this test's bus: a refusal on it is the test's own fault.
-        if (payload instanceof FrameRefusal)
+        if (payload instanceof Refused)
           throw new Error(
-            `refused: ${payload.channel} ${payload.reason} ${payload.member}`,
+            `refused: ${payload.refusal.channel} ${payload.refusal.reason} ${payload.refusal.member}`,
           );
         events.push({ event: 'yield:clone', payload });
       });

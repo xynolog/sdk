@@ -42,7 +42,7 @@ from xynolog.http import HttpTransport, TokenRefresher
 from xynolog.identifiers import AnnotationId, InvalidIdentifier, JobId, ResourceId
 from xynolog.model import WireModel, stated
 from xynolog.operations import OPERATIONS
-from xynolog.transport import ConnectionState, Frame, FrameRefusal, ResourceHold
+from xynolog.transport import ConnectionState, Frame, ResourceHold
 from xynolog.types import (
     ConformanceDriverLineErrorStream,
     ConformanceDriverLineFrame,
@@ -50,6 +50,7 @@ from xynolog.types import (
     ConformanceDriverLineProgress,
     ConformanceDriverLineProgressProgress,
     ConformanceDriverLineState,
+    FrameRefusal,
     PutBinaryRequest,
     UploadProgressProgress,
 )

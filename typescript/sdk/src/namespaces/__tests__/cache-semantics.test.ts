@@ -13,7 +13,7 @@ import { describe, it, expect, vi } from 'vitest';
 import { map, firstValueFrom, filter, BehaviorSubject } from 'rxjs';
 import {
   EventBus,
-  FrameRefusal,
+  Refused,
   INVALIDATION_WINDOW_MS,
   SAVE_DEBOUNCE_MS,
   resourceId,
@@ -791,13 +791,12 @@ describe('Cache semantics — behaviors B1–B16, B19 and B20 against BrowseName
       // Something changed and nothing says what.
       eventBus.emit(
         'mark:added',
-        new FrameRefusal(
-          'mark:added',
-          'payload.resourceId',
-          'lacks',
-          { not: 'a recorded event' },
-          undefined,
-        ),
+        new Refused({
+          channel: 'mark:added',
+          member: 'payload.resourceId',
+          reason: 'lacks',
+          payload: { not: 'a recorded event' },
+        }),
       );
       await flush();
 

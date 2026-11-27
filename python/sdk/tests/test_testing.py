@@ -47,9 +47,10 @@ from xynolog.testing import (
     retry_key_of,
 )
 from xynolog.timing import ERRORS_KEPT_FOR_FIRST_READER_COUNT
-from xynolog.transport import ContentTransport, Frame, FrameRefusal, FrameSink, GatewayOperations, Transport
+from xynolog.transport import ContentTransport, Frame, FrameSink, GatewayOperations, Transport
 from xynolog.types import (
     AnchoredTextAbsent,
+    FrameRefusal,
     GatheredContext,
     GetAnnotationsResponse,
     GetResourceResponse,

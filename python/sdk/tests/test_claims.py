@@ -49,13 +49,14 @@ from xynolog.testing import (
     StubGateway,
 )
 from xynolog.timing import ERRORS_KEPT_FOR_FIRST_READER_COUNT, MARK_COMMIT_TIMEOUT_MS
-from xynolog.transport import Frame, FrameRefusal
+from xynolog.transport import Frame
 from xynolog.types import (
     Annotation,
     ClaimOptions,
     ClaimRefusal,
     DurabilityEvidence,
     FailureClass,
+    FrameRefusal,
     JobCheckpoint,
     JobFailure,
     JobFilter,

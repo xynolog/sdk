@@ -20,7 +20,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import {
   EventBus,
-  FrameRefusal,
+  Refused,
   resourceId as makeResourceId,
   jobId,
 } from '@xynolog/core';
@@ -222,7 +222,7 @@ describe('job:complete delivered twice', () => {
     const seen: string[] = [];
     job.complete$.subscribe((e) =>
       seen.push(
-        e instanceof FrameRefusal ? `refused: no ${e.member}` : e.jobId,
+        e instanceof Refused ? `refused: no ${e.refusal.member}` : e.jobId,
       ),
     );
 
@@ -231,13 +231,12 @@ describe('job:complete delivered twice', () => {
     // One whose payload is not the channel's is told in its place.
     bus.emit(
       'job:complete',
-      new FrameRefusal(
-        'job:complete',
-        'payload.jobId',
-        'lacks',
-        { resourceId: 'res-1', jobType: 'mark' },
-        undefined,
-      ),
+      new Refused({
+        channel: 'job:complete',
+        member: 'payload.jobId',
+        reason: 'lacks',
+        payload: { resourceId: 'res-1', jobType: 'mark' },
+      }),
     );
 
     // Documents the contract: the SDK does NOT dedupe the raw stream.

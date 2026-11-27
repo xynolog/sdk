@@ -48,10 +48,12 @@ from xynolog.identifiers import JobId, ResourceId
 from xynolog.model import WireModel, written
 from xynolog.namespaces.links import Links
 from xynolog.operations import JOB_CANCEL_REQUESTED, JOB_CREATE, JOB_STATUS_REQUESTED
-from xynolog.required import UNDECODED, Fault, as_read
+from xynolog.required import UNDECODED, as_read, said
 from xynolog.running import Running
-from xynolog.transport import Frame, FrameRefusal
+from xynolog.transport import Frame
 from xynolog.types import (
+    Fault,
+    FrameRefusal,
     FrameRefusalReason,
     JobCancelRequest,
     JobCompleteCommand,
@@ -225,7 +227,7 @@ def _learned[C: JobCompleteCommand](completion: type[C], delegated: JobType, sta
         except ValidationError:
             fault = UNDECODED
     # Raised from nothing: the decoder's failure shows the result, and what a failure is raised from is printed with it.
-    raise TransportError("error", f"The status of job {status.job_id} is not a completed {delegated} job's: {fault}")
+    raise TransportError("error", f"The status of job {status.job_id} is not a completed {delegated} job's: {said(fault)}")
 
 
 def follow[C: JobCompleteCommand](

@@ -34,7 +34,7 @@ import {
   REPLY_NAMES,
   type BusOperationKey,
 } from './bus-operations';
-import { asDeclared, type FrameRefusal } from './bus';
+import { asDeclared, type Refused } from './bus';
 import { BusRequestError } from './bus-request';
 import { RESOURCE_SCOPED_CHANNELS } from './bridged-channels';
 import { isResourceScopedChannel } from './bridging';
@@ -282,7 +282,7 @@ export class FaultyTransport implements ITransport {
 
   on<K extends keyof EventMap>(
     channel: K,
-    handler: (payload: EventMap[K] | FrameRefusal) => void,
+    handler: (payload: EventMap[K] | Refused) => void,
   ): () => void {
     const sub = this.stream(channel).subscribe(handler);
     return () => sub.unsubscribe();
@@ -290,7 +290,7 @@ export class FaultyTransport implements ITransport {
 
   stream<K extends keyof EventMap>(
     channel: K,
-  ): Observable<EventMap[K] | FrameRefusal> {
+  ): Observable<EventMap[K] | Refused> {
     return this.frames(channel).pipe(map((frame) => frame.payload));
   }
 
@@ -309,7 +309,7 @@ export class FaultyTransport implements ITransport {
    */
   frames<K extends keyof EventMap>(
     channel: K,
-  ): Observable<BusFrame<EventMap[K] | FrameRefusal>> {
+  ): Observable<BusFrame<EventMap[K] | Refused>> {
     if (!this.channels.has(channel) && !isResourceScopedChannel(channel)) {
       throw new BusRequestError(
         `Transport is not subscribed to ${channel as string} — a frame on it can never arrive on this connection. Give the transport the channel.`,
@@ -391,11 +391,7 @@ export class FaultyTransport implements ITransport {
       {
         // A payload that is not its channel's is published as its refusal, as a wire transport's bridge does.
         emit: (channel, payload, envelope) =>
-          bus.emit(
-            channel,
-            asDeclared(channel, payload, envelope.correlationId),
-            envelope,
-          ),
+          bus.emit(channel, asDeclared(channel, payload, envelope), envelope),
       },
       [...this.channels, ...RESOURCE_SCOPED_CHANNELS],
       // `EventBus.emit` is synchronous, so this never fires.

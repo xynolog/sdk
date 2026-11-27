@@ -96,15 +96,17 @@ from xynolog.identifiers import AnnotationId, ResourceId
 from xynolog.job_filter import job_matches_filter
 from xynolog.model import WireModel, written
 from xynolog.operations import BROWSE_ANNOTATION_REQUESTED, JOB_CLAIM, MARK_COMMIT
-from xynolog.required import Fault, as_read
+from xynolog.required import as_read
 from xynolog.timing import HELD_JOB_STALL_CHECK_MS, HELD_JOB_STALL_MS, JOB_CLAIM_TIMEOUT_MS, MARK_COMMIT_TIMEOUT_MS
-from xynolog.transport import Frame, FrameRefusal, Transport
+from xynolog.transport import Frame, Transport
 from xynolog.types import (
     Annotation,
     BrowseAnnotationRequest,
     ClaimRefusal,
     DurabilityEvidence,
     FailureClass,
+    Fault,
+    FrameRefusal,
     GatheredContext,
     GatheredContextFocusAnnotation,
     GatheredContextFocusResource,

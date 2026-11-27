@@ -30,7 +30,8 @@ from xynolog.channel import Channel, ScopedChannel
 from xynolog.events import Broadcast, Events
 from xynolog.identifiers import ResourceId
 from xynolog.model import WireModel
-from xynolog.transport import Frame, FrameRefusal, FrameSink
+from xynolog.transport import Frame, FrameSink
+from xynolog.types import FrameRefusal
 
 __all__ = ["EventBus"]
 

@@ -5,13 +5,8 @@
  */
 
 import { describe, it, expect } from 'vitest';
-import {
-  faultOf,
-  readOfShape,
-  said,
-  type Fault,
-  type Shape,
-} from '../required';
+import { faultOf, readOfShape, said, type Shape } from '../required';
+import type { Fault } from '../payload-types';
 
 const lacks = (member: string): Fault => ({ member, reason: 'lacks' });
 const malformed = (member: string): Fault => ({ member, reason: 'malformed' });

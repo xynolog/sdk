@@ -315,8 +315,8 @@ public sealed partial class HttpTransport : IDisposable
             ownsTurn = false;
             var frame = await Spawning.WaitAsync(reply.Completion.Task, linked.Token).ConfigureAwait(Spawning.Captures) switch
             {
-                FrameRefusal refusal => throw new TransportError(TransportErrorCode.Error,
-                    "a frame on " + refusal.Channel + " is not that channel's: " + Required.At(refusal.Member, refusal.Reason).Said()),
+                RefusedBusFrame refused => throw new TransportError(TransportErrorCode.Error,
+                    "a frame on " + refused.Channel + " is not that channel's: " + Required.At(refused.Refusal.Member, refused.Refusal.Reason).Said()),
                 ReceivedBusFrame received => received,
             };
             if (frame.Frame.Channel == replies.Failure) throw Answered(replies.Failure, frame.Frame.Payload);
@@ -487,7 +487,7 @@ public sealed partial class HttpTransport : IDisposable
                                     Receive(frame, message.Id);
                                     break;
                                 case Line.Refused(var refusal):
-                                    Deliver(refusal);
+                                    Deliver(new RefusedBusFrame(refusal));
                                     break;
                                 case Line.Unaddressed(var fault):
                                     // What names no reader is told to the failure report.
@@ -566,7 +566,15 @@ public sealed partial class HttpTransport : IDisposable
             if (TryFrame(JsonSerializer.SerializeToElement(named), out var correlated, out _)) correlationId = correlated.CorrelationId;
         }
         JsonElement? payload = value.TryGetProperty(BusFrameMember.Payload, out var carried) ? carried : null;
-        return new Line.Refused(new FrameRefusal(readers.Channel, fault.Member, fault.Reason, payload, correlationId, readers.Scope));
+        return new Line.Refused(new FrameRefusal
+        {
+            Channel = readers.Channel,
+            Member = fault.Member,
+            Reason = fault.Reason,
+            Payload = payload,
+            Scope = readers.Scope,
+            CorrelationId = correlationId,
+        });
     }
 
     /// <summary><paramref name="value"/> read as a frame, when BusFrame allows it; or its first fault.</summary>

@@ -41,13 +41,12 @@ import Xynolog.ErrorCodes hiding (TransportError)
 import Xynolog.ErrorCodes qualified as Codes
 import Xynolog.Errors
 import Xynolog.Internal.Generated.OperationFailure qualified as OperationFailure
-import Xynolog.Internal.Required (Fault (..))
 import Xynolog.Internal.Required qualified as Required
 import Xynolog.Internal.StateValue qualified as State
-import Xynolog.Internal.Transport (Carried (..), FrameRefusal (..))
+import Xynolog.Internal.Transport (Carried (..))
 import Xynolog.Internal.Transport qualified as Transport
 import Xynolog.Transport.Facts (userField)
-import Xynolog.Types (BusFrame (..), BusFramePayload (..), ConnectionState (..), FrameRefusalReason (..), ResourceId, UserId)
+import Xynolog.Types (BusFrame (..), BusFramePayload (..), ConnectionState (..), Fault (..), FrameRefusal (..), FrameRefusalReason (..), ResourceId, UserId)
 
 data BusOptions = BusOptions
   { -- | Monotonic nanoseconds in the wait's coordinate system.
@@ -96,14 +95,16 @@ decoded channel (Transport.Arrived frame) =
           let issue = case Required.faultChannel (channelName channel) (Object raw) of
                 Just value -> value
                 Nothing -> case identity of Left () -> Fault userField FrameRefusalReasonMalformed; Right _ -> Required.undecoded
-              way = if Required.member issue == "" then "payload" else "payload." <> Required.member issue
+              way = if faultMember issue == "" then "payload" else "payload." <> faultMember issue
            in Refused
                 ( FrameRefusal
-                    (channelName channel)
-                    (Just (Object raw))
-                    (busFrameScope (Transport.wireFrame frame))
-                    (busFrameCorrelationId (Transport.wireFrame frame))
-                    (issue {Required.member = way})
+                    { frameRefusalChannel = channelName channel,
+                      frameRefusalMember = way,
+                      frameRefusalReason = faultReason issue,
+                      frameRefusalPayload = Just (Object raw),
+                      frameRefusalScope = busFrameScope (Transport.wireFrame frame),
+                      frameRefusalCorrelationId = busFrameCorrelationId (Transport.wireFrame frame)
+                    }
                 )
 
 frames :: Bus -> Channel scope payload -> ScopeArg scope -> (Stream (Of (Heard payload)) IO () -> IO result) -> IO result
@@ -127,9 +128,9 @@ request bus operation input timeoutMs = deliveredPayload <$> requestDelivered bu
 payloadRefusalSaid :: FrameRefusal -> Text
 payloadRefusalSaid refusal =
   "a payload on "
-    <> refusedChannel refusal
+    <> frameRefusalChannel refusal
     <> " is not that channel's: "
-    <> Required.faultSaid ((fault refusal) {Required.member = if Required.member (fault refusal) == "payload" then "" else Text.drop 8 (Required.member (fault refusal))})
+    <> Required.faultSaid (Fault (if frameRefusalMember refusal == "payload" then "" else Text.drop 8 (frameRefusalMember refusal)) (frameRefusalReason refusal))
 
 -- A refused reply is told to the request awaiting it and to no one else: the
 -- transport's failure report is for a refused frame that names no reader.

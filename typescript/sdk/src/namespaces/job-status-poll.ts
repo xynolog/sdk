@@ -1,5 +1,5 @@
 import { Observable, Subject, share } from 'rxjs';
-import { Bus, FrameRefusal, XynologError } from '@xynolog/core';
+import { Bus, Refused, XynologError } from '@xynolog/core';
 import type {
   ClientTiming,
   EventBus,
@@ -130,13 +130,13 @@ type JobFrameChannel = 'job:report-progress' | 'job:complete' | 'job:fail';
 export class JobFrames {
   private jobId: string | null = null;
   private held: Array<() => void> = [];
-  private readonly refusals = new Subject<FrameRefusal>();
+  private readonly refusals = new Subject<Refused>();
   private readonly channels: {
     readonly [K in JobFrameChannel]: Observable<EventMap[K]>;
   };
 
   /** The frames refused, by their transport or as their channel's, on the job's channels while they are read: each names no job, so any may be this job's. */
-  readonly refused$: Observable<FrameRefusal> = this.refusals.asObservable();
+  readonly refused$: Observable<Refused> = this.refusals.asObservable();
 
   constructor(private readonly bus: EventBus) {
     this.channels = {
@@ -156,7 +156,7 @@ export class JobFrames {
     return new Observable<EventMap[K]>((subscriber) =>
       this.bus.on(channel).subscribe((frame) =>
         this.inTurn(() => {
-          if (frame instanceof FrameRefusal) this.refusals.next(frame);
+          if (frame instanceof Refused) this.refusals.next(frame);
           else if (frame.jobId === this.jobId) subscriber.next(frame);
         }),
       ),

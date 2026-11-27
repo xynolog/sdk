@@ -42,8 +42,8 @@ from xynolog.refresh import (
     CacheRefreshWhen,
 )
 from xynolog.stored import WHOLE_KEY
-from xynolog.transport import ConnectionState, Frame, FrameRefusal
-from xynolog.types import Annotation
+from xynolog.transport import ConnectionState, Frame
+from xynolog.types import Annotation, FrameRefusal
 from xynolog.watched import Watched
 
 __all__ = ["Refresher"]

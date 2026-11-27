@@ -9,7 +9,7 @@
  */
 import { describe, it, expect, vi } from 'vitest';
 import { firstValueFrom, of, take, timeout } from 'rxjs';
-import { FrameRefusal } from '../bus';
+import { Refused } from '../bus';
 import { EventBus } from '../event-bus';
 import { resourceId } from '../identifiers';
 import { relayFrames, type FrameSink, type FrameSource } from '../relay-frames';
@@ -126,13 +126,12 @@ describe('relayFrames', () => {
   it('passes on a refusal its source bus carries, in place of the payload, as it passes on any frame', async () => {
     const from = new EventBus();
     const { sink, seen } = recordingSink();
-    const refused = new FrameRefusal(
-      CHANNEL,
-      'payload.tag',
-      'lacks',
-      {},
-      undefined,
-    );
+    const refused = new Refused({
+      channel: CHANNEL,
+      member: 'payload.tag',
+      reason: 'lacks',
+      payload: {},
+    });
     try {
       relayFrames(from, sink, [CHANNEL], () => {});
       from.emit(CHANNEL, refused, { correlationId: 'cid-r' });

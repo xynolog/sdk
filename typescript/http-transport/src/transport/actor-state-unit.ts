@@ -11,7 +11,7 @@ import {
   equalJitter,
   BusRequestError,
   XynologError,
-  FrameRefusal,
+  Refused,
   faultOf,
   isPlace,
   said,
@@ -109,7 +109,7 @@ type Received = components['schemas']['BusFrame'] & {
 type Readers = Pick<components['schemas']['BusFrame'], 'channel' | 'scope'>;
 
 /** A frame the stream refused that names its readers: its first fault as BusFrame, its payload as it came, and its correlation id when BusFrame allows it. */
-type Refused = Readers &
+type RefusedLine = Readers &
   Pick<components['schemas']['BusFrame'], 'correlationId'> & {
     readonly fault: Fault;
     readonly payload: unknown;
@@ -122,7 +122,7 @@ type Refused = Readers &
  * frame of them alone is one BusFrame allows, and its refusal carries its
  * correlation id when a frame of them and it is one too.
  */
-function carried(data: string): Received | Refused | string {
+function carried(data: string): Received | RefusedLine | string {
   let value: unknown;
   try {
     value = JSON.parse(data);
@@ -156,18 +156,21 @@ function carried(data: string): Received | Refused | string {
 /** `frame` as a reader of `channel` is given it: the frame, or in place of one the stream refused, its refusal. */
 function framed<K extends keyof EventMap>(
   channel: K,
-  frame: Received | Refused,
-): BusFrame<EventMap[K] | FrameRefusal> {
+  frame: Received | RefusedLine,
+): BusFrame<EventMap[K] | Refused> {
   if ('fault' in frame) {
     return {
       ...(frame.scope !== undefined ? { scope: frame.scope } : {}),
-      payload: new FrameRefusal(
+      payload: new Refused({
         channel,
-        frame.fault.member,
-        frame.fault.reason,
-        frame.payload,
-        frame.correlationId,
-      ),
+        member: frame.fault.member,
+        reason: frame.fault.reason,
+        payload: frame.payload,
+        ...(frame.scope !== undefined ? { scope: frame.scope } : {}),
+        ...(frame.correlationId !== undefined
+          ? { correlationId: frame.correlationId }
+          : {}),
+      }),
     };
   }
   return {
@@ -289,7 +292,7 @@ export function createActorStateUnit(
    */
   const clientId = uuidV4();
 
-  const events$ = new Subject<Received | Refused>();
+  const events$ = new Subject<Received | RefusedLine>();
   const state$ = new BehaviorSubject<ConnectionState>('initial');
   const errors$ = new Subject<XynologError>();
   let currentState: ConnectionState = 'initial';
@@ -983,7 +986,7 @@ export function createActorStateUnit(
 
   const framesOn = <K extends keyof EventMap>(
     channel: K,
-  ): Observable<BusFrame<EventMap[K] | FrameRefusal>> => {
+  ): Observable<BusFrame<EventMap[K] | Refused>> => {
     // A channel this connection does not carry can never fire, and a
     // stream that never fires is indistinguishable from a quiet system:
     // a worker sits idle on `stream('job:queued')` while the frame flows
@@ -1019,7 +1022,7 @@ export function createActorStateUnit(
 
     stream<K extends keyof EventMap>(
       channel: K,
-    ): Observable<EventMap[K] | FrameRefusal> {
+    ): Observable<EventMap[K] | Refused> {
       return framesOn(channel).pipe(map((frame) => frame.payload));
     },
 

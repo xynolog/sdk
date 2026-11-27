@@ -25,7 +25,7 @@ from xynolog.operations import (
     OPERATIONS,
 )
 from xynolog.testing import FaultyTransport
-from xynolog.transport import Frame, FrameRefusal
+from xynolog.transport import Frame
 from xynolog.types import (
     BeckonFocusEvent,
     BeckonHoverEvent,
@@ -33,6 +33,7 @@ from xynolog.types import (
     CommandError,
     CreateAnnotationRequest,
     FrameAddEntityTypeCommand,
+    FrameRefusal,
     GatheredContext,
     GenerationJobParams,
     JobParams,
@@ -187,7 +188,6 @@ def test_frames_by_type_carry_their_payload_decoded_and_who_emitted_them(caplog:
             assert refused == FrameRefusal(
                 channel="beckon:focus", member="payload.resourceId", reason="lacks", payload=lacking, scope=None, correlation_id=None
             )
-            assert refused.status == "refused"
             # One that holds a member of a kind its schema does not allow is malformed there.
             assert await soon(anext(frames)) == FrameRefusal(
                 channel="beckon:focus",
