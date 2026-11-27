@@ -334,7 +334,8 @@ let view ~ids ~named ~schemas ~referred =
           match referent ~ids ~named ~schemas r with
           | Some (Named name) -> Ref { name; description }
           | Some (In_place (key, target)) ->
-              view (described r description target)
+              view
+                (described r description target)
                 {
                   trail = in_place ~trail:context.trail key;
                   at = Some key;
