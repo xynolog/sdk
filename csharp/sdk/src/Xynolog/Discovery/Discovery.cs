@@ -4,6 +4,7 @@ using System.Runtime.CompilerServices;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Xynolog.Protocol;
+using Xynolog.Serialization;
 using Xynolog.Types;
 
 namespace Xynolog.Discovery;
@@ -17,7 +18,7 @@ public interface DiscoveryTransport
 
 /// <summary>Finds the knowledge bases a launcher manages, from its discovery document, and follows them as they
 /// change.</summary>
-public static class LauncherDiscovery
+public static partial class LauncherDiscovery
 {
     /// <summary>How long <see cref="SubscribeDiscovery"/> waits between reads unless told otherwise.</summary>
     public static readonly TimeSpan DiscoveryInterval = TimeSpan.FromMilliseconds(Timings.DiscoveryIntervalMs);
@@ -40,14 +41,9 @@ public static class LauncherDiscovery
                 return Absent(DiscoveryAbsentReason.Invalid, "A discovery document requires a numeric version.");
             if (version != Version)
                 return Absent(DiscoveryAbsentReason.UnsupportedVersion, $"Discovery document version {version} is unsupported.");
-            try
-            {
-                var document = root.Deserialize<DiscoveryDocument>() ?? throw new JsonException("Missing discovery document.");
-                foreach (var kb in document.Kbs)
-                    if (kb.Port is < 1 or > 65535) throw new JsonException($"Invalid port for {kb.Host}.");
-                return new DiscoveryState.DiscoveryManaged(new DiscoveryManaged { Kbs = document.Kbs });
-            }
-            catch (JsonException error) { return Absent(DiscoveryAbsentReason.Invalid, error.Message); }
+            return Required.TryRead<DiscoveryDocument>(root, out var document, out var fault)
+                ? new DiscoveryState.DiscoveryManaged(new DiscoveryManaged { Kbs = document.Kbs })
+                : Absent(DiscoveryAbsentReason.Invalid, fault.Said());
         }
     }
 

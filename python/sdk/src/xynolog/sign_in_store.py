@@ -33,7 +33,7 @@ import time
 from collections.abc import Callable, Generator, Mapping
 from contextlib import contextmanager, suppress
 from types import MappingProxyType
-from typing import Final, Literal, final, override
+from typing import Final, final, override
 
 from pydantic import JsonValue, TypeAdapter, ValidationError
 
@@ -43,12 +43,9 @@ from xynolog.errors import SignInError
 from xynolog.oauth_clients import SCRIPT_CLIENT_ID
 from xynolog.session import SignInKept, text_claim, token_expiry
 from xynolog.sign_in import SignIn
-from xynolog.types import StoredSession
+from xynolog.types import StoredSession, System
 
-__all__ = ["FILE_NAME", "SignInStore", "System", "state_dir", "this_system"]
-
-type System = Literal["macos", "windows", "other"]
-"""The systems the state home differs by: macOS, Windows, and everything else."""
+__all__ = ["FILE_NAME", "SignInStore", "state_dir", "this_system"]
 
 _DOCUMENT: Final = TypeAdapter[dict[str, JsonValue]](dict[str, JsonValue])
 

@@ -68,7 +68,10 @@ let derive ~root (spec : Spec.t) =
       @ List.map snd notifications)
   in
   let codes =
-    match Error_codes.Table.derive spec.tables.errors_codes with
+    match
+      Error_codes.Table.derive ~rpc_codes:spec.tables.control_rpc_codes
+        spec.tables.errors_codes
+    with
     | Ok table -> table.control.codes
     | Error (e :: _) -> raise (Refused e)
     | Error [] -> refuse Error_codes.Table.file "refused"

@@ -42,6 +42,7 @@ from xynolog._shared_task import heard
 from xynolog.errors import BusRequestError
 from xynolog.state_unit import StateUnit
 from xynolog.timing import SAVE_DEBOUNCE_MS
+from xynolog.types import CacheStatus
 from xynolog.watched import Variable
 
 __all__ = ["Cache", "CachePersister", "CacheState", "Failed", "Pending", "Ready", "Runs", "closed"]
@@ -52,7 +53,7 @@ __all__ = ["Cache", "CachePersister", "CacheState", "Failed", "Pending", "Ready"
 class Pending:
     """No value yet."""
 
-    status: Literal["pending"] = field(default="pending", init=False)
+    status: CacheStatus = field(default="pending", init=False)
 
 
 @final
@@ -61,7 +62,7 @@ class Ready[T]:
     """A value."""
 
     value: T
-    status: Literal["ready"] = field(default="ready", init=False)
+    status: CacheStatus = field(default="ready", init=False)
 
 
 @final
@@ -70,7 +71,7 @@ class Failed:
     """No value, and the fetch for one failed, and failed again: `error` is what the second failed with, whatever it was."""
 
     error: Exception
-    status: Literal["failed"] = field(default="failed", init=False)
+    status: CacheStatus = field(default="failed", init=False)
 
 
 type CacheState[T] = Pending | Ready[T] | Failed

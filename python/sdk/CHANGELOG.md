@@ -60,6 +60,13 @@ the coming release's, and gathers its changes as they land.
   on its failure channel, under the request's correlation id. The failure
   names what its schema names beside the error as the request named it. A
   request that is not its channel's is answered as failed when it can be.
+- `xynolog.error_codes.CONTROL_RPC_*`, each code of `control/rpc-codes.json`,
+  and `control_rpc_code(code)` and `control_code_retryable(code)`: the
+  JSON-RPC code each control error code is answered with, and whether a
+  request it failed is worth sending again, generated from
+  `control/rpc-codes.json` and `errors/codes.json`.
+- `xynolog.discovery.DISCOVERY_URL_PATH`, where a launcher's discovery
+  document is, generated from `client/surface.json`.
 
 ### Changed
 
@@ -171,6 +178,12 @@ the coming release's, and gathers its changes as they land.
   `useSemanticScoring` true. A stated value is sent as stated, and a list or
   a search stating a limit of 100 is no longer the one stating none.
   `xynolog.namespaces.live.LIST_LIMIT` is gone.
+- `xynolog.sign_in_store.System` is gone: `state_dir` takes Protocol's
+  `xynolog.types.System`.
+- `xynolog.control.ControlSender` is `xynolog.types.ControlSender`, the type
+  of its schema.
+- `Pending`, `Ready` and `Failed`'s `status` is Protocol's
+  `xynolog.types.CacheStatus`.
 - What discovery reads is the models Protocol names, in place of
   `xynolog.discovery`'s own: `parse_discovery_document` gives a
   `xynolog.types.DiscoveryState` (a `DiscoveryAbsent` or a

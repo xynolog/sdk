@@ -1,5 +1,7 @@
 package xynolog.cache
 
+import xynolog.types.CacheStatus
+
 /**
  * The state of a live query: no value yet, a value, or a failure. A failure is
  * a state, never a throw: whoever observes the query lives through it, and the
@@ -8,20 +10,20 @@ package xynolog.cache
  */
 public sealed interface CacheState<out T> {
     /** Which state it is, as every SDK spells it. */
-    public val status: String
+    public val status: CacheStatus
 
     /** No value yet: a fetch may be in flight. */
     public data object Pending : CacheState<Nothing> {
-        override val status: String get() = "pending"
+        override val status: CacheStatus get() = CacheStatus.Pending
     }
 
     /** A value, which may be the one shown while a newer one is fetched. */
     public data class Ready<out T>(public val value: T) : CacheState<T> {
-        override val status: String get() = "ready"
+        override val status: CacheStatus get() = CacheStatus.Ready
     }
 
     /** No value, and the fetch for one failed, and failed again: `error` is what the second failed with, whatever it was. */
     public data class Failed(public val error: Exception) : CacheState<Nothing> {
-        override val status: String get() = "failed"
+        override val status: CacheStatus get() = CacheStatus.Failed
     }
 }

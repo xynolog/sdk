@@ -25,6 +25,7 @@ let writers =
     { name = "telemetry"; files = Telemetry.files };
     { name = "service-environment"; files = Service_environment.files };
     { name = "sign-in"; files = Sign_in.files };
+    { name = "discovery-url-path"; files = Discovery_url_path.files };
     { name = "media-types"; files = Media_types.files };
     { name = "stored"; files = Stored.files };
     { name = "locales"; files = Locales.files };

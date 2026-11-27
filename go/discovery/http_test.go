@@ -56,16 +56,16 @@ func (s *served) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	_, _ = w.Write([]byte(s.body))
 }
 
-// launcher is a stand-in serving its document at /discovery/kbs.json, and a
+// launcher is a stand-in serving its document at DiscoveryURLPath, and a
 // transport reading it there.
 func launcher(t *testing.T) (*served, discovery.DiscoveryTransport) {
 	t.Helper()
 	document := &served{status: http.StatusNotFound, contentType: "text/plain"}
 	routes := http.NewServeMux()
-	routes.Handle("/discovery/kbs.json", document)
+	routes.Handle(discovery.DiscoveryURLPath, document)
 	server := httptest.NewServer(routes)
 	t.Cleanup(server.Close)
-	return document, discovery.HttpDiscovery(server.URL+"/discovery/kbs.json", server.Client())
+	return document, discovery.HttpDiscovery(server.URL+discovery.DiscoveryURLPath, server.Client())
 }
 
 func absentFor(t *testing.T, read api.DiscoveryRead) (api.DiscoveryAbsentReason, bool) {
@@ -124,7 +124,7 @@ func TestWhatIsNotADocumentAtTheAddressIsAbsent(t *testing.T) {
 	document.serve(http.StatusOK, "application/json", "{", `"bad"`)
 	absentAs(api.DiscoveryAbsentReasonNotJson, "the document that is not JSON again")
 
-	nowhere := discovery.HttpDiscovery("http://127.0.0.1:9/discovery/kbs.json", &http.Client{})
+	nowhere := discovery.HttpDiscovery("http://127.0.0.1:9"+discovery.DiscoveryURLPath, &http.Client{})
 	if got, isAbsent := absentFor(t, nowhere.Read(ctx)); !isAbsent || got != api.DiscoveryAbsentReasonUnreadable {
 		t.Errorf("a launcher that is not there read as %#v", got)
 	}
@@ -141,7 +141,7 @@ func (neverAnswers) RoundTrip(request *http.Request) (*http.Response, error) {
 
 func TestALaunchersDocumentThatIsNeverServedIsUnreadableAtTheDeadline(t *testing.T) {
 	synctest.Test(t, func(t *testing.T) {
-		reader := discovery.HttpDiscovery("http://launcher.test/discovery/kbs.json", &http.Client{Transport: neverAnswers{}})
+		reader := discovery.HttpDiscovery("http://launcher.test"+discovery.DiscoveryURLPath, &http.Client{Transport: neverAnswers{}})
 		started := time.Now()
 
 		read := reader.Read(context.Background())

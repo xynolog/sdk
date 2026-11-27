@@ -24396,6 +24396,58 @@ public enum TransportErrorCode: String, Codable, Sendable, CaseIterable {
   case unavailable = "unavailable"
   case error = "error"
 }
+/// Each JSON-RPC error code the launcher's control API answers with (control/rpc-codes.json).
+public enum ControlRpcCode {
+  /// The line is not JSON, or holds more than one JSON value. Answered under a null id (F2).
+  public static let parseError = -32700
+  /// The message is a batch, does not state `"jsonrpc": "2.0"` and a method, has a member JSON-RPC
+  /// does not define, or its id is null, a fraction or one in flight. Answered under a null id (F2,
+  /// F3).
+  public static let invalidRequest = -32600
+  /// The API has no method of the request's name (F4).
+  public static let methodNotFound = -32601
+  /// The request's params are not what its method's schema admits, or are written to a version of
+  /// the API this launcher does not speak (V1, P1).
+  public static let invalidParams = -32602
+  /// The launcher would send a result or error data that does not hold to its schema, or the
+  /// handler panicked. Never retryable: the same request fails the same way (E4).
+  public static let internalError = -32603
+  /// The operation the request ran failed. The data's code says why, and whether the request is
+  /// retryable (E2).
+  public static let operationFailed = -32000
+}
+extension ControlErrorCode {
+  /// The JSON-RPC code of control/rpc-codes.json an answer carries the code under.
+  public var rpc: Int {
+    switch self {
+    case .controlInvalidParams, .controlUnsupportedApiVersion: return ControlRpcCode.invalidParams
+    case .controlInvalidRequest, .controlInvalidService, .controlInvalidValue,
+      .controlUnknownSetting, .controlTargetRequired, .controlTargetAmbiguous, .controlRootNotFound,
+      .controlRootNotRegistered, .controlStackNotRunning, .controlStackRunning,
+      .controlStartInProgress, .controlRuntimeUnavailable, .controlDependencyUnavailable,
+      .controlUnreachable, .controlInstanceInUse, .controlInstanceNotFound,
+      .controlConfirmationRequired, .controlUnreadableState, .controlAlreadySignedIn,
+      .controlSignInFailed, .controlCancelled, .controlFailed:
+      return ControlRpcCode.operationFailed
+    }
+  }
+  /// Whether the same request can succeed sent again unchanged, once something outside it changes:
+  /// what `ErrorData.retryable` says of the code.
+  public var retryable: Bool {
+    switch self {
+    case .controlInvalidParams, .controlUnsupportedApiVersion, .controlInvalidRequest,
+      .controlInvalidService, .controlInvalidValue, .controlUnknownSetting, .controlTargetRequired,
+      .controlTargetAmbiguous, .controlRootNotFound, .controlRootNotRegistered,
+      .controlInstanceInUse, .controlInstanceNotFound, .controlConfirmationRequired,
+      .controlAlreadySignedIn, .controlCancelled:
+      return false
+    case .controlStackNotRunning, .controlStackRunning, .controlStartInProgress,
+      .controlRuntimeUnavailable, .controlDependencyUnavailable, .controlUnreachable,
+      .controlUnreadableState, .controlSignInFailed, .controlFailed:
+      return true
+    }
+  }
+}
 internal func transportErrorCode(for status: Int) -> TransportErrorCode {
   if status == 401 { return .unauthorized }
   if status == 403 { return .forbidden }
@@ -32627,13 +32679,9 @@ public struct ControlMethod<Params: Codable & Sendable, Result: Codable & Sendab
   public let exclusive: Bool
   public let sends: [String]
 }
-public enum ControlParty: String, Codable, Sendable, CaseIterable {
-  case client = "client"
-  case launcher = "launcher"
-}
 public struct ControlNotification<Params: Codable & Sendable>: Sendable {
   public let name: String
-  public let from: ControlParty
+  public let from: ControlSender
 }
 public enum Control {
   /// What the launcher is: its version, the API versions it speaks, the runtimes it detects. It

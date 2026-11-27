@@ -7,6 +7,8 @@
 use serde::Serialize;
 use serde::de::DeserializeOwned;
 
+use crate::types::ControlSender;
+
 /// A method of the control API.
 pub trait ControlMethod: 'static {
     /// The method's name on the wire.

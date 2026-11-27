@@ -1,8 +1,6 @@
 (* Generated from protocol/specs/src/control/methods.json. Do not edit.
    Regenerate: make generate (codegen/lib/ocaml_sdk/control.ml) *)
 
-type sender = Client | Launcher
-
 module Method = struct
   type ('params, 'result) t = {
     name : string;
@@ -16,7 +14,7 @@ end
 module Notification = struct
   type 'params t = {
     name : string;
-    from : sender;
+    from : Enums.Control_sender.t;
     params : 'params Models.descriptor;
   }
 end
@@ -210,41 +208,41 @@ let service_signal :
 let notifications_progress : [ `Progress ] Notification.t =
   {
     Notification.name = "notifications/progress";
-    from = Launcher;
+    from = Enums.Control_sender.Launcher;
     params = Models.progress;
   }
 
 let notifications_user_action : [ `UserAction ] Notification.t =
   {
     Notification.name = "notifications/userAction";
-    from = Launcher;
+    from = Enums.Control_sender.Launcher;
     params = Models.user_action;
   }
 
 let notifications_log : [ `LogRecord ] Notification.t =
   {
     Notification.name = "notifications/log";
-    from = Launcher;
+    from = Enums.Control_sender.Launcher;
     params = Models.log_record;
   }
 
 let notifications_service_started : [ `ServiceStarted ] Notification.t =
   {
     Notification.name = "notifications/serviceStarted";
-    from = Launcher;
+    from = Enums.Control_sender.Launcher;
     params = Models.service_started;
   }
 
 let notifications_service_output : [ `ServiceOutput ] Notification.t =
   {
     Notification.name = "notifications/serviceOutput";
-    from = Launcher;
+    from = Enums.Control_sender.Launcher;
     params = Models.service_output;
   }
 
 let notifications_cancelled : [ `Cancelled ] Notification.t =
   {
     Notification.name = "notifications/cancelled";
-    from = Client;
+    from = Enums.Control_sender.Client;
     params = Models.cancelled;
   }

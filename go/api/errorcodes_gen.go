@@ -350,3 +350,55 @@ const (
 	// as the command line would.
 	ControlErrorCodeFailed ControlErrorCode = "control.failed"
 )
+
+// ControlRpcCode is a JSON-RPC error code the launcher's control API answers
+// with (control/rpc-codes.json).
+type ControlRpcCode int
+
+const (
+	// The line is not JSON, or holds more than one JSON value. Answered under a
+	// null id (F2).
+	ControlRpcCodeParseError ControlRpcCode = -32700
+	// The message is a batch, does not state `"jsonrpc": "2.0"` and a method,
+	// has a member JSON-RPC does not define, or its id is null, a fraction or
+	// one in flight. Answered under a null id (F2, F3).
+	ControlRpcCodeInvalidRequest ControlRpcCode = -32600
+	// The API has no method of the request's name (F4).
+	ControlRpcCodeMethodNotFound ControlRpcCode = -32601
+	// The request's params are not what its method's schema admits, or are
+	// written to a version of the API this launcher does not speak (V1, P1).
+	ControlRpcCodeInvalidParams ControlRpcCode = -32602
+	// The launcher would send a result or error data that does not hold to its
+	// schema, or the handler panicked. Never retryable: the same request fails
+	// the same way (E4).
+	ControlRpcCodeInternalError ControlRpcCode = -32603
+	// The operation the request ran failed. The data's code says why, and
+	// whether the request is retryable (E2).
+	ControlRpcCodeOperationFailed ControlRpcCode = -32000
+)
+
+// Rpc is the JSON-RPC code an answer carries the code under.
+func (c ControlErrorCode) Rpc() ControlRpcCode {
+	switch c {
+	case ControlErrorCodeInvalidParams, ControlErrorCodeUnsupportedApiVersion:
+		return ControlRpcCodeInvalidParams
+	case ControlErrorCodeInvalidRequest, ControlErrorCodeInvalidService, ControlErrorCodeInvalidValue, ControlErrorCodeUnknownSetting, ControlErrorCodeTargetRequired, ControlErrorCodeTargetAmbiguous, ControlErrorCodeRootNotFound, ControlErrorCodeRootNotRegistered, ControlErrorCodeStackNotRunning, ControlErrorCodeStackRunning, ControlErrorCodeStartInProgress, ControlErrorCodeRuntimeUnavailable, ControlErrorCodeDependencyUnavailable, ControlErrorCodeUnreachable, ControlErrorCodeInstanceInUse, ControlErrorCodeInstanceNotFound, ControlErrorCodeConfirmationRequired, ControlErrorCodeUnreadableState, ControlErrorCodeAlreadySignedIn, ControlErrorCodeSignInFailed, ControlErrorCodeCancelled, ControlErrorCodeFailed:
+		return ControlRpcCodeOperationFailed
+	default:
+		panic("a control code \"" + string(c) + "\" is none of ControlErrorCode's")
+	}
+}
+
+// Retryable is whether the same request can succeed sent again unchanged,
+// once something outside it changes: what ErrorData's retryable says of the
+// code.
+func (c ControlErrorCode) Retryable() bool {
+	switch c {
+	case ControlErrorCodeInvalidParams, ControlErrorCodeUnsupportedApiVersion, ControlErrorCodeInvalidRequest, ControlErrorCodeInvalidService, ControlErrorCodeInvalidValue, ControlErrorCodeUnknownSetting, ControlErrorCodeTargetRequired, ControlErrorCodeTargetAmbiguous, ControlErrorCodeRootNotFound, ControlErrorCodeRootNotRegistered, ControlErrorCodeInstanceInUse, ControlErrorCodeInstanceNotFound, ControlErrorCodeConfirmationRequired, ControlErrorCodeAlreadySignedIn, ControlErrorCodeCancelled:
+		return false
+	case ControlErrorCodeStackNotRunning, ControlErrorCodeStackRunning, ControlErrorCodeStartInProgress, ControlErrorCodeRuntimeUnavailable, ControlErrorCodeDependencyUnavailable, ControlErrorCodeUnreachable, ControlErrorCodeUnreadableState, ControlErrorCodeSignInFailed, ControlErrorCodeFailed:
+		return true
+	default:
+		panic("a control code \"" + string(c) + "\" is none of ControlErrorCode's")
+	}
+}

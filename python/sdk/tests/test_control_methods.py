@@ -6,7 +6,6 @@ from typing import get_args
 from spec import SPEC, objects, read, text
 
 from xynolog import types as wire
-from xynolog.control import ControlSender
 from xynolog.control_methods import CONTROL_API_VERSION, CONTROL_METHODS, CONTROL_NOTIFICATIONS
 
 TABLE = read(SPEC / "control/methods.json")
@@ -44,20 +43,3 @@ def test_each_method_is_its_rows_name_models_exclusivity_and_notifications() -> 
         )
         assert [sent.name for sent in held.sends] == row["sends"]
         assert all(sent is CONTROL_NOTIFICATIONS[sent.name] for sent in held.sends)
-
-
-def test_the_senders_are_those_the_tables_schema_admits() -> None:
-    schema = read(SPEC / "control/ControlMethods.json")
-    properties = schema["properties"]
-    assert isinstance(properties, dict)
-    notifications = properties["notifications"]
-    assert isinstance(notifications, dict)
-    item = notifications["items"]
-    assert isinstance(item, dict)
-    members = item["properties"]
-    assert isinstance(members, dict)
-    sender = members["from"]
-    assert isinstance(sender, dict)
-    assert sender["$ref"] == "https://xynolog.org/protocol/ControlSender.json"
-    senders = read(SPEC / "control/ControlSender.json")
-    assert list(get_args(ControlSender.__value__)) == senders["enum"]

@@ -15,4 +15,4 @@ public sealed record ControlMethod<TParams, TResult>(string Name, bool Exclusive
 /// </summary>
 /// <param name="Name">The notification as its message names it.</param>
 /// <param name="From">Who sends it.</param>
-public sealed record ControlNotification<TParams>(string Name, ControlSender From);
+public sealed record ControlNotification<TParams>(string Name, Xynolog.Types.ControlSender From);
