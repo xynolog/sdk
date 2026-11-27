@@ -265,12 +265,12 @@ class Exchange:
                     body = await response.aread()
                 # The gateway's refusal, in its own words when its body states them.
                 words = read_as(ErrorResponse, body, ErrorResponse.model_validate)
-                said = f"HTTP {status}: {response.reason_phrase}" if isinstance(words, Fault) else words.error
+                message = f"HTTP {status}: {response.reason_phrase}" if isinstance(words, Fault) else words.error
             except (httpx.HTTPError, TimeoutError):
-                said = f"HTTP {status}: {response.reason_phrase}"
+                message = f"HTTP {status}: {response.reason_phrase}"
             finally:
                 await response.aclose()
-            refused = refusal(said, status, body, stated_wait_ms)
+            refused = refusal(message, status, body, stated_wait_ms)
             if refused.code == "unauthorized":
                 # Decided before any retry rule is asked. Without another
                 # token the same request gets the same answer, so it is made
@@ -340,13 +340,12 @@ class Exchange:
         except TimeoutError:
             raise self.failed(self._unanswered(method, path)) from None
         except httpx.HTTPError as error:
-            said = f"{method} {path} ended before its answer did: {why_unanswered(error)}"
-            raise self.failed(TransportError.without_response(said)) from None
+            message = f"{method} {path} ended before its answer did: {why_unanswered(error)}"
+            raise self.failed(TransportError.without_response(message)) from None
         finally:
             await response.aclose()
         answered = read_as(declared, body, read)
         if isinstance(answered, Fault):
-            raise self.failed(
-                TransportError("error", f"{method} {path} answered what is not its declared body: {said(answered)}", status=response.status_code)
-            )
+            message = f"{method} {path} answered what is not its declared body: {said(answered)}"
+            raise self.failed(TransportError("error", message, status=response.status_code))
         return answered

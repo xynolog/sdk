@@ -166,11 +166,11 @@ def _answered(channel: AnyChannel, failure: Mapping[str, JsonValue]) -> BusReque
         fault = read
     elif isinstance(read, dict):
         try:
-            said = CommandError.model_validate(read)
+            answered = CommandError.model_validate(read)
         except ValidationError:
             fault = UNDECODED
         else:
-            return BusRequestError.answered(said, read)
+            return BusRequestError.answered(answered, read)
     else:
         fault = UNDECODED
     return TransportError("error", f"a payload on {channel.name} is not that channel's: {said(fault)}")

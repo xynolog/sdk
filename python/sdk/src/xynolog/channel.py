@@ -81,9 +81,10 @@ class _OfPayload[P: WireModel]:
         stamps = frozenset[str]().union(*declared.values())
         if any(of_one != stamps for of_one in declared.values()):
             # A stamp is kept or dropped before the frame is read, and so before it is known which member the frame is.
-            said = "; ".join(f"{name} declares {sorted(of_one)}" for name, of_one in declared.items())
+            declarations = "; ".join(f"{name} declares {sorted(of_one)}" for name, of_one in declared.items())
             raise TypeError(
-                f"{self.name}: its shapes do not declare the same stamps ({said}). Write how a frame's are read by the member it names."
+                f"{self.name}: its shapes do not declare the same stamps ({declarations}). "
+                "Write how a frame's are read by the member it names."
             )
         object.__setattr__(self, "members", members)
         object.__setattr__(self, "stamps", stamps)
