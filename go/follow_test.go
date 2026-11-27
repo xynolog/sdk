@@ -812,7 +812,7 @@ func TestARefusedFrameOfTheLifecycleIsReportedOnceTheJobIsNamedInTheOrderItCame(
 	followed := following(highlighting(t, c).Events(context.Background()))
 	request := created(t, fake, 1)
 	// One its transport refused, and one whose payload is not its channel's.
-	c.Bus.DeliverRefusal(&xynolog.FrameRefusal{Channel: jobFail, Member: "payload.error", Reason: api.FrameRefusalReasonLacks, Payload: json.RawMessage(`{"jobId":"job-1"}`)})
+	c.Bus.DeliverRefusal(&api.FrameRefusal{Channel: string(jobFail), Member: "payload.error", Reason: api.FrameRefusalReasonLacks, Payload: json.RawMessage(`{"jobId":"job-1"}`)})
 	say(t, c, jobProgress, "job-1", "mark", progressOf(10))
 	c.Bus.Deliver(xynolog.Frame{Channel: jobProgress, Payload: json.RawMessage(`{"resourceId":"res-1","jobType":"mark","percentage":20}`)})
 	time.Sleep(50 * time.Millisecond)
@@ -823,7 +823,7 @@ func TestARefusedFrameOfTheLifecycleIsReportedOnceTheJobIsNamedInTheOrderItCame(
 	}
 	fake.Deliver(xynolog.Frame{Channel: bus.JobCreate.Result().Channel(), Envelope: xynolog.Envelope{CorrelationID: request.CorrelationID}, Payload: json.RawMessage(`{"response":{"jobId":"job-1"}}`)})
 	say(t, c, jobComplete, "job-1", "mark", nil)
-	c.Bus.DeliverRefusal(&xynolog.FrameRefusal{Channel: jobComplete, Member: "payload.jobId", Reason: api.FrameRefusalReasonLacks})
+	c.Bus.DeliverRefusal(&api.FrameRefusal{Channel: string(jobComplete), Member: "payload.jobId", Reason: api.FrameRefusalReasonLacks})
 	got := followedWithin(t, followed, time.Second)
 	if want := []string{"created job-1", "refused job:fail payload.error lacks", "progress 10", "refused job:report-progress payload.jobId lacks", "complete"}; !slices.Equal(got.kinds, want) {
 		t.Fatalf("the follower gave %v, want %v", got.kinds, want)
@@ -847,7 +847,7 @@ func TestARefusedFrameDoesNotStartTheSilenceAgain(t *testing.T) {
 	followed := following(highlighting(t, c).Events(context.Background()))
 	created(t, fake, 1)
 	time.Sleep(400 * time.Millisecond)
-	c.Bus.DeliverRefusal(&xynolog.FrameRefusal{Channel: jobComplete, Member: "payload.jobId", Reason: api.FrameRefusalReasonLacks})
+	c.Bus.DeliverRefusal(&api.FrameRefusal{Channel: string(jobComplete), Member: "payload.jobId", Reason: api.FrameRefusalReasonLacks})
 	// Started again, the silence would end 600ms from here.
 	waitUntil(t, "the status ask the silence owes", 400*time.Millisecond, func() bool { return len(requestsOn(fake, jobStatus)) >= 1 })
 	if got := followedWithin(t, followed, time.Second); !slices.Equal(got.kinds, []string{"created job-1", "refused job:complete payload.jobId lacks", "complete"}) {
@@ -864,7 +864,7 @@ func TestARefusedFrameDoesNotStartTheStallDeadlineAgain(t *testing.T) {
 	created(t, fake, 1)
 	start := time.Now()
 	time.Sleep(400 * time.Millisecond)
-	c.Bus.DeliverRefusal(&xynolog.FrameRefusal{Channel: jobProgress, Member: "payload.jobId", Reason: api.FrameRefusalReasonLacks})
+	c.Bus.DeliverRefusal(&api.FrameRefusal{Channel: string(jobProgress), Member: "payload.jobId", Reason: api.FrameRefusalReasonLacks})
 	got := followedWithin(t, followed, 2*time.Second)
 	if want := []string{"created job-1", "refused job:report-progress payload.jobId lacks", "error job.stalled"}; !slices.Equal(got.kinds, want) {
 		t.Fatalf("the follower gave %v, want %v", got.kinds, want)
