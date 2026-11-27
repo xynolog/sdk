@@ -12,9 +12,11 @@
    as the first member whose signature admits the value. Each is read from
    the value a [Models] descriptor accepted, through
    ocaml/sdk/lib/record_reader.ml, and written back, the descriptor holding
-   what is written to the schema. The module has no interface, so each
-   record's type is stated once. Where it reads a member otherwise than
-   [Typing] does, it is [Deviations].
+   what is written to the schema. Its interface (records.mli) states each
+   record's type from the declaration the module does, and keeps what reads
+   raw members unchecked ([project], and a union's [read] and [members]) the
+   module's own: a caller reads a record from a model ([of_model]). Where it
+   reads a member otherwise than [Typing] does, it is [Deviations].
 
    And every record Protocol states in a table ([Table_records]) and every
    client type the SDK generates ([Definitions.generated_client_types]), but a
@@ -598,6 +600,21 @@ let of_model kind body =
 
 let model_json = O.call "Models.json" [ O.ident "model" ]
 let model_fields = O.call "fields_of" [ model_json ]
+let model_type kind = O.type_ "Models.t" ~args:[ O.tags [ kind ] ]
+
+(* [val of_model : [ `Kind ] Models.t -> t]. *)
+let of_model_spec kind =
+  O.val_ "of_model" (O.arrow (model_type kind) (O.type_ "t"))
+
+(* [val to_model : t -> ([ `Kind ] Models.t, Models.decode_error) result]. *)
+let to_model_spec kind =
+  O.val_ "to_model"
+    (O.arrow (O.type_ "t")
+       (O.type_ "result"
+          ~args:[ model_type kind; O.type_ "Models.decode_error" ]))
+
+let to_json_spec =
+  O.val_ "to_json" (O.arrow (O.type_ "t") (O.type_ "Yojson.Raw.t"))
 
 (* The [Models] descriptor of the schema named [name]. *)
 let descriptor name = O.ident ("Models." ^ Text.snake name)
@@ -713,8 +730,17 @@ let signature (s : T.signature) =
       ("values", option (fun vs -> O.list (List.map literal vs)) s.values);
     ]
 
+(* A record's module, and its interface. *)
 let entry (e : entry) =
   let rooted items = match e.name with Some name -> items name | None -> [] in
+  let interface stated t =
+    O.module_spec e.module_
+      (List.map Enums.spec stated
+      @ [ O.type_spec t ]
+      @ rooted (fun name -> [ of_model_spec name ])
+      @ [ to_json_spec ]
+      @ rooted (fun name -> [ to_model_spec name ]))
+  in
   match e.shape with
   | Object { members; open_ } ->
       let typed =
@@ -791,14 +817,17 @@ let entry (e : entry) =
                 O.call "write_open" [ stated; O.field value "extra" ]
               else O.call "write" [ stated ]))
       in
-      O.module_ e.module_
-        (List.map Enums.impl
-           (List.concat_map (fun (f : held_member) -> stated_of f.held) members)
-        @ [ O.type_item t; project ]
-        @ rooted (fun name ->
-            [ of_model name (O.call "project" [ model_fields ]) ])
-        @ [ to_json ]
-        @ rooted (fun name -> [ to_model name ]))
+      let stated =
+        List.concat_map (fun (f : held_member) -> stated_of f.held) members
+      in
+      ( O.module_ e.module_
+          (List.map Enums.impl stated
+          @ [ O.type_item t; project ]
+          @ rooted (fun name ->
+              [ of_model name (O.call "project" [ model_fields ]) ])
+          @ [ to_json ]
+          @ rooted (fun name -> [ to_model name ])),
+        interface stated t )
   | Members branches ->
       let t =
         O.type_declaration "t"
@@ -839,15 +868,17 @@ let entry (e : entry) =
                     (O.apply (held_writer b.held) [ O.ident "value" ]))
                 branches))
       in
-      O.module_ e.module_
-        (List.map Enums.impl
-           (List.concat_map
-              (fun (b : held_branch) -> stated_of b.held)
-              branches)
-        @ [ O.type_item t; members; read ]
-        @ rooted (fun name -> [ of_model name (O.call "read" [ model_json ]) ])
-        @ [ to_json ]
-        @ rooted (fun name -> [ to_model name ]))
+      let stated =
+        List.concat_map (fun (b : held_branch) -> stated_of b.held) branches
+      in
+      ( O.module_ e.module_
+          (List.map Enums.impl stated
+          @ [ O.type_item t; members; read ]
+          @ rooted (fun name ->
+              [ of_model name (O.call "read" [ model_json ]) ])
+          @ [ to_json ]
+          @ rooted (fun name -> [ to_model name ])),
+        interface stated t )
 
 let rec base_type = function
   | Text_base -> O.type_ "string"
@@ -1057,7 +1088,15 @@ let files (entries, tabled) =
                              [ O.list (tag :: written_fields value v.fields) ]))
                     variants)))
     in
-    O.module_ t.module_ [ O.type_item declaration; of_json; to_json ]
+    ( O.module_ t.module_ [ O.type_item declaration; of_json; to_json ],
+      O.module_spec t.module_
+        [
+          O.type_spec declaration;
+          O.val_ "of_json"
+            (O.arrow json
+               (O.type_ "result" ~args:[ O.type_ "t"; O.type_ "Models.fault" ]));
+          O.val_ "to_json" (O.arrow (O.type_ "t") json);
+        ] )
   in
   let banner =
     Banner.ocaml
@@ -1088,10 +1127,11 @@ let files (entries, tabled) =
            | Object _ -> None)
          entries)
   in
+  let modules = List.map table tabled @ List.map entry entries in
   [
     O.implementation ~path:"ocaml/sdk/lib/records.ml" ~banner
-      ((O.open_ "Record_reader" :: List.map table tabled)
-      @ List.map entry entries);
+      (O.open_ "Record_reader" :: List.map fst modules);
+    O.interface ~path:"ocaml/sdk/lib/records.mli" ~banner (List.map snd modules);
     O.implementation ~path:"ocaml/sdk/test/union_members.ml" ~banner
       [ O.open_ "Record_reader"; O.let_ "unions" unions ];
   ]
