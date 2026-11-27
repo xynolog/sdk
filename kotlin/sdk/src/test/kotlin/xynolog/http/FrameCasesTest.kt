@@ -194,7 +194,8 @@ class FrameCasesTest {
                 when (val whom = case.getValue("told").jsonPrimitive.content) {
                     "readers" -> {
                         assertEquals(channel, checkNotNull(frame).getValue("channel").jsonPrimitive.content)
-                        val refusal = assertInstanceOf(Refused::class.java, heard.single()).refusal
+                        val refused = assertInstanceOf(Refused::class.java, heard.single())
+                        val refusal = refused.refusal
                         assertEquals(Triple(channel, fault.member, fault.reason), Triple(refusal.channel, refusal.member, refusal.reason))
                         assertEquals(frame["payload"], refusal.payload)
                         assertEquals(frame["scope"]?.jsonPrimitive?.contentOrNull, refusal.scope?.value)
@@ -203,7 +204,7 @@ class FrameCasesTest {
                         if (fault.member.startsWith("payload.")) {
                             assertEquals(frame["payload"], carried.single().frame().payload)
                         } else {
-                            assertEquals(refusal, carried.single())
+                            assertEquals(refused, carried.single())
                         }
                         assertEquals(listOf(told(UNDECODED)), withTimeout(5_000) { failures.firstOf(1) }.map(::said))
                     }
