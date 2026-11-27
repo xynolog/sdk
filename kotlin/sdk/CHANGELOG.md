@@ -44,6 +44,11 @@ the coming release's, and gathers its changes as they land.
 
 ### Changed
 
+- A value's first fault is read as `xynolog.types.Fault`, the type of
+  Protocol's `client/types/Fault.json`, where the SDK held a copy of its own;
+  what it says of a fault is unchanged. `FrameRefusal`, which is `Heard` and
+  `Carried` as no generated class can be, stays the SDK's own, and is held to
+  `client/types/FrameRefusal.json` by the client-types census.
 - A schema a `$ref` names at a place within a file is one type, named where
   that place is stated, wherever it is referred to: the Archivist layout's
   trees are all `ArchivistLayoutEventStreamTree`, every error vocabulary
