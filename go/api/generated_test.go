@@ -89,7 +89,7 @@ func TestAnEnumAdmitsItsValuesAndNoOther(t *testing.T) {
 		},
 		"DateTimeType": {
 			api.ClientOptionDefaultsDefaultsItemSchemaDateTimeTypeInteger,
-			api.ClientOptionDefaultsDefaultsItemSchemaDateTimeType("boolean"),
+			api.ClientOptionDefaultsDefaultsItemSchemaDateTimeType("array"),
 		},
 		"DecidedIn": {
 			api.ClientOptionDefaultsDefaultsItemSchemaDecidedDecidedInTakes,
