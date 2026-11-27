@@ -16,7 +16,6 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.takeWhile
 import kotlinx.coroutines.flow.transformWhile
 import kotlinx.coroutines.jdk9.asPublisher
-import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
 import xynolog.errors.BusRequestError
 import xynolog.errors.BusRequestErrorCode
@@ -25,7 +24,7 @@ import xynolog.identifiers.ResourceId
 import xynolog.identifiers.UserId
 import xynolog.telemetry.futureOf
 import xynolog.types.ConnectionState
-import xynolog.types.FrameRefusalReason
+import xynolog.types.FrameRefusal
 import xynolog.types.TraceCarrier
 import java.util.Optional
 import java.util.concurrent.CompletableFuture
@@ -241,7 +240,7 @@ public sealed interface Carried {
 internal val Carried.scope: ResourceId?
     get() = when (this) {
         is Frame -> scope
-        is FrameRefusal -> scope
+        is Refused -> refusal.scope
     }
 
 /** A frame as a transport delivers it: a payload, and what is beside it, never inside it. */
@@ -275,7 +274,7 @@ internal data class Place(val scope: ResourceId, val eventId: String)
 /**
  * What a typed read gives for each frame: the frame, its payload decoded
  * (`Delivered`), or, in its place, the refusal of a frame BusFrame does not
- * allow or whose payload is not its channel's (`FrameRefusal`). Java tells
+ * allow or whose payload is not its channel's (`Refused`). Java tells
  * them apart by `status`.
  */
 public sealed interface Heard<out P> {
@@ -302,25 +301,17 @@ public data class Delivered<P>(
 
 /**
  * A frame refused, in its place: BusFrame does not allow it, or its payload
- * is not its channel's. `member` is the way from the frame to the member its
- * first fault is at, the names of the members it is within and its own
- * joined by dots (`payload.resourceId` is within its payload, and `payload`
- * is the payload itself); `reason` is why. `payload` is its payload as it
- * came, the gateway's stamps and all, and null when it carried none.
- * `correlationId` is the frame's, when it carries one BusFrame allows: a
- * request awaiting the reply it names fails with the refusal at once.
+ * is not its channel's. `refusal` is the refusal as Protocol states it: the
+ * frame's channel, the way to its first fault and why, its payload as it
+ * came, the scope it was delivered on, and its correlation id, when it
+ * carries one BusFrame allows. A request awaiting the reply it names fails
+ * with it at once.
  */
-public data class FrameRefusal @JvmExposeBoxed constructor(
-    override val channel: String,
-    public val member: String,
-    public val reason: FrameRefusalReason,
-    public val payload: JsonElement?,
-    override val correlationId: String?,
-    /** The resource whose scope it was delivered on. */
-    @get:JvmExposeBoxed
-    public val scope: ResourceId?,
-) : Heard<Nothing>,
+public data class Refused(public val refusal: FrameRefusal) :
+    Heard<Nothing>,
     Carried {
+    override val channel: String get() = refusal.channel
+    override val correlationId: String? get() = refusal.correlationId
     override val status: String get() = "refused"
 }
 

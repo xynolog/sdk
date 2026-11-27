@@ -33,10 +33,10 @@ import xynolog.transport.Carried
 import xynolog.transport.Delivered
 import xynolog.transport.Events
 import xynolog.transport.Frame
-import xynolog.transport.FrameRefusal
 import xynolog.transport.FrameSink
 import xynolog.transport.Heard
 import xynolog.transport.PendingReply
+import xynolog.transport.Refused
 import xynolog.transport.ReplyRouter
 import xynolog.transport.ResourceHold
 import xynolog.transport.Transport
@@ -48,6 +48,7 @@ import xynolog.types.ConnectionState
 import xynolog.types.EmptyObject
 import xynolog.types.Fault
 import xynolog.types.FrameAddEntityTypeCommand
+import xynolog.types.FrameRefusal
 import xynolog.types.FrameRefusalReason
 import xynolog.types.GatherAnnotationOptions
 import xynolog.types.JobCompleteCommand
@@ -127,7 +128,7 @@ private fun added(tag: String): FrameAddEntityTypeCommand = decoded(Channels.FRA
 /** This as the frame it is; a test that reads a refusal here fails. */
 private fun <P> Heard<P>.delivered(): Delivered<P> = when (this) {
     is Delivered -> this
-    is FrameRefusal -> throw AssertionError("refused: $this")
+    is Refused -> throw AssertionError("refused: $this")
 }
 
 class BusTest {
@@ -177,10 +178,10 @@ class BusTest {
         wire.deliver(Frame("frame:add-entity-type", json("""{"tag":"Person"}""")))
         val (refused, unread, next) = withTimeout(5_000) { frames.take(3).toList() }
         // The way from the frame to its first fault, why, and the payload as it came.
-        assertEquals(FrameRefusal("frame:add-entity-type", "payload.tag", FrameRefusalReason.Lacks, lacking, null, null), refused)
+        assertEquals(Refused(FrameRefusal(channel = "frame:add-entity-type", member = "payload.tag", reason = FrameRefusalReason.Lacks, payload = lacking)), refused)
         assertEquals("refused", refused.status)
         // One that holds a member of a kind its schema does not allow is malformed there.
-        assertEquals(FrameRefusal("frame:add-entity-type", "payload.tag", FrameRefusalReason.Malformed, malformed, null, null), unread)
+        assertEquals(Refused(FrameRefusal(channel = "frame:add-entity-type", member = "payload.tag", reason = FrameRefusalReason.Malformed, payload = malformed)), unread)
         assertEquals("Person", next.delivered().payload.tag)
     }
 
@@ -188,7 +189,7 @@ class BusTest {
     fun aFrameTheTransportRefusedIsToldTheReaderOfItsChannelAndScopeAsItCame() = runBlocking {
         val wire = Wire(emptySet())
         val frames = Bus(wire).frames(Channels.JOB_STARTED, ONE)
-        fun refused(resource: ResourceId) = FrameRefusal("job:started", "correlationId", FrameRefusalReason.Malformed, json("{}"), null, resource)
+        fun refused(resource: ResourceId) = Refused(FrameRefusal(channel = "job:started", member = "correlationId", reason = FrameRefusalReason.Malformed, payload = json("{}"), scope = resource))
         wire.deliver(refused(TWO))
         wire.deliver(refused(ONE))
         assertEquals(refused(ONE), withTimeout(5_000) { frames.first() })
@@ -317,7 +318,7 @@ class BusTest {
             """{"id":"e-1","type":"job:started","timestamp":"2026-10-29T00:00:00Z","userId":"$ALICE","resourceId":"${ONE.value}","version":1,"payload":{},"metadata":{}}""",
         )
         wire.deliver(Frame("job:started", unsequenced, null, ONE))
-        assertEquals(FrameRefusal("job:started", "payload.metadata.sequenceNumber", FrameRefusalReason.Lacks, unsequenced, null, ONE), withTimeout(5_000) { frames.first() })
+        assertEquals(Refused(FrameRefusal(channel = "job:started", member = "payload.metadata.sequenceNumber", reason = FrameRefusalReason.Lacks, payload = unsequenced, scope = ONE)), withTimeout(5_000) { frames.first() })
     }
 
     @Test
@@ -407,7 +408,7 @@ class BusTest {
     fun aReplyRefusedWithTheRequestsCorrelationIdFailsTheRequestAtOnce() = runBlocking {
         val wire = Wire(replyChannelsFor(ADD).toSet())
         wire.answer = { sent ->
-            wire.deliver(FrameRefusal("frame:entity-type-add-ok", "addedByALaterGateway", FrameRefusalReason.Malformed, json("{}"), sent.correlationId, null))
+            wire.deliver(Refused(FrameRefusal(channel = "frame:entity-type-add-ok", member = "addedByALaterGateway", reason = FrameRefusalReason.Malformed, payload = json("{}"), correlationId = sent.correlationId)))
         }
         // Long before the request's own timeout.
         val error = assertThrows(TransportError::class.java) {

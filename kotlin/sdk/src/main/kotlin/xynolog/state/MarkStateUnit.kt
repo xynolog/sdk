@@ -23,7 +23,7 @@ import xynolog.identifiers.JobId
 import xynolog.identifiers.ResourceId
 import xynolog.transport.Carried
 import xynolog.transport.Delivered
-import xynolog.transport.FrameRefusal
+import xynolog.transport.Refused
 import xynolog.transport.Variable
 import xynolog.transport.Watched
 import xynolog.types.AnnotationTarget
@@ -156,11 +156,11 @@ public class MarkStateUnit @JvmExposeBoxed constructor(private val client: Xynol
         when (carried.channel) {
             Channels.MARK_REQUESTED.name -> when (val request = heard(Channels.MARK_REQUESTED, carried)) {
                 is Delivered -> if (request.payload.source == resourceId) pending.set(PendingAnnotation(request.payload.selector, request.payload.motivation))
-                is FrameRefusal -> Unit
+                is Refused -> Unit
             }
             Channels.MARK_SUBMIT.name -> when (val submission = heard(Channels.MARK_SUBMIT, carried)) {
                 is Delivered -> if (submission.payload.source == resourceId) tasks.run { create(submission.payload) }
-                is FrameRefusal -> Unit
+                is Refused -> Unit
             }
         }
     }
