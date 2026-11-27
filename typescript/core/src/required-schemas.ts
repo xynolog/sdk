@@ -1,6 +1,6 @@
 // ⚠ GENERATED FILE — do not edit.
 //
-// Authority:   every schema Protocol roots (codegen/lib/roots.ml), each record its tables state, each client type every SDK generates, and protocol/specs/src/client/discovery-absent.json
+// Authority:   every schema Protocol roots (codegen/lib/roots.ml), each record its tables state, each client type every SDK generates, the sign-in store's entry (protocol/specs/src/sign-in-store/SignIn.json), and protocol/specs/src/client/discovery-absent.json
 // Regenerate:  make generate  (codegen/lib/required/typescript.ml)
 // The rules:   codegen/lib/required/shape.ml
 
@@ -9,7 +9,9 @@ import type { components, records } from './types';
 
 /** What each schema and each table record requires of a value, by its name. */
 export const REQUIRED_SCHEMAS: {
-  readonly [Name in keyof components['schemas'] | keyof records]: Shape;
+  readonly [
+    Name in keyof components['schemas'] | keyof records | 'SignIn'
+  ]: Shape;
 } = {
   AboutParams: {
     kinds: ['object'],
@@ -9471,6 +9473,20 @@ export const REQUIRED_SCHEMAS: {
       root: { kinds: ['string'], minLength: 1 },
     },
     closed: ['apiVersion', 'default', 'name', 'root'],
+  },
+  SignIn: {
+    kinds: ['object'],
+    required: ['token', 'obtainedAt', 'issuer', 'tokenEndpoint'],
+    members: {
+      email: { kinds: ['string'] },
+      expiresAt: { kinds: ['string'] },
+      issuer: { kinds: ['string'] },
+      obtainedAt: { kinds: ['string'] },
+      refreshToken: { kinds: ['string'] },
+      revocationEndpoint: { kinds: ['string'] },
+      token: { ref: 'AccessToken' },
+      tokenEndpoint: { kinds: ['string'] },
+    },
   },
   SignInOutcome: {
     kinds: ['object'],

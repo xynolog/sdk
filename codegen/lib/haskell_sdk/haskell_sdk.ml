@@ -132,7 +132,7 @@ let files ~root (spec : Spec.t) =
            Models.generate
              ~banner:(banner "protocol/specs/src")
              ~ids:spec.ids ~sources:spec.schemas ~referred ~identifiers
-             ~keys:(Typing.D.map_keys spec) definitions))
+             ~value_docs:(Typing.D.value_docs spec) definitions))
   in
   let* () =
     within "openapi.json"

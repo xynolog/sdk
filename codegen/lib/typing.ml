@@ -67,10 +67,16 @@ and form =
   | Empty of { rest : rest; none : bool }
       (** An object that names no member: it holds none when it says
           [maxProperties: 0] ([none]) or is [Closed], and any otherwise. *)
-  | Map of { key : string option; value : ty }
+  | Map of { key : ty option; value : ty }
       (** An object of no named member, each other member of [value], its names
-          of the schema [key] names ([Definitions.map_keys]). *)
-  | Enum of { base : scalar option; values : literal list }
+          each a [key], where its [propertyNames] says. *)
+  | Enum of {
+      base : scalar option;
+      values : literal list;
+      docs : string list option;
+          (** What each of [values] means, in their order, where a table of
+              Protocol's states it ([Definitions.value_docs]). *)
+    }
   | Alias of ty  (** A schema that is another, or a scalar or a list. *)
   | Identifier of { pattern : string option }  (** A kind of id. *)
   | Union of union
@@ -300,7 +306,7 @@ let rest_of = function
 type state = {
   definitions : D.definitions;
   identifiers : string list;
-  keys : (string * string) list;
+  value_docs : (string * (literal * string) list) list;
   declared : (string, declaration option) Hashtbl.t;
       (** Every declaration read, by name: none while it is being read. *)
   inlines : (string, inline) Hashtbl.t;
@@ -313,6 +319,20 @@ type state = {
 
 let defined st name = List.mem name st.definitions.names
 let origin = function D.Node { origin; _ } -> origin | _ -> None
+
+(* What each of [name]'s [values] means, where a table states it. *)
+let docs_of st ~name values =
+  Option.map
+    (fun rows ->
+      List.map
+        (fun value ->
+          match List.assoc_opt value rows with
+          | Some docs -> docs
+          | None ->
+              refuse "%s: the table of what its values mean has no %s" name
+                (Yojson.Safe.to_string (Schema.literal_json value)))
+        values)
+    (List.assoc_opt name st.value_docs)
 
 (* An [inline] at [place], each one a writer declares held to be the one
    schema its name names. A schema written in the place of a [$ref] to a
@@ -432,7 +452,7 @@ and merged st ~register ~name ~owners (s : D.t) : form =
             | Some (D.One t) -> scalar { n with codes = None } t
             | _ -> None
           in
-          Enum { base; values }
+          Enum { base; values; docs = docs_of st ~name values }
       | None, _ when List.mem name st.identifiers -> (
           match n.type_ with
           | Some (D.One String) -> Identifier { pattern = n.pattern }
@@ -484,7 +504,15 @@ and object_form st ~register ~name ~owners (n : D.node) =
   let place = { owner = name; part = "" } in
   let members = members st ~register ~owners n in
   match (members, rest st ~register place n) with
-  | [], Of value -> Map { key = List.assoc_opt name st.keys; value }
+  | [], Of value ->
+      Map
+        {
+          key =
+            Option.map
+              (classify st ~register { place with part = place.part ^ "Key" })
+              n.property_names;
+          value;
+        }
   | [], rest -> Empty { rest; none = n.max_properties = Some 0 }
   | members, rest -> Record { members; rest }
 
@@ -635,7 +663,7 @@ and form_signatures st seen (form : form) =
   | Empty { rest; none } ->
       one Object_kind ?allowed:(if none || rest = Closed then Some [] else None)
   | Map _ -> one Object_kind
-  | Enum { base; values } ->
+  | Enum { base; values; _ } ->
       let kind =
         match base with
         | Some (Text _ | Code _) -> Text_kind
@@ -743,8 +771,8 @@ let apart_by_pattern_only (u : union) =
       else None)
     (pairs u.branches)
 
-(* Every name and scalar a type holds, through what it holds in place: a
-   map's key is the name of the schema its keys are. *)
+(* Every name and scalar a type holds, through what it holds in place, a
+   map's keys among them. *)
 let rec leaves_of_ty (ty : ty) =
   match ty with
   | Named _ | Scalar _ -> [ ty ]
@@ -767,7 +795,7 @@ and leaves_of_form (form : form) =
       @ of_rest rest
   | Empty _ | Enum _ | Identifier _ | Json -> []
   | Map { key; value } ->
-      List.map (fun k -> Named k) (Option.to_list key) @ leaves_of_ty value
+      List.concat_map leaves_of_ty (Option.to_list key) @ leaves_of_ty value
   | Alias ty -> leaves_of_ty ty
   | Union { branches; _ } ->
       List.concat_map (fun (b : branch) -> leaves_of_ty b.ty) branches
@@ -785,6 +813,45 @@ let leaves (d : declaration) =
 let references (d : declaration) =
   List.filter_map (function Named name -> Some name | _ -> None) (leaves d)
 
+(* What the keys of each map a type holds are, through what it holds in
+   place. *)
+let rec keys_of_ty (ty : ty) =
+  match ty with
+  | Inline i -> keys_of_inline i
+  | List (Some ty) | Nullable ty -> keys_of_ty ty
+  | Named _ | Scalar _ | Null | List None | Any | Nothing -> []
+
+and keys_of_inline (i : inline) =
+  keys_of_form i.form @ keys_of_composition i.composition
+
+and keys_of_composition = function
+  | Some c -> List.concat_map keys_of_ty c.parts
+  | None -> []
+
+and keys_of_form (form : form) =
+  match form with
+  | Record { members; rest } -> (
+      List.concat_map (fun (m : member) -> keys_of_ty m.ty) members
+      @ match rest with Of ty -> keys_of_ty ty | _ -> [])
+  | Empty _ | Enum _ | Identifier _ | Json -> []
+  | Map { key; value } -> Option.to_list key @ keys_of_ty value
+  | Alias ty -> keys_of_ty ty
+  | Union { branches; _ } ->
+      List.concat_map (fun (b : branch) -> keys_of_ty b.ty) branches
+
+(* The type of its own each map [t]'s declarations hold is keyed by, by its
+   name, each once. *)
+let keys (t : t) =
+  List.sort_uniq String.compare
+    (List.filter_map
+       (function
+         | Named name -> Some name | Inline i -> Some i.name | _ -> None)
+       (List.concat_map
+          (fun name ->
+            let d = t.find name in
+            keys_of_form d.form @ keys_of_composition d.composition)
+          t.names))
+
 (* [names], and every schema they reach, [find] giving each its
    declaration, in the order of their names. *)
 let reached find names =
@@ -798,12 +865,12 @@ let reached find names =
 (* The generation of [roots], read twice: the first reading finds where each
    place a [$ref] names is stated, which the second names it by, wherever
    it reads a [$ref] to it first. *)
-let make (definitions : D.definitions) ~roots ~identifiers ~keys =
+let make (definitions : D.definitions) ~roots ~identifiers ~value_docs =
   let reading stated =
     {
       definitions;
       identifiers;
-      keys;
+      value_docs;
       declared = Hashtbl.create 1024;
       inlines = Hashtbl.create 512;
       stated;
@@ -827,6 +894,13 @@ let make (definitions : D.definitions) ~roots ~identifiers ~keys =
 let holds_none (form : form) =
   match form with
   | Empty { none = true; _ } | Empty { rest = Closed; _ } -> true
+  | _ -> false
+
+(* Whether [ty] admits only the values an enumeration states. *)
+let enumerated (t : t) (ty : ty) =
+  match ty with
+  | Inline { form = Enum _; _ } -> true
+  | Named name -> ( match (t.find name).form with Enum _ -> true | _ -> false)
   | _ -> false
 
 (* Whether a branch admits text alone, of no values it names: a string
@@ -881,7 +955,7 @@ let of_spec (spec : Spec.t) ~tables =
         @ D.generated_client_types spec
         @ List.map (fun (_, name, _) -> name) (D.records spec)
         @ List.map fst schemas)
-      ~identifiers ~keys:(D.map_keys spec)
+      ~identifiers ~value_docs:(D.value_docs spec)
   in
   { t with gateway = bundle.definitions.names }
 

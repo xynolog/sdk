@@ -7031,10 +7031,19 @@ public enum DiscoveryAbsentKind: String, Codable, Sendable, CaseIterable {
 }
 
 public enum DiscoveryAbsentReason: String, Codable, Sendable, CaseIterable {
+  /// There is no document where it was looked for: no file, an HTTP status that is not success, or
+  /// a page that is not JSON.
   case notFound = "not-found"
+  /// There is a document, and it is not JSON.
   case notJson = "not-json"
+  /// It is JSON, and not a discovery document: one entry that is not what the schema says makes the
+  /// whole document invalid, since a partial reading would hide a running knowledge base without a
+  /// trace.
   case invalid = "invalid"
+  /// It is a discovery document of a version this client does not speak, and is not read in part.
   case unsupportedVersion = "unsupported-version"
+  /// It could not be read at all: the file could not be opened or decoded, or the request got no
+  /// answer by its deadline.
   case unreadable = "unreadable"
 }
 
@@ -10932,7 +10941,7 @@ public struct InferenceLimitsResultResponse: Codable, Sendable, Hashable {
   }
 }
 
-public enum InferenceProvider: String, Codable, Sendable, CaseIterable {
+public enum InferenceProvider: String, Codable, Sendable, CaseIterable, CodingKeyRepresentable {
   case anthropic = "anthropic"
   case google = "google"
   case llamacpp = "llamacpp"
@@ -10943,9 +10952,9 @@ public enum InferenceProvider: String, Codable, Sendable, CaseIterable {
 }
 
 public struct InferenceSpec: Codable, Sendable, Hashable {
-  public var providers: [String: Provider]
+  public var providers: [InferenceProvider: Provider]
   public var engines: ArchivistEngines
-  public init(providers: [String: Provider], engines: ArchivistEngines) {
+  public init(providers: [InferenceProvider: Provider], engines: ArchivistEngines) {
     self.providers = providers
     self.engines = engines
   }
@@ -19454,13 +19463,14 @@ public struct ServiceTelemetryLogLinesSupervisor: Codable, Sendable, Hashable {
 
 public struct ServiceTelemetryTelemetry: Codable, Sendable, Hashable {
   public var comment: String
-  public var sdk: [String: [String]]
+  public var sdk: [ServiceTelemetryTelemetrySpansItemServicesItem: [String]]
   public var resource: [ServiceTelemetryTelemetryResourceItem]
   public var spans: [ServiceTelemetryTelemetrySpansItem]
   public var metrics: [ServiceTelemetryTelemetryMetricsItem]
   public init(
-    comment: String, sdk: [String: [String]], resource: [ServiceTelemetryTelemetryResourceItem],
-    spans: [ServiceTelemetryTelemetrySpansItem], metrics: [ServiceTelemetryTelemetryMetricsItem]
+    comment: String, sdk: [ServiceTelemetryTelemetrySpansItemServicesItem: [String]],
+    resource: [ServiceTelemetryTelemetryResourceItem], spans: [ServiceTelemetryTelemetrySpansItem],
+    metrics: [ServiceTelemetryTelemetryMetricsItem]
   ) {
     self.comment = comment
     self.sdk = sdk
@@ -19741,7 +19751,8 @@ public enum ServiceTelemetryTelemetrySpansItemKind: String, Codable, Sendable, C
   case server = "server"
 }
 
-public enum ServiceTelemetryTelemetrySpansItemServicesItem: String, Codable, Sendable, CaseIterable
+public enum ServiceTelemetryTelemetrySpansItemServicesItem: String, Codable, Sendable, CaseIterable,
+  CodingKeyRepresentable
 {
   case archivist = "archivist"
   case dispatcher = "dispatcher"
@@ -31402,6 +31413,14 @@ internal let requiredSchemas: [String: Shape] = {
       "apiVersion": Shape(ref: "ApiVersion"), "default": Shape(kinds: [.boolean]),
       "name": Shape(kinds: [.string], minLength: 1), "root": Shape(kinds: [.string], minLength: 1),
     ], closed: ["apiVersion", "default", "name", "root"])
+  shapes["SignIn"] = Shape(
+    kinds: [.object], required: ["token", "obtainedAt", "issuer", "tokenEndpoint"],
+    members: [
+      "email": Shape(kinds: [.string]), "expiresAt": Shape(kinds: [.string]),
+      "issuer": Shape(kinds: [.string]), "obtainedAt": Shape(kinds: [.string]),
+      "refreshToken": Shape(kinds: [.string]), "revocationEndpoint": Shape(kinds: [.string]),
+      "token": Shape(ref: "AccessToken"), "tokenEndpoint": Shape(kinds: [.string]),
+    ])
   shapes["SignInOutcome"] = Shape(
     kinds: [.object], required: ["kb"],
     members: ["expected": Shape(ref: "Expected"), "kb": Shape(ref: "KnowledgeBase")],

@@ -556,9 +556,18 @@ let go =
     ]
   in
   let check shapes =
-    List.map Decode.error_to_string (Required.Go.check ~declared shapes)
+    List.map Decode.error_to_string
+      (Required.Go.check ~declared ~by_name:[ "N" ] shapes)
   in
   [
+    case "a schema read by its name needs no type of package api" (fun () ->
+        Alcotest.(check (list string))
+          "refusals"
+          [
+            "go/api/types_gen.go: /: declares no type O, and O is a component \
+             of openapi.json";
+          ]
+          (check [ ("N", string_shape); ("O", string_shape) ]));
     case "an alias read as the kind its schema states" (fun () ->
         Alcotest.(check (list string))
           "refusals" []

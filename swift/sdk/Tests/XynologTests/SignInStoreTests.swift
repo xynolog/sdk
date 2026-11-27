@@ -102,6 +102,24 @@ import Testing
     }
   }
 }
+@Test func anEntryWhoseAccessTokenIsEmptyIsNoSignIn() async throws {
+  let root = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+  defer { try? FileManager.default.removeItem(at: root) }
+  let store = SignInStore(path: root.appendingPathComponent("tokens.json"))
+  func stored(_ token: String) -> JSONValue {
+    .object([
+      "token": .string(token), "refreshToken": .string("refresh-1"), "obtainedAt": .string("x"),
+      "issuer": .string("https://issuer"), "tokenEndpoint": .string("http://issuer/token"),
+    ])
+  }
+  try store.change { document in
+    document["empty"] = stored("")
+    document["held"] = stored("access-1")
+    return ((), true)
+  }
+  #expect(try await store.entry("empty").held() == nil)
+  #expect(try await store.entry("held").held()?.access == "access-1")
+}
 @Test func diskStoreKeepsUnknownMembersAndOwnerOnlyModes() async throws {
   let root = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
   defer { try? FileManager.default.removeItem(at: root) }

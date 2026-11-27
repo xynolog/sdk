@@ -622,3 +622,26 @@ func TestAWaitingTakerGetsTheLockWhenTheHolderLetsGo(t *testing.T) {
 		t.Fatal("the waiter never got the lock the holder let go")
 	}
 }
+
+// An entry whose token is empty is no sign-in: its token is an AccessToken,
+// whose least length is one. The same entry with a token is one.
+func TestAnEntryWithAnEmptyTokenIsNoSignIn(t *testing.T) {
+	store := storeIn(t)
+	if err := os.MkdirAll(filepath.Dir(store.Path()), 0o700); err != nil {
+		t.Fatal(err)
+	}
+	entry := func(token string) string {
+		return `{"token":"` + token + `","refreshToken":"refresh","obtainedAt":"2026-01-01T00:00:00Z",` +
+			`"issuer":"https://issuer.example","tokenEndpoint":"https://issuer.example/token"}`
+	}
+	document := `{"empty": ` + entry("") + `, "held": ` + entry("access") + `}`
+	if err := os.WriteFile(store.Path(), []byte(document), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	if _, ok, err := store.SignIn("empty"); err != nil || ok {
+		t.Errorf("an entry whose token is empty is read as a sign-in (err %v)", err)
+	}
+	if signIn, ok, err := store.SignIn("held"); err != nil || !ok || signIn.Token != "access" {
+		t.Errorf("the entry with a token is not read as its sign-in: %+v, %v, %v", signIn, ok, err)
+	}
+}

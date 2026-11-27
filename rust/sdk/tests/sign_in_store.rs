@@ -193,6 +193,20 @@ async fn a_sign_in_that_cannot_be_renewed_is_none_to_hold() {
 }
 
 #[tokio::test]
+async fn an_entry_whose_access_token_is_empty_is_no_sign_in() {
+    let home = Home::holding(json!({
+        "local": launchers("", "r1"),
+        "held": launchers("a1", "r1"),
+    }));
+
+    assert_eq!(held(home.entry("local").as_ref()).await, None);
+    assert_eq!(
+        held(home.entry("held").as_ref()).await,
+        Some(script("a1", "r1"))
+    );
+}
+
+#[tokio::test]
 async fn an_entry_that_names_no_address_is_a_sign_in() {
     let mut by_an_account_with_none = launchers("a1", "r1");
     by_an_account_with_none

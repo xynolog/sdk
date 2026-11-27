@@ -215,7 +215,7 @@ public sealed class Claims
                     {
                         ReceivedBusFrame announced => filters.Any(filter => WorkerRules.JobMatchesFilter(filter, announced.Frame.Payload)),
                         // No filter can be compared with what cannot be read: a refused announcement counts as one that matches.
-                        FrameRefusal => true,
+                        RefusedBusFrame => true,
                     };
                     if (wakes) Wake();
                 }

@@ -4,11 +4,12 @@
 
 module Xynolog.Internal.Generated.Models.InferenceProvider (InferenceProvider (..), inferenceProviderText) where
 
-import Data.Aeson (FromJSON (..), ToJSON (..), Value (..))
+import Data.Aeson (FromJSON (..), FromJSONKey (..), FromJSONKeyFunction (..), ToJSON (..), ToJSONKey (..), Value (..))
+import Data.Aeson.Types (toJSONKeyText)
 import Data.Text (Text)
 import Xynolog.Internal.Codec
 
-data InferenceProvider = InferenceProviderAnthropic | InferenceProviderGoogle | InferenceProviderLlamacpp | InferenceProviderOllama | InferenceProviderOpenai | InferenceProviderTogether | InferenceProviderVllm deriving (Eq, Show)
+data InferenceProvider = InferenceProviderAnthropic | InferenceProviderGoogle | InferenceProviderLlamacpp | InferenceProviderOllama | InferenceProviderOpenai | InferenceProviderTogether | InferenceProviderVllm deriving (Eq, Ord, Show)
 
 instance FromJSON InferenceProvider where parseJSON = checked "InferenceProvider" $ \value -> if value == String "anthropic" then pure InferenceProviderAnthropic else if value == String "google" then pure InferenceProviderGoogle else if value == String "llamacpp" then pure InferenceProviderLlamacpp else if value == String "ollama" then pure InferenceProviderOllama else if value == String "openai" then pure InferenceProviderOpenai else if value == String "together" then pure InferenceProviderTogether else if value == String "vllm" then pure InferenceProviderVllm else fail "unknown enumeration member"
 
@@ -29,3 +30,7 @@ inferenceProviderText InferenceProviderOllama = "ollama"
 inferenceProviderText InferenceProviderOpenai = "openai"
 inferenceProviderText InferenceProviderTogether = "together"
 inferenceProviderText InferenceProviderVllm = "vllm"
+
+instance FromJSONKey InferenceProvider where fromJSONKey = FromJSONKeyTextParser (parseJSON . String)
+
+instance ToJSONKey InferenceProvider where toJSONKey = toJSONKeyText inferenceProviderText

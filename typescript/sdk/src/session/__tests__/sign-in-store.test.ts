@@ -411,6 +411,23 @@ describe('an entry of the sign-in store', () => {
     expect(store.entry('other').held()).toBeNull();
   });
 
+  it('reads no sign-in from an entry whose access token is empty', () => {
+    const directory = new Directory();
+    directory.files.set(
+      SIGN_IN_STORE_FILE,
+      JSON.stringify({
+        [KEY]: launcherEntry('', 'refresh-1'),
+        held: launcherEntry('access-1', 'refresh-1'),
+      }),
+    );
+    const store = new SignInStore(directory.files$());
+
+    expect(store.entry(KEY).held()).toBeNull();
+    expect(store.entry('held').held()).toEqual(
+      scriptSession('access-1', 'refresh-1'),
+    );
+  });
+
   it('keeps a sign-in as its access token names who signed in and at which issuer', () => {
     const directory = new Directory();
     const exp = Math.floor(Date.now() / 1000) + 300;

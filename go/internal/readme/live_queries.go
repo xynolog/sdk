@@ -12,12 +12,12 @@ import (
 func Watch(ctx context.Context, client *xynolog.Client, resource api.ResourceId) {
 	for state := range client.Browse.Annotations(resource).States(ctx) { // holds the resource's scope
 		switch state := state.(type) {
-		case xynolog.Pending:
+		case xynolog.Pending[[]api.Annotation]:
 			fmt.Println("asking")
 		case xynolog.Ready[[]api.Annotation]:
 			fmt.Println(len(state.Value), "annotations")
-		case xynolog.Failed: // a state, not the end: the query lives on
-			fmt.Println("failed:", state.Err)
+		case xynolog.Failed[[]api.Annotation]: // a state, not the end: the query lives on
+			fmt.Println("failed:", state.Error)
 		}
 	}
 }

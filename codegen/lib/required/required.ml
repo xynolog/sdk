@@ -60,7 +60,9 @@ let components (spec : Spec.t) =
 
 (* Each table record ([Table_records]), by its title, read where the table
    states it; each client type every SDK generates
-   ([Definitions.generated_client_types]), by its file's stem. *)
+   ([Definitions.generated_client_types]), by its file's stem; and the
+   sign-in store's entry ([Roots.sign_in_entry]), by its stem, which each
+   SDK's sign-in store holds what it reads to. *)
 let records (spec : Spec.t) =
   let in_place = whole spec in
   let read (title, file, schema) =
@@ -81,13 +83,19 @@ let records (spec : Spec.t) =
         | None -> Error (refusal file "" "is no JSON Schema"))
       (Definitions.generated_client_types spec)
   in
+  let sign_in =
+    let file = Roots.sign_in_entry in
+    match List.assoc_opt file spec.schemas with
+    | Some schema -> read (Roots.sign_in_name, file, schema)
+    | None -> Error (refusal file "" "is no JSON Schema")
+  in
   match Table_records.all spec with
   | Error message -> [ Error (refusal "" "" message) ]
   | Ok records ->
       List.map
         (fun (key, title, schema) -> read (title, file_of key, schema))
         records
-      @ client_types
+      @ client_types @ [ sign_in ]
 
 (* Each gateway operation's reply: the schema of its one successful
    response's one content, by its operationId, capitalized. *)
@@ -179,7 +187,10 @@ let files ~root (spec : Spec.t) =
   in
   let* http = collect (replies spec derivation) in
   let* csharp = Csharp.file derivation spec.tables.bus_registry in
-  match Go.check ~declared:(Go_types.declared spec) shapes with
+  match
+    Go.check ~declared:(Go_types.declared spec) ~by_name:[ Roots.sign_in_name ]
+      shapes
+  with
   | [] ->
       let* kotlin =
         Kotlin_sdk.written ~from_:"openapi.json" (fun () -> Kotlin.file shapes)

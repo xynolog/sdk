@@ -1,7 +1,9 @@
 (* The table as the TypeScript SDK's reply checks read it
    (typescript/core/src/required.ts). It is typed by the schemas the
    typescript-types group writes (src/types.ts), so one it leaves out, or a
-   name that is no schema, fails to compile. *)
+   name that is no schema, fails to compile; and by the sign-in store's
+   entry's name ([Roots.sign_in_name]), whose type the sign-in group writes
+   (src/sign-in.ts). *)
 
 module T = Typescript_syntax
 
@@ -40,6 +42,7 @@ let text (shapes : (string * Shape.shape) list) =
                          T_keyof
                            (T_index (T_name "components", T_str "schemas"));
                          T_keyof (T_name "records");
+                         T_str Roots.sign_in_name;
                        ];
                    value = T_name "Shape";
                  })

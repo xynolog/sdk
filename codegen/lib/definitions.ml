@@ -37,6 +37,7 @@ and node = {
   properties : (string * t) list option;
   required : string list option;
   additional_properties : t option;
+  property_names : t option;  (** What each member's name is. *)
   max_properties : int option;
   minimum : float option;
   maximum : float option;
@@ -69,6 +70,7 @@ let node keys =
     properties = None;
     required = None;
     additional_properties = None;
+    property_names = None;
     max_properties = None;
     minimum = None;
     maximum = None;
@@ -250,28 +252,21 @@ let records spec =
   | Ok records -> records
   | Error message -> refuse "%s" message
 
-(* The type each named map's keys are, where its schema's [propertyNames] is
-   a whole schema of its own: LastEventIds is keyed by ResourceId. *)
-let map_keys (spec : Spec.t) =
-  let key_of name = function
-    | Schema.Schema
-        { property_names = Some (Schema.Schema { ref_ = Some r; _ }); _ } -> (
-        match Decode.resolve spec.ids r with
-        | file, "" -> Some (stem file)
-        | _ ->
-            refuse
-              "%s names its members' names by %s, which is no schema's file"
-              name r.target)
-    | _ -> None
-  in
-  List.filter_map
-    (fun (name, r) ->
-      let file, _ = Decode.resolve spec.ids r in
-      Option.map (fun s -> (name, s)) (List.assoc_opt file spec.schemas))
-    (Roots.all spec)
-  @ List.map (fun (_, name, s) -> (name, s)) (records spec)
-  |> List.filter_map (fun (name, s) ->
-      Option.map (fun key -> (name, key)) (key_of name s))
+(* What each value of an enumeration means, by the enumeration's name, where
+   a table of Protocol's states it beside the enumeration's schema:
+   client/discovery-absent.json of DiscoveryAbsentReason's, which Protocol's
+   reader holds to state each value once, in its order. *)
+let value_docs (spec : Spec.t) =
+  let module Absent = Tables.Client_discovery_absent in
+  [
+    ( "DiscoveryAbsentReason",
+      List.map
+        (fun (row : Absent.reasons_item) ->
+          ( Schema.String_literal
+              (Absent.discovery_absent_reason_value row.reason),
+            row.docs ))
+        spec.tables.client_discovery_absent.reasons );
+  ]
 
 (* What a client roots of its own: each client type, and each record a
    table states ([Table_records]). *)
@@ -398,6 +393,8 @@ let view ~ids ~named ~schemas ~referred =
                 Option.map
                   (sub [ "additionalProperties" ])
                   s.additional_properties;
+              property_names =
+                Option.map (sub [ "propertyNames" ]) s.property_names;
               max_properties = s.max_properties;
               minimum = s.minimum;
               maximum = s.maximum;

@@ -1,20 +1,20 @@
 open Eio.Std
 
-type 'value state =
+type 'value cache_state =
   | Pending
   | Ready of 'value
   | Failed of Http_wire.request_code
 
 type 'value observer = {
   id : unit ref;
-  on_state : 'value state -> unit;
+  on_state : 'value cache_state -> unit;
   on_close : unit -> unit;
 }
 
 type 'value entry = {
   mutable restored : bool;
   mutable confirmed : bool;
-  mutable state : 'value state;
+  mutable state : 'value cache_state;
   mutable observers : 'value observer list;
   mutable release : unit -> unit;
   mutable in_flight : ('value, Http_wire.request_code) result Promise.t option;

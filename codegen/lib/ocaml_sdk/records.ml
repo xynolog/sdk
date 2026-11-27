@@ -248,7 +248,7 @@ let components spec (typing : T.t) ~tabled ~enum_of =
     | T.Union u ->
         union ~module_ ~name:i.name ~file:i.place.owner u;
         Union module_
-    | T.Enum { base = Some (T.Text _); values } -> (
+    | T.Enum { base = Some (T.Text _); values; _ } -> (
         match stated_enum stated_in values with
         | Some e -> Stated e
         | None -> Text)

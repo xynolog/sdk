@@ -61,6 +61,20 @@ the coming release's, and gathers its changes as they land.
 
 ### Changed
 
+- A frame's refusal is Protocol's `FrameRefusal` and a refusal's fault its
+  `Fault`, the types `Xynolog.Types` carries, where the SDK wrote its own. A
+  refusal's members are `frameRefusalChannel`, `frameRefusalMember`,
+  `frameRefusalReason`, `frameRefusalPayload`, `frameRefusalScope` and
+  `frameRefusalCorrelationId`, where they were `refusedChannel`,
+  `refusedPayload`, `refusedScope`, `refusedCorrelationId` and a `fault`; a
+  fault's are `faultMember` and `faultReason`, where they were `member` and
+  `reason`.
+- A map whose schema names its keys by a schema of their own is keyed by that
+  schema's type: `inferenceSpecProviders` is a
+  `Map InferenceProvider Provider`, and `serviceTelemetryTelemetrySdk` is
+  keyed by `ServiceTelemetryTelemetrySpansItemServicesItem`, where each was a
+  `KeyMap`. An enumeration a map is keyed by is `Ord`, `FromJSONKey` and
+  `ToJSONKey`.
 - A held job keeps the `HeldJobRecord` its claim handed it, and `jobId`,
   `jobType`, `resourceId`, `params`, `completedUnits`, `unitCursors`,
   `retryCount` and `maxRetries` are read from it through

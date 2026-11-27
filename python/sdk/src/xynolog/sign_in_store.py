@@ -41,6 +41,7 @@ from xynolog import _owner_only_table
 from xynolog._sign_in_store_names import FILE_NAME, LOCK_NAME, LOCK_OFFSET_HIGH
 from xynolog.errors import SignInError
 from xynolog.oauth_clients import SCRIPT_CLIENT_ID
+from xynolog.required import Fault, as_read
 from xynolog.session import SignInKept, text_claim, token_expiry
 from xynolog.sign_in import SignIn
 from xynolog.types import StoredSession, System
@@ -343,9 +344,15 @@ class SignInStore:
 
 
 def _sign_in_of(entry: JsonValue) -> SignIn | None:
-    """A member of the document as a sign-in. One that is not a sign-in is none."""
+    """A member of the document as a sign-in; none for one with a fault as the table holds a sign-in to.
+
+    An empty token is such a fault, as is a member it lacks.
+    """
+    read = as_read(SignIn, entry)
+    if isinstance(read, Fault):
+        return None
     try:
-        return SignIn.model_validate(entry)
+        return SignIn.model_validate(read)
     except ValidationError:
         return None
 

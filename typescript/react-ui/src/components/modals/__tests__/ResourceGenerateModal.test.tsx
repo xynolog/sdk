@@ -14,8 +14,7 @@
 import { describe, it, expect, vi, beforeEach, type Mock } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import '@testing-library/jest-dom';
-import type { GatheredContext } from '@xynolog/core';
-import type { ResourceGatherOptions } from '@xynolog/sdk';
+import type { GatheredContext, GatherResourceOptions } from '@xynolog/core';
 import type { GenerationConfig } from '../ConfigureGenerationStep';
 import { ResourceGenerateModal } from '../ResourceGenerateModal';
 
@@ -81,7 +80,7 @@ let onClose: Mock<() => void>;
 let onGenerateSubmit: Mock<
   (resourceId: string, config: GenerationConfig) => void
 >;
-let onGather: Mock<(options: ResourceGatherOptions) => void>;
+let onGather: Mock<(options: GatherResourceOptions) => void>;
 
 function renderModal(
   props: Partial<React.ComponentProps<typeof ResourceGenerateModal>> = {},
@@ -111,7 +110,7 @@ describe('ResourceGenerateModal', () => {
     onClose = vi.fn<() => void>();
     onGenerateSubmit =
       vi.fn<(resourceId: string, config: GenerationConfig) => void>();
-    onGather = vi.fn<(options: ResourceGatherOptions) => void>();
+    onGather = vi.fn<(options: GatherResourceOptions) => void>();
     // jsdom doesn't implement scrollIntoView; GatherContextStep may call it.
     Element.prototype.scrollIntoView = vi.fn();
   });

@@ -6628,14 +6628,19 @@ impl DiscoveryAbsentKind {
     Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, serde::Deserialize, serde::Serialize,
 )]
 pub enum DiscoveryAbsentReason {
+    /// There is no document where it was looked for: no file, an HTTP status that is not success, or a page that is not JSON.
     #[serde(rename = "not-found")]
     NotFound,
+    /// There is a document, and it is not JSON.
     #[serde(rename = "not-json")]
     NotJson,
+    /// It is JSON, and not a discovery document: one entry that is not what the schema says makes the whole document invalid, since a partial reading would hide a running knowledge base without a trace.
     #[serde(rename = "invalid")]
     Invalid,
+    /// It is a discovery document of a version this client does not speak, and is not read in part.
     #[serde(rename = "unsupported-version")]
     UnsupportedVersion,
+    /// It could not be read at all: the file could not be opened or decoded, or the request got no answer by its deadline.
     #[serde(rename = "unreadable")]
     Unreadable,
 }
@@ -10122,7 +10127,7 @@ schema!(InferenceProvider);
 #[serde(deny_unknown_fields)]
 pub struct InferenceSpec {
     /// Each provider an engine names, and how it is reached.
-    pub providers: std::collections::BTreeMap<String, Provider>,
+    pub providers: std::collections::BTreeMap<InferenceProvider, Provider>,
     /// The engine each job is done with when software does it, and the engine each Librarian actor asks.
     pub engines: ArchivistEngines,
 }
@@ -18827,7 +18832,8 @@ pub struct ServiceTelemetryTelemetry {
     #[serde(rename = "$comment")]
     pub _comment: String,
     /// The services that reach the bus through an SDK, and for each the SDK transports it uses, or of a transport it uses part of, the rows it exports.
-    pub sdk: std::collections::BTreeMap<String, Vec<String>>,
+    pub sdk:
+        std::collections::BTreeMap<ServiceTelemetryTelemetrySpansItemServicesItem, Vec<String>>,
     pub resource: Vec<ServiceTelemetryTelemetryResourceItem>,
     pub spans: Vec<ServiceTelemetryTelemetrySpansItem>,
     pub metrics: Vec<ServiceTelemetryTelemetryMetricsItem>,

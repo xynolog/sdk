@@ -31,7 +31,7 @@ let constant ?(doc = []) modifiers n type_ value =
 let string_enumeration modifiers n values =
   M.enumeration ~modifiers n
     (List.map (fun v -> Schema.String_literal v) values)
-    ~text:true
+    None ~text:true ~key:false
 
 (* A schema without its null, and whether it allows null. *)
 let nonnull = function

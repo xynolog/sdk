@@ -63,7 +63,7 @@ type state = {
       (** Every schema file of Protocol, which a reference to a place within one
           names. *)
   identifiers : Names.t;
-  keys : Names.t;  (** The identifiers a named map's members are named by. *)
+  keys : Names.t;  (** The types a map's members are named by. *)
   mutable enumerations : (string * Schema.literal list) list;
       (** Every enumeration declared, and its values. *)
   mutable union_members : Names.t;
@@ -147,7 +147,9 @@ let words values =
   in
   if List.length words = List.length values then Some words else None
 
-let enumeration name values =
+(* An enumeration, ordered and read and written as a map's keys where it is
+   a map's [key]. *)
+let enumeration name values ~key =
   let members =
     List.map
       (fun (v : Schema.literal) -> (constructor name v, literal_value v))
@@ -158,6 +160,8 @@ let enumeration name values =
     List.length (List.sort_uniq String.compare constructors)
     <> List.length constructors
   then Error "enum name collision"
+  else if key && words values = None then
+    Error (name ^ ": a map's keys, and not words")
   else
     let chain =
       List.fold_right
@@ -190,9 +194,28 @@ let enumeration name values =
               };
           ]
     in
+    let keyed =
+      if key then
+        [
+          H.instance "FromJSONKey" (T_name name)
+            [
+              H.method_ "fromJSONKey"
+                (Apply
+                   ( Name "FromJSONKeyTextParser",
+                     [ Compose (Name "parseJSON", Name "String") ] ));
+            ];
+          H.instance "ToJSONKey" (T_name name)
+            [
+              H.method_ "toJSONKey"
+                (Apply (Name "toJSONKeyText", [ Name (words_of name) ]));
+            ];
+        ]
+      else []
+    in
     Ok
       ([
-         H.data name ~deriving:[ "Eq"; "Show" ]
+         H.data name
+           ~deriving:(if key then [ "Eq"; "Ord"; "Show" ] else [ "Eq"; "Show" ])
            (List.map (fun c -> H.constructor c) constructors);
          instance_from name (Lambda ("value", chain));
          to_json
@@ -202,7 +225,7 @@ let enumeration name values =
               members)
            name;
        ]
-      @ text)
+      @ text @ keyed)
 
 (* A value's kind, as [Xynolog.Internal.Codec.Kind] names it. *)
 let kind : T.kind -> string = function
@@ -273,7 +296,8 @@ let union_decls name members =
     ]
 
 (* A newtype of [value_type]: an identifier's opaque, made only by its
-   module's mk, and a map's [key] read and written as the map's keys. Its
+   module's mk, and a map's [key] ordered, and read and written as the map's
+   keys. Its
    instances read and write the value with [read] and [write]: aeson's own,
    or Codec's base64 of bytes, which aeson has no JSON of. *)
 let newtype_decls name ~constructor ~read ~write value_type opaque ~key =
@@ -289,7 +313,7 @@ let newtype_decls name ~constructor ~read ~write value_type opaque ~key =
         type_ = value_type;
         opaque;
         deriving =
-          (if opaque then [ "Eq"; "Ord"; "Show" ] else [ "Eq"; "Show" ]);
+          (if opaque || key then [ "Eq"; "Ord"; "Show" ] else [ "Eq"; "Show" ]);
       }
   in
   let instances =
@@ -549,11 +573,12 @@ and map_of state at original key value =
     | _ -> Schema.Boolean_schema true
   in
   let* held = type_of state at additional value in
-  match key with
-  | None -> Ok (H.T_apply ("KM.KeyMap", [ held ]))
-  | Some key ->
-      depend state key;
-      Ok (H.T_apply ("Map.Map", [ T_name key; held ]))
+  match (key, s.property_names) with
+  | None, _ -> Ok (H.T_apply ("KM.KeyMap", [ held ]))
+  | Some key, Some names ->
+      let* key = type_of state at names key in
+      Ok (H.T_apply ("Map.Map", [ key; held ]))
+  | Some _, None -> Error (at ^ ": a map's keys, of no propertyNames")
 
 (* The type written in place as [i], declared once, by [Typing]'s name. *)
 and inline state schema (i : T.inline) =
@@ -598,7 +623,7 @@ and declare state name original (form : T.form) =
                ~error:(fun _ -> false)
                (normalize state original) ->
           state.enumerations <- (name, values) :: state.enumerations;
-          enumeration name values
+          enumeration name values ~key:(Names.mem name state.keys)
       | Union u -> union state name original u
       | Record { members; rest } ->
           object_ state name original members rest
@@ -866,7 +891,7 @@ let imports body dependencies =
    schema of its file's base name ([Definitions.referenced]), and each place
    within a file of [sources] that is [referred]
    ([Schema_names.referred_places]) named once, where its file states it. *)
-let typing ~ids ~sources ~referred ~identifiers ~keys definitions =
+let typing ~ids ~sources ~referred ~identifiers ~value_docs definitions =
   let by_name = Hashtbl.create 512 in
   List.iter
     (fun (name, s) -> Hashtbl.replace by_name name (Normalize.shape_only s))
@@ -908,13 +933,16 @@ let typing ~ids ~sources ~referred ~identifiers ~keys definitions =
           (fun name ->
             view ~at:(Some (name ^ ".json")) (Hashtbl.find by_name name));
       }
-      ~roots:(List.map fst definitions) ~identifiers ~keys
+      ~roots:(List.map fst definitions) ~identifiers ~value_docs
   with
   | typing -> Ok typing
   | exception T.D.Refused message -> Error message
 
-let generate ~banner ~ids ~sources ~referred ~identifiers ~keys definitions =
-  let* typing = typing ~ids ~sources ~referred ~identifiers ~keys definitions in
+let generate ~banner ~ids ~sources ~referred ~identifiers ~value_docs
+    definitions =
+  let* typing =
+    typing ~ids ~sources ~referred ~identifiers ~value_docs definitions
+  in
   let state =
     {
       definitions = Named.of_list definitions;
@@ -924,7 +952,7 @@ let generate ~banner ~ids ~sources ~referred ~identifiers ~keys definitions =
       ids;
       sources;
       identifiers = Names.of_list identifiers;
-      keys = Names.of_list (List.map snd keys);
+      keys = Names.of_list (T.keys typing);
       enumerations = [];
       union_members = Names.empty;
       unions = [];

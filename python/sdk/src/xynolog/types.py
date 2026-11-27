@@ -3204,6 +3204,15 @@ type DiscoveryAbsentReason = Annotated[
         description="Why a client that read a launcher's discovery document found no launcher: one of the reasons of client/discovery-absent.json, which says what each means."
     ),
 ]
+"""`not-found`: There is no document where it was looked for: no file, an HTTP status that is not success, or a page that is not JSON.
+
+`not-json`: There is a document, and it is not JSON.
+
+`invalid`: It is JSON, and not a discovery document: one entry that is not what the schema says makes the whole document invalid, since a partial reading would hide a running knowledge base without a trace.
+
+`unsupported-version`: It is a discovery document of a version this client does not speak, and is not read in part.
+
+`unreadable`: It could not be read at all: the file could not be opened or decoded, or the request got no answer by its deadline."""
 
 
 class ClientDiscoveryAbsentReasonsItem(WireModel, frozen=True, extra="forbid"):
@@ -6403,7 +6412,7 @@ class InferenceSpec(WireModel, frozen=True, extra="forbid"):
     The providers, and the engine for each job and each Librarian actor.
     """
 
-    providers: Annotated[dict[str, Provider], Field(description="Each provider an engine names, and how it is reached.")]
+    providers: Annotated[dict[InferenceProvider, Provider], Field(description="Each provider an engine names, and how it is reached.")]
     engines: Annotated[
         ArchivistEngines,
         Field(description="The engine each job is done with when software does it, and the engine each Librarian actor asks."),
@@ -9987,7 +9996,7 @@ class ServiceTelemetryTelemetry(WireModel, frozen=True, extra="forbid"):
 
     comment: Annotated[str, Field(alias="$comment", description="The rule the table states, in prose.")]
     sdk: Annotated[
-        dict[str, list[str]],
+        dict[ServiceTelemetryTelemetrySpansItemServicesItem, list[str]],
         Field(
             description="The services that reach the bus through an SDK, and for each the SDK transports it uses, or of a transport it uses part of, the rows it exports."
         ),

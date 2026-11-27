@@ -32,6 +32,7 @@
 
 use crate::errors::{SignInError, SignInErrorCode};
 use crate::locked;
+use crate::required::read_as;
 use crate::rfc3339;
 use crate::schema;
 use crate::session::{SCRIPT_CLIENT_ID, SignInKept, text_claim, token_expiry};
@@ -278,9 +279,10 @@ pub fn state_dir(
     })
 }
 
-/// A member of the document as a sign-in. One that is not a sign-in is none.
+/// A member of the document as a sign-in. One with a fault as the table holds
+/// a sign-in to (an empty token, a member it lacks) is none.
 fn sign_in_of(member: &Value) -> Option<SignIn> {
-    serde_json::from_value(member.clone()).ok()
+    read_as(member.clone()).ok()
 }
 
 /// A sign-in as the session a client holds: one with no refresh token is

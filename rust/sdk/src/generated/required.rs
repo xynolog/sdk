@@ -1,4 +1,4 @@
-// Generated from every schema Protocol roots (codegen/lib/roots.ml), each record its tables state, each client type every SDK generates, and protocol/specs/src/client/discovery-absent.json; do not edit.
+// Generated from every schema Protocol roots (codegen/lib/roots.ml), each record its tables state, each client type every SDK generates, the sign-in store's entry (protocol/specs/src/sign-in-store/SignIn.json), and protocol/specs/src/client/discovery-absent.json; do not edit.
 // Regenerate: make generate (codegen/lib/required/rust.ml)
 pub(crate) const SCHEMAS: &[(&str, Shape)] = &[
     (
@@ -17635,6 +17635,24 @@ pub(crate) const SCHEMAS: &[(&str, Shape)] = &[
                 ),
             ],
             closed: Some(&["apiVersion", "default", "name", "root"]),
+            ..NONE
+        },
+    ),
+    (
+        "SignIn",
+        Shape {
+            kinds: Some(&[Kind::Object]),
+            required: &["token", "obtainedAt", "issuer", "tokenEndpoint"],
+            members: &[
+                ("email", of(&[Kind::String])),
+                ("expiresAt", of(&[Kind::String])),
+                ("issuer", of(&[Kind::String])),
+                ("obtainedAt", of(&[Kind::String])),
+                ("refreshToken", of(&[Kind::String])),
+                ("revocationEndpoint", of(&[Kind::String])),
+                ("token", reference("AccessToken")),
+                ("tokenEndpoint", of(&[Kind::String])),
+            ],
             ..NONE
         },
     ),

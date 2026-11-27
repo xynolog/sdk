@@ -13,7 +13,7 @@ public data class ServiceTelemetryTelemetry(
     @SerialName("\$comment")
     public val comment: String,
     /** The services that reach the bus through an SDK, and for each the SDK transports it uses, or of a transport it uses part of, the rows it exports. */
-    public val sdk: kotlin.collections.Map<String, kotlin.collections.List<String>>,
+    public val sdk: kotlin.collections.Map<ServiceTelemetryTelemetrySpansItemServicesItem, kotlin.collections.List<String>>,
     public val resource: kotlin.collections.List<ServiceTelemetryTelemetryResourceItem>,
     public val spans: kotlin.collections.List<ServiceTelemetryTelemetrySpansItem>,
     public val metrics: kotlin.collections.List<ServiceTelemetryTelemetryMetricsItem>,
@@ -21,7 +21,7 @@ public data class ServiceTelemetryTelemetry(
     /** How Java makes a `ServiceTelemetryTelemetry`: `builder` takes what it must state, a setter each thing it may, and `build` makes it. */
     public class Builder internal constructor(
         private val comment: String,
-        private val sdk: kotlin.collections.Map<String, kotlin.collections.List<String>>,
+        private val sdk: kotlin.collections.Map<ServiceTelemetryTelemetrySpansItemServicesItem, kotlin.collections.List<String>>,
         private val resource: kotlin.collections.List<ServiceTelemetryTelemetryResourceItem>,
         private val spans: kotlin.collections.List<ServiceTelemetryTelemetrySpansItem>,
         private val metrics: kotlin.collections.List<ServiceTelemetryTelemetryMetricsItem>,
@@ -32,6 +32,6 @@ public data class ServiceTelemetryTelemetry(
     public companion object {
         /** A builder of a `ServiceTelemetryTelemetry` that states these, and what its setters add. */
         @JvmStatic
-        public fun builder(comment: String, sdk: kotlin.collections.Map<String, kotlin.collections.List<String>>, resource: kotlin.collections.List<ServiceTelemetryTelemetryResourceItem>, spans: kotlin.collections.List<ServiceTelemetryTelemetrySpansItem>, metrics: kotlin.collections.List<ServiceTelemetryTelemetryMetricsItem>): Builder = Builder(comment, sdk, resource, spans, metrics)
+        public fun builder(comment: String, sdk: kotlin.collections.Map<ServiceTelemetryTelemetrySpansItemServicesItem, kotlin.collections.List<String>>, resource: kotlin.collections.List<ServiceTelemetryTelemetryResourceItem>, spans: kotlin.collections.List<ServiceTelemetryTelemetrySpansItem>, metrics: kotlin.collections.List<ServiceTelemetryTelemetryMetricsItem>): Builder = Builder(comment, sdk, resource, spans, metrics)
     }
 }

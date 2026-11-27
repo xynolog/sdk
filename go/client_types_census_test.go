@@ -126,17 +126,12 @@ func TestJobEventHasTheSchemasBranchesEachOfItsMembers(t *testing.T) {
 	}
 }
 
-// cacheStates is one of each CacheState, by the status the schema tells it
-// apart by.
-var cacheStates = map[string]xynolog.CacheState{
-	"pending": xynolog.Pending{},
-	"ready":   xynolog.Ready[any]{},
-	"failed":  xynolog.Failed{},
+// cacheStates is one of each CacheState.
+var cacheStates = []xynolog.CacheState[any]{
+	xynolog.Pending[any]{},
+	xynolog.Ready[any]{},
+	xynolog.Failed[any]{},
 }
-
-// cacheMembers is the schema's name for each field of a CacheState, which
-// has no JSON form to read it by.
-var cacheMembers = map[string]string{"Value": "value", "Err": "error"}
 
 func TestCacheStateHasTheSchemasBranchesEachOfItsMembers(t *testing.T) {
 	schema := clientType[struct{ OneOf []objectSchema }](t, "CacheState")
@@ -144,18 +139,20 @@ func TestCacheStateHasTheSchemasBranchesEachOfItsMembers(t *testing.T) {
 	for _, branch := range schema.OneOf {
 		branches[branch.Properties["status"].Enum[0]] = branch
 	}
-	if got, want := sortedKeys(cacheStates), sortedKeys(branches); !slices.Equal(got, want) {
-		t.Fatalf("CacheState is of the statuses %v, and the schema states %v", got, want)
+	statuses := []string{}
+	for _, state := range cacheStates {
+		statuses = append(statuses, string(state.Status()))
 	}
-	for status, state := range cacheStates {
+	slices.Sort(statuses)
+	if want := sortedKeys(branches); !slices.Equal(statuses, want) {
+		t.Fatalf("CacheState is of the statuses %v, and the schema states %v", statuses, want)
+	}
+	for _, state := range cacheStates {
+		status := string(state.Status())
 		typ := reflect.TypeOf(state)
 		members := []string{"status"}
 		for i := range typ.NumField() {
-			member, ok := cacheMembers[typ.Field(i).Name]
-			if !ok {
-				t.Fatalf("%v holds %s, which the census names no member of the schema", typ, typ.Field(i).Name)
-			}
-			members = append(members, member)
+			members = append(members, strings.ToLower(typ.Field(i).Name))
 		}
 		slices.Sort(members)
 		if want := sortedKeys(branches[status].Properties); !slices.Equal(members, want) {

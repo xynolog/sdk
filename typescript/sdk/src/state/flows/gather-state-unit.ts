@@ -3,19 +3,13 @@ import type { XynologClient } from '../../client';
 import {
   watched,
   type AnnotationId,
+  type components,
   type GatheredContext,
+  type GatherResourceOptions,
   type ResourceId,
   type StateUnit,
   type Watched,
 } from '@xynolog/core';
-import type { GatherNamespace } from '../../namespaces/types';
-
-/** The options `client.gather.annotation` takes — one shape, referenced not duplicated. */
-export type AnnotationGatherOptions = Parameters<
-  GatherNamespace['annotation']
->[2];
-/** The options `client.gather.resource` takes — one shape, referenced not duplicated. */
-export type ResourceGatherOptions = Parameters<GatherNamespace['resource']>[1];
 
 export interface GatherStateUnit extends StateUnit {
   context$: Watched<GatheredContext | null>;
@@ -38,10 +32,10 @@ export interface GatherStateUnit extends StateUnit {
    */
   gatherAnnotation(
     annotationId: AnnotationId,
-    options?: AnnotationGatherOptions,
+    options?: components['schemas']['GatherAnnotationOptions'],
   ): void;
   /** Gather a resource-focus context. */
-  gatherResource(resourceId: ResourceId, options?: ResourceGatherOptions): void;
+  gatherResource(resourceId: ResourceId, options?: GatherResourceOptions): void;
 }
 
 export function createGatherStateUnit(
@@ -64,7 +58,7 @@ export function createGatherStateUnit(
 
   const gatherResource = (
     rid: ResourceId,
-    options?: ResourceGatherOptions,
+    options?: GatherResourceOptions,
   ): void => {
     if (disposed) return;
     resourceLoading$.next(true);
@@ -88,7 +82,7 @@ export function createGatherStateUnit(
 
   const gatherAnnotation = (
     annotationId: AnnotationId,
-    options?: AnnotationGatherOptions,
+    options?: components['schemas']['GatherAnnotationOptions'],
   ): void => {
     if (disposed) return;
     loading$.next(true);

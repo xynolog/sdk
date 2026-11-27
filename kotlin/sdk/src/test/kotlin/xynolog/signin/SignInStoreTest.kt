@@ -467,6 +467,15 @@ class SignInStoreTest {
     }
 
     @Test
+    fun anEntryWhoseAccessTokenIsEmptyIsNoSignIn(@TempDir directory: Path) = runBlocking {
+        val path = directory.resolve(FILE_NAME)
+        fun stored(token: String) = """{"token": "$token", "refreshToken": "refresh-1", "obtainedAt": "x", "issuer": "$ISSUER", "tokenEndpoint": "t"}"""
+        Files.writeString(path, """{"empty": ${stored("")}, "held": ${stored("access-1")}}""")
+        assertEquals(null, SignInStore(path).entry("empty").held())
+        assertEquals("access-1", SignInStore(path).entry("held").held()?.access)
+    }
+
+    @Test
     fun whatTheFileHoldsThatIsNotThisSignInIsWrittenBackAsItWas(@TempDir directory: Path) = runBlocking {
         val path = directory.resolve(FILE_NAME)
         val store = SignInStore(path)

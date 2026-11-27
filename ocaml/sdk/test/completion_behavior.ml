@@ -837,7 +837,7 @@ let replay_waits_for_every_key () =
 type asked = {
   query : (unit, int) Live_query.t;
   asks : (int, Http_wire.request_code) result Promise.u Queue.t;
-  states : int Live_query.state list ref;
+  states : int Live_query.cache_state list ref;
   saves : int option list ref;
 }
 

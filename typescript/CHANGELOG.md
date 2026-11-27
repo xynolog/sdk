@@ -77,6 +77,17 @@ the coming release's, and gathers its changes as they land.
 
 ### Changed
 
+- The sign-in store holds each entry to the Required table's `SignIn`
+  (`faultOf('SignIn', …)`), as every SDK does: an entry with a fault as
+  Protocol's `SignIn` states it, such as an empty access token (an
+  `AccessToken` is at least one character), is no sign-in.
+- A map whose schema names its keys by a schema of their own is keyed by that
+  schema's type: `InferenceSpec.providers` is a
+  `Partial<Record<InferenceProvider, Provider>>`, and
+  `ServiceTelemetryTelemetry.sdk` is keyed by
+  `ServiceTelemetryTelemetrySpansItemServicesItem`.
+- Each `DiscoveryAbsentReason` value says what it means, as
+  `client/discovery-absent.json` says it.
 - A schema a `$ref` names at a place within a file is one type, named where
   that place is stated, wherever it is referred to: the Archivist layout's
   trees are all `ArchivistLayoutEventStreamTree`, every error vocabulary
@@ -209,6 +220,8 @@ the coming release's, and gathers its changes as they land.
 
 ### Removed
 
+- `isSignIn`, which held a value only to the members `SignIn` requires: the
+  store holds an entry to the Required table's `SignIn`.
 - `STARTUP_FETCH_RETRY`. An agent's sign-in (`agentToken`, and so
   `startAgentSession`) is made once, as every SDK makes it: a failure is
   thrown as it came, and starting the sign-in again is the service's, on its
@@ -221,6 +234,9 @@ the coming release's, and gathers its changes as they land.
   nothing wrote or read.
 - `createCache`'s `saveDebounceMs`: a cache saves `SAVE_DEBOUNCE_MS` after
   its values change.
+- `ResourceGatherOptions`, for `@xynolog/core`'s generated
+  `GatherResourceOptions`. A gather state unit's `gatherAnnotation` takes
+  the generated `GatherAnnotationOptions`.
 
 ## 0.8.1
 

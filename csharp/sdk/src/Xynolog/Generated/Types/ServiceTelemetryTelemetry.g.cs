@@ -8,7 +8,7 @@ namespace Xynolog.Types;
 public sealed record ServiceTelemetryTelemetry
 {
     [global::Xynolog.Serialization.Wire("$comment")] public required string Comment { get; init; }
-    [global::Xynolog.Serialization.Wire("sdk")] public required global::System.Collections.Generic.IReadOnlyDictionary<string, global::System.Collections.Generic.IReadOnlyList<string>> Sdk { get; init; }
+    [global::Xynolog.Serialization.Wire("sdk")] public required global::System.Collections.Generic.IReadOnlyDictionary<global::Xynolog.Types.ServiceTelemetryTelemetrySpansItemServicesItem, global::System.Collections.Generic.IReadOnlyList<string>> Sdk { get; init; }
     [global::Xynolog.Serialization.Wire("resource")] public required global::System.Collections.Generic.IReadOnlyList<global::Xynolog.Types.ServiceTelemetryTelemetryResourceItem> Resource { get; init; }
     [global::Xynolog.Serialization.Wire("spans")] public required global::System.Collections.Generic.IReadOnlyList<global::Xynolog.Types.ServiceTelemetryTelemetrySpansItem> Spans { get; init; }
     [global::Xynolog.Serialization.Wire("metrics")] public required global::System.Collections.Generic.IReadOnlyList<global::Xynolog.Types.ServiceTelemetryTelemetryMetricsItem> Metrics { get; init; }

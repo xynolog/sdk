@@ -70,6 +70,16 @@ the coming release's, and gathers its changes as they land.
 
 ### Changed
 
+- The sign-in store holds each entry to the Required table's `SignIn`
+  (`as_read(SignIn, …)`), as every SDK does: an entry with a fault as
+  Protocol's `SignIn` states it, such as an empty access token (an
+  `AccessToken` is at least one character), is no sign-in.
+- A map whose schema names its keys by a schema of their own is keyed by that
+  schema's type: `InferenceSpec.providers` is a
+  `dict[InferenceProvider, Provider]`, and `ServiceTelemetryTelemetry.sdk` is
+  keyed by `ServiceTelemetryTelemetrySpansItemServicesItem`.
+- `DiscoveryAbsentReason` says what each of its values means, as
+  `client/discovery-absent.json` says it.
 - A schema a `$ref` names at a place within a file is one type, named where
   that place is stated, wherever it is referred to: the Archivist layout's
   trees are all `ArchivistLayoutEventStreamTree`, every error vocabulary

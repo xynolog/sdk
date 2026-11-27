@@ -35,7 +35,6 @@ export { HOVER_DELAY_MS } from '@xynolog/core';
 export {
   createGatherStateUnit,
   type GatherStateUnit,
-  type ResourceGatherOptions,
 } from './flows/gather-state-unit';
 export {
   createMatchStateUnit,

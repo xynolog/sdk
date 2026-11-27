@@ -52,6 +52,16 @@ the coming release's, and gathers its changes as they land.
 
 ### Changed
 
+- The sign-in store holds each entry to the Required table's `SignIn`, as
+  every SDK does: an entry with a fault as Protocol's `SignIn` states it, such
+  as an empty access token (an `AccessToken` is at least one character), is no
+  sign-in.
+- A map whose schema names its keys by a schema of their own is keyed by that
+  schema's type: `InferenceSpec.providers` is a
+  `Map<InferenceProvider, Provider>`, and `ServiceTelemetryTelemetry.sdk` is
+  keyed by `ServiceTelemetryTelemetrySpansItemServicesItem`.
+- Each `DiscoveryAbsentReason` entry says what it means, as
+  `client/discovery-absent.json` says it.
 - A value's first fault is read as `xynolog.types.Fault`, the type of
   Protocol's `client/types/Fault.json`, where the SDK held a copy of its own;
   what it says of a fault is unchanged.

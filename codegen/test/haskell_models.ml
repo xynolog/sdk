@@ -19,7 +19,7 @@ let schema json =
 let generated definitions =
   M.generate ~banner:[] ~ids ~sources:[]
     ~referred:(fun _ -> false)
-    ~identifiers:[] ~keys:[]
+    ~identifiers:[] ~value_docs:[]
     (List.map (fun (name, json) -> (name, schema json)) definitions)
 
 let written definitions =

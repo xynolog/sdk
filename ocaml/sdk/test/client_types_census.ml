@@ -57,7 +57,7 @@ let job_event () =
        (List.map kind [ Created; Progress; Retrying; Refused; Complete ]))
 
 (* CacheState is a live query's state: its status, and what it holds. *)
-let told : _ Live_query.state -> string * string list = function
+let told : _ Live_query.cache_state -> string * string list = function
   | Pending -> ("pending", [ "status" ])
   | Ready _ -> ("ready", [ "status"; "value" ])
   | Failed _ -> ("failed", [ "error"; "status" ])

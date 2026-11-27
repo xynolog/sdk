@@ -173,7 +173,8 @@ let contains ~sub text =
 
 let python rows =
   (Surface.Python.file ~kinds:[]
-     (Typing.make definitions ~roots:definitions.names ~identifiers:[] ~keys:[])
+     (Typing.make definitions ~roots:definitions.names ~identifiers:[]
+        ~value_docs:[])
      (methods rows))
     .Output.text
 

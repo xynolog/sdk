@@ -470,13 +470,21 @@ let several_types_throughout : Schema.t -> Schema.t =
     ~boolean:(fun b -> Schema.Boolean_schema b)
     ~schema:(fun l -> several_types (Schema.Schema l))
 
+(* Whether a [propertyNames] names its keys by a schema of their own: that
+   schema is the keys' type, and so part of the shape. *)
+let names_keys = function
+  | Some (Schema.Schema l) -> Schema.keywords l = [ "$ref" ]
+  | _ -> false
+
 (* What [shape_only] drops of a schema that a validator reads: each keyword,
    at any place. *)
 let rec dropped = function
   | Schema.Boolean_schema _ -> []
   | Schema.Schema l ->
       List.filter
-        (fun k -> List.mem k [ "not"; "minProperties"; "propertyNames" ])
+        (fun k ->
+          List.mem k [ "not"; "minProperties" ]
+          || (k = "propertyNames" && not (names_keys l.property_names)))
         (Schema.keywords l)
       @ (if only_constraints l l.one_of then [ "oneOf" ] else [])
       @ (if only_constraints l l.any_of then [ "anyOf" ] else [])
@@ -499,7 +507,8 @@ let shape_only : Schema.t -> Schema.t =
             | _, enum -> enum);
           not_ = None;
           min_properties = None;
-          property_names = None;
+          property_names =
+            (if names_keys l.property_names then l.property_names else None);
           one_of = (if only_constraints l l.one_of then None else l.one_of);
           any_of = (if only_constraints l l.any_of then None else l.any_of);
         }

@@ -52,16 +52,19 @@ let literal (l : Schema.literal) : T.type_ =
   | Int_literal n -> T_int n
   | Bool_literal b -> T_bool b
 
-(* What a type refers to by name: each schema by the type [named] gives it,
-   and each type written in place that [Typing] names by an alias of that
-   name, [aliases] of each in the order they are met. *)
+(* What a type refers to by name, among [typing]'s declarations: each schema
+   by the type [named] gives it, and each type written in place that [Typing]
+   names by an alias of that name, [aliases] of each in the order they are
+   met. *)
 type names = {
+  typing : Typing.t;
   named : string -> T.type_;
   aliases : (string, T.decl) Hashtbl.t;
   mutable met : string list;
 }
 
-let names named = { named; aliases = Hashtbl.create 64; met = [] }
+let names ~typing named =
+  { typing; named; aliases = Hashtbl.create 64; met = [] }
 
 (* The aliases [names] has met, in the order it met them. *)
 let aliases names =
@@ -124,9 +127,22 @@ and form_of ~names (form : Typing.form)
       | Record { members; rest } -> object_of ~names members rest
       | Empty { rest; _ } -> object_of ~names [] rest
       | Map { key = Some key; value } ->
-          T_generic ("Record", [ names.named key; type_of ~names value ])
+          let record =
+            T.T_generic ("Record", [ type_of ~names key; type_of ~names value ])
+          in
+          (* A map holds members of some of an enumeration's values, not of
+             each. *)
+          if Typing.enumerated names.typing key then
+            T_generic ("Partial", [ record ])
+          else record
       | Map { key = None; value } -> object_of ~names [] (Of value)
-      | Enum { values; _ } -> union (List.map literal values)
+      | Enum { values; docs = Some docs; _ } ->
+          T_cases
+            (List.map2
+               (fun value docs ->
+                 T.case ~about:[ Doc_prose [ Text.Words docs ] ] (literal value))
+               values docs)
+      | Enum { values; docs = None; _ } -> union (List.map literal values)
       | Alias ty -> type_of ~names ty
       | Union { branches; _ } ->
           union
@@ -207,7 +223,7 @@ let text (spec : Spec.t) =
     else if List.mem name table_names then table name
     else T.schema name
   in
-  let names = names named in
+  let names = names ~typing named in
   let schema name =
     let d = typing.find name in
     T.member (key name) (declared ~names d) ~about:(about d.description)

@@ -4796,11 +4796,24 @@ type DiscoveryAbsentReason string
 
 // The values of DiscoveryAbsentReason.
 const (
-	DiscoveryAbsentReasonNotFound           DiscoveryAbsentReason = "not-found"
-	DiscoveryAbsentReasonNotJson            DiscoveryAbsentReason = "not-json"
-	DiscoveryAbsentReasonInvalid            DiscoveryAbsentReason = "invalid"
+	// DiscoveryAbsentReasonNotFound: There is no document where it was looked
+	// for: no file, an HTTP status that is not success, or a page that is not
+	// JSON.
+	DiscoveryAbsentReasonNotFound DiscoveryAbsentReason = "not-found"
+	// DiscoveryAbsentReasonNotJson: There is a document, and it is not JSON.
+	DiscoveryAbsentReasonNotJson DiscoveryAbsentReason = "not-json"
+	// DiscoveryAbsentReasonInvalid: It is JSON, and not a discovery document:
+	// one entry that is not what the schema says makes the whole document
+	// invalid, since a partial reading would hide a running knowledge base
+	// without a trace.
+	DiscoveryAbsentReasonInvalid DiscoveryAbsentReason = "invalid"
+	// DiscoveryAbsentReasonUnsupportedVersion: It is a discovery document of a
+	// version this client does not speak, and is not read in part.
 	DiscoveryAbsentReasonUnsupportedVersion DiscoveryAbsentReason = "unsupported-version"
-	DiscoveryAbsentReasonUnreadable         DiscoveryAbsentReason = "unreadable"
+	// DiscoveryAbsentReasonUnreadable: It could not be read at all: the file
+	// could not be opened or decoded, or the request got no answer by its
+	// deadline.
+	DiscoveryAbsentReasonUnreadable DiscoveryAbsentReason = "unreadable"
 )
 
 // Valid is whether e is one of DiscoveryAbsentReason's values.
@@ -7654,7 +7667,7 @@ func (e InferenceProvider) Valid() bool {
 // actor.
 type InferenceSpec struct {
 	// Providers Each provider an engine names, and how it is reached.
-	Providers map[string]Provider `json:"providers"`
+	Providers map[InferenceProvider]Provider `json:"providers"`
 	// Engines The engine each job is done with when software does it, and the
 	// engine each Librarian actor asks.
 	Engines ArchivistEngines `json:"engines"`
@@ -13711,10 +13724,10 @@ type ServiceTelemetryTelemetry struct {
 	// Sdk The services that reach the bus through an SDK, and for each the SDK
 	// transports it uses, or of a transport it uses part of, the rows it
 	// exports.
-	Sdk      map[string][]string                     `json:"sdk"`
-	Resource []ServiceTelemetryTelemetryResourceItem `json:"resource"`
-	Spans    []ServiceTelemetryTelemetrySpansItem    `json:"spans"`
-	Metrics  []ServiceTelemetryTelemetryMetricsItem  `json:"metrics"`
+	Sdk      map[ServiceTelemetryTelemetrySpansItemServicesItem][]string `json:"sdk"`
+	Resource []ServiceTelemetryTelemetryResourceItem                     `json:"resource"`
+	Spans    []ServiceTelemetryTelemetrySpansItem                        `json:"spans"`
+	Metrics  []ServiceTelemetryTelemetryMetricsItem                      `json:"metrics"`
 }
 
 // MarshalJSON writes v, each list its schema requires that Go holds as nil

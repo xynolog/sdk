@@ -65,6 +65,18 @@ the coming release's, and gathers its changes as they land.
 
 ### Changed
 
+- The sign-in store reads each entry with `readAs(SignIn.self, …)`, held to
+  the Required table's `SignIn`, as every SDK does: an entry with a fault as
+  Protocol's `SignIn` states it, such as an empty access token (an
+  `AccessToken` is at least one character), is no sign-in.
+- A map whose schema names its keys by a schema of their own is keyed by that
+  schema's type: `InferenceSpec.providers` is a
+  `[InferenceProvider: Provider]`, and `ServiceTelemetryTelemetry.sdk` is
+  keyed by `ServiceTelemetryTelemetrySpansItemServicesItem`. Each is
+  `CodingKeyRepresentable`, so a dictionary keyed by one is written as an
+  object.
+- Each `DiscoveryAbsentReason` case says what it means, as
+  `client/discovery-absent.json` says it.
 - What a worker says of itself and of its claims is the generated client
   types: `ClaimRefusal` (its text is `message`, where it was `detail`),
   `WorkerVitals` with its `WorkerActiveJob`, and `HeldJobStall` (its

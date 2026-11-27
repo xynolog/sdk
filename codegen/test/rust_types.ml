@@ -6,10 +6,11 @@ module D = Definitions
 module G = Rust_types.Generate
 open Fixture
 
-let generated ?(identifiers = []) ?(accessors = []) ?(keys = []) schemas root =
+let generated ?(identifiers = []) ?(accessors = []) schemas root =
   Rust_syntax.text ~header:[]
     (G.items
-       (Typing.make (definitions schemas) ~roots:[ root ] ~identifiers ~keys)
+       (Typing.make (definitions schemas) ~roots:[ root ] ~identifiers
+          ~value_docs:[])
        ~accessors)
 
 let thing pattern =
@@ -123,11 +124,10 @@ let cases =
     case "a map named by its keys' schema is keyed by that type" (fun () ->
         let code =
           generated ~identifiers:[ "ThingId" ]
-            ~keys:[ ("Where", "ThingId") ]
             [
               ("ThingId", {|{"type": "string", "pattern": "^[a-z]+$"}|});
               ( "Where",
-                {|{"type": "object", "additionalProperties": {"type": "integer"}}|}
+                {|{"type": "object", "propertyNames": {"$ref": "ThingId.json"}, "additionalProperties": {"type": "integer"}}|}
               );
             ]
             "Where"

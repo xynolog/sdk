@@ -243,6 +243,20 @@ func Read(payload []byte, generated reflect.Type) ([]byte, api.Fault, bool) {
 	return readOf(shapeOf(generated), payload, value)
 }
 
+// ReadNamed is Read of payload as the schema of that name reads it: one the
+// SDK reads by its name, whose type is no type of package api's. A name the
+// table does not hold is a fault of the SDK's, which panics.
+func ReadNamed(payload []byte, name string) ([]byte, api.Fault, bool) {
+	if _, named := schemas()[name]; !named {
+		panic("schemas_gen.json holds no schema " + name)
+	}
+	var value any
+	if json.Unmarshal(payload, &value) != nil {
+		return payload, api.Fault{}, false
+	}
+	return readOf(&shape{Ref: name}, payload, value)
+}
+
 // readOf is payload, which decodes to value, as a reader of s reads it.
 func readOf(s *shape, payload []byte, value any) ([]byte, api.Fault, bool) {
 	fault, left, faulty := faultOf(s, value, "")

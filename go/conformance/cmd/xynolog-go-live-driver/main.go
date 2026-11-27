@@ -25,13 +25,11 @@ import (
 )
 
 // query is a live query a case names, as this driver reads it: its states,
-// its one-shot read, what says it is out of date, and how a state of it is
-// written.
+// each as it is written, its one-shot read, and what says it is out of date.
 type query struct {
-	states     func(ctx context.Context) iter.Seq[xynolog.CacheState]
+	states     func(ctx context.Context) iter.Seq[api.ConformanceDriverLineEmissionEmissionStateMember]
 	fresh      func(ctx context.Context) (any, error)
 	invalidate func()
-	written    func(state xynolog.CacheState) api.ConformanceDriverLineEmissionEmissionStateMember
 }
 
 // itself is a query's value as it is: each value of the SDK writes itself as
@@ -40,8 +38,25 @@ func itself[T any](value T) any { return value }
 
 // liveQuery is q, its values written by show.
 func liveQuery[T any](q *xynolog.Cached[T], show func(T) any) query {
+	written := func(state xynolog.CacheState[T]) api.ConformanceDriverLineEmissionEmissionStateMember {
+		switch s := state.(type) {
+		case xynolog.Ready[T]:
+			return ready(show(s.Value))
+		case xynolog.Failed[T]:
+			return failed(s.Error)
+		}
+		return api.ConformanceDriverLineEmissionEmissionStatePending{Status: api.ConformanceDriverLineEmissionEmissionStatePendingStatusPending}
+	}
 	return query{
-		states: q.States,
+		states: func(ctx context.Context) iter.Seq[api.ConformanceDriverLineEmissionEmissionStateMember] {
+			return func(yield func(api.ConformanceDriverLineEmissionEmissionStateMember) bool) {
+				for state := range q.States(ctx) {
+					if !yield(written(state)) {
+						return
+					}
+				}
+			}
+		},
 		fresh: func(ctx context.Context) (any, error) {
 			value, err := q.Fresh(ctx)
 			if err != nil {
@@ -50,15 +65,6 @@ func liveQuery[T any](q *xynolog.Cached[T], show func(T) any) query {
 			return show(value), nil
 		},
 		invalidate: q.Invalidate,
-		written: func(state xynolog.CacheState) api.ConformanceDriverLineEmissionEmissionStateMember {
-			switch s := state.(type) {
-			case xynolog.Ready[T]:
-				return ready(show(s.Value))
-			case xynolog.Failed:
-				return failed(s.Err)
-			}
-			return api.ConformanceDriverLineEmissionEmissionStatePending{Status: api.ConformanceDriverLineEmissionEmissionStatePendingStatusPending}
-		},
 	}
 }
 
@@ -442,7 +448,7 @@ func (l *live) observe(args protocol.Arguments) error {
 	// completed before it gave one.
 	now, observing := next()
 	if observing {
-		emission(observer, q.written(now))
+		emission(observer, now)
 	}
 	l.reporters.Add(1)
 	go func() {
@@ -454,7 +460,7 @@ func (l *live) observe(args protocol.Arguments) error {
 				if !more {
 					break
 				}
-				emission(observer, q.written(state))
+				emission(observer, state)
 			}
 		}
 		// An observer the suite stopped has ended, not completed: only a

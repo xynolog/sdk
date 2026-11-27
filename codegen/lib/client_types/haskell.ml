@@ -8,7 +8,8 @@
    field names (the type's name, then the member's), an open list's items as
    the record's one type variable, a member that names a union of branches
    as the type variable each operation instantiates at its own branch, the
-   refused frame a report names as the transport's FrameRefusal, and the
+   refused frame a report names as Protocol's FrameRefusal, each of its
+   members read by the field the generated FrameRefusal names it, and the
    upload's events named UploadEvent, which leaves UploadProgress to be one of
    them. *)
 
@@ -294,16 +295,6 @@ let record_module ~shape name =
 let pending_annotation ~shape = record_module ~shape "PendingAnnotation"
 let search_state ~shape = record_module ~shape "SearchState"
 
-(* How the transport's FrameRefusal states each member of a refused frame's
-   report. *)
-let refused_member value = function
-  | "channel" -> Some (H.Apply (Name "refusedChannel", [ value ]))
-  | "member" ->
-      Some (H.Apply (Name "member", [ Apply (Name "fault", [ value ]) ]))
-  | "reason" ->
-      Some (H.Apply (Name "reason", [ Apply (Name "fault", [ value ]) ]))
-  | _ -> None
-
 (* The reports' sums: each branch a constructor holding its members but the
    tag, in order, an optional one as a Maybe, and written back to the
    branch's JSON, which states an optional member only when it is held; and
@@ -323,39 +314,26 @@ let report ~shape ~native ~prefix name =
     | Scalar t -> Result.bind (scalar name t) plain
     | Named { name = _; union = true } -> plain (H.T_name completion)
     | Named { name = n; union = false } -> plain (H.T_name n)
-    | Inline refused -> (
-        let encoded =
-          List.map
-            (fun (r : member) -> (r.name, refused_member (H.Name "v") r.name))
-            refused
-        in
-        match List.find_opt (fun (_, e) -> e = None) encoded with
-        | Some (unknown, _) ->
-            Error
-              [
-                refusal name
-                  (branch ^ "'s " ^ m.name ^ " reports " ^ unknown
-                 ^ ", which no FrameRefusal states");
-              ]
-        | None ->
-            Ok
-              ( T_name "FrameRefusal",
-                fun value ->
-                  Apply
-                    ( Name "object",
-                      [
-                        List
-                          (List.map
-                             (fun (r : member) ->
-                               H.Infix
-                                 ( Str r.name,
-                                   [
-                                     ( ".=",
-                                       Option.get (refused_member value r.name)
-                                     );
-                                   ] ))
-                             refused);
-                      ] ) ))
+    | Inline refused ->
+        Ok
+          ( T_name "FrameRefusal",
+            fun value ->
+              Apply
+                ( Name "object",
+                  [
+                    List
+                      (List.map
+                         (fun (r : member) ->
+                           H.Infix
+                             ( Str r.name,
+                               [
+                                 ( ".=",
+                                   H.Apply
+                                     ( Name (H.field "FrameRefusal" r.name),
+                                       [ value ] ) );
+                               ] ))
+                         refused);
+                  ] ) )
     | _ ->
         Error
           [ refusal name (branch ^ "'s " ^ m.name ^ " is no report member") ]
@@ -501,7 +479,6 @@ let operation_reports ~shape =
                        (List.sort_uniq compare (jobs_named @ uploads_named)));
                 H.import "Xynolog.Internal.Transport"
                   ~items:[ All "FrameRefusal" ];
-                H.import "Xynolog.Internal.Required" ~items:[ All "Fault" ];
               ];
             body = jobs @ uploads;
           };

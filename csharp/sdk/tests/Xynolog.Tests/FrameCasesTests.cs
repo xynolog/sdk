@@ -147,7 +147,7 @@ public sealed partial class TransportTests
                 }
                 else
                 {
-                    Assert.Equal(refusal, Assert.Single(came));
+                    Assert.Equal(new RefusedBusFrame(refusal), Assert.Single(came));
                 }
                 AssertToldNoFrame(Xynolog.Serialization.Required.Undecoded, await told.NextAsync());
                 break;

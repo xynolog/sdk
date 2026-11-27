@@ -1,4 +1,4 @@
-(* Generated from every schema Protocol roots (codegen/lib/roots.ml), each record its tables state, each client type every SDK generates, and protocol/specs/src/client/discovery-absent.json, through codegen/lib/required/shape.ml. Do not edit.
+(* Generated from every schema Protocol roots (codegen/lib/roots.ml), each record its tables state, each client type every SDK generates, the sign-in store's entry (protocol/specs/src/sign-in-store/SignIn.json), and protocol/specs/src/client/discovery-absent.json, through codegen/lib/required/shape.ml. Do not edit.
    Regenerate: make generate (codegen/lib/required/ocaml.ml) *)
 
 type 'schema t = Yojson.Raw.t
@@ -466,6 +466,7 @@ let settings_path_result = "SettingsPathResult"
 let settings_set_params = "SettingsSetParams"
 let settings_theme_changed_event = "SettingsThemeChangedEvent"
 let settings_unset_params = "SettingsUnsetParams"
+let sign_in = "SignIn"
 let sign_in_outcome = "SignInOutcome"
 let sign_in_store_owner_only = "SignInStoreOwnerOnly"
 let signed_in = "SignedIn"

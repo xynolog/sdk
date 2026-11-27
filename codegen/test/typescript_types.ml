@@ -6,11 +6,12 @@ open Xynolog_codegen
 open Fixture
 
 (* [root]'s type, and each alias it meets, by its name, as its type. *)
-let writing ?(identifiers = []) ?(keys = []) schemas root =
+let writing ?(identifiers = []) schemas root =
   let typing =
-    Typing.make (definitions schemas) ~roots:[ root ] ~identifiers ~keys
+    Typing.make (definitions schemas) ~roots:[ root ] ~identifiers
+      ~value_docs:[]
   in
-  let names = Typescript_types.names Typescript_syntax.schema in
+  let names = Typescript_types.names ~typing Typescript_syntax.schema in
   let text =
     Typescript_syntax.type_ ~depth:0
       (Typescript_types.declared ~names (typing.find root))
@@ -23,9 +24,7 @@ let writing ?(identifiers = []) ?(keys = []) schemas root =
         | _ -> Alcotest.fail "an alias that is no type")
       (Typescript_types.aliases names) )
 
-let written ?identifiers ?keys schemas root =
-  fst (writing ?identifiers ?keys schemas root)
-
+let written ?identifiers schemas root = fst (writing ?identifiers schemas root)
 let one json = written [ ("S", json); ("A", {|{"type": "string"}|}) ] "S"
 let equal expected actual = Alcotest.(check string) "written" expected actual
 
@@ -83,7 +82,6 @@ let cases =
       (fun () ->
         equal "Record<components['schemas']['K'], number>"
           (written
-             ~keys:[ ("S", "K") ]
              [
                ( "S",
                  {|{"type": "object", "propertyNames": {"$ref": "K.json"}, "additionalProperties": {"type": "integer"}}|}

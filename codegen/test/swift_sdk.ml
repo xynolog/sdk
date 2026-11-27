@@ -21,7 +21,10 @@ let refusal ?(identifiers = []) ?(name = "Fixture") json =
         let definitions = D.alone ~ids ~name schema in
         let models =
           M.create
-            [ Typing.make definitions ~roots:[ name ] ~identifiers ~keys:[] ]
+            [
+              Typing.make definitions ~roots:[ name ] ~identifiers
+                ~value_docs:[];
+            ]
             ~schema:definitions.schema
         in
         M.generate models;
@@ -42,7 +45,7 @@ let written json =
         M.create
           [
             Typing.make definitions ~roots:[ "Fixture" ] ~identifiers:[]
-              ~keys:[];
+              ~value_docs:[];
           ]
           ~schema:definitions.schema
       in

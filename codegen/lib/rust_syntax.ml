@@ -1338,12 +1338,23 @@ let rec type_lines ~indent ~head ~tail ty =
         @ [ spaces indent ^ ">" ^ tail ]
     | _ -> invalid_arg ("Rust_syntax: a type too long: " ^ one)
 
+(* A field's type, as rustfmt's rewrite_assign_rhs lays it: beside the name
+   where it fits, else on the line below when that is better. *)
+let field_type_lines ~indent ~head ty =
+  match type_lines ~indent ~head:(head ^ " ") ~tail:"," ty with
+  | [ _ ] as beside -> beside
+  | beside ->
+      let below =
+        type_lines ~indent:(indent + tab_spaces) ~head:"" ~tail:"," ty
+      in
+      if prefer_next_line (String.concat "\n" beside) (String.concat "\n" below)
+      then (spaces indent ^ head) :: below
+      else beside
+
 let field_text ~indent (f : field) =
   doc_lines ~indent f.doc
   @ attrs_lines ~indent f.attrs
-  @ type_lines ~indent
-      ~head:(vis_text f.vis ^ ident f.name ^ ": ")
-      ~tail:"," f.ty
+  @ field_type_lines ~indent ~head:(vis_text f.vis ^ ident f.name ^ ":") f.ty
 
 let variant_text ~indent v =
   doc_lines ~indent v.v_doc

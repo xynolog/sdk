@@ -70,6 +70,13 @@ the coming release's, and gathers its changes as they land.
 
 ### Changed
 
+- `Sign_in_store` holds each entry to the Required table's `SignIn`
+  (`Models.sign_in`), as every SDK does: an entry with a fault as Protocol's
+  `SignIn` states it, such as an empty access token (an `AccessToken` is at
+  least one character), is no sign-in. An empty `issuer` or `tokenEndpoint`,
+  which the schema allows, no longer makes an entry none.
+- `Live_query.state` is `Live_query.cache_state`, as Protocol's
+  `client/types/CacheState.json` names a live query's state.
 - A schema a `$ref` names at a place within a file is one record, named
   where that place is stated, wherever it is referred to: every error
   vocabulary of `Errors_codes` whose codes state only their docs is

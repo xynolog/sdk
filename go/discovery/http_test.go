@@ -82,17 +82,17 @@ func TestADocumentThatHasNotChangedIsNotReadAgain(t *testing.T) {
 	}}}), `"v1"`)
 	ctx := context.Background()
 
-	read := reader.Read(ctx)
+	read := readFrom(t, ctx, reader)
 	if managing, isManaged := memberOf(t, read).(api.DiscoveryManaged); !isManaged || len(managing.Kbs) != 1 {
 		t.Fatalf("a managed state of one was expected, not %#v", read)
 	}
-	if got := memberOf(t, reader.Read(ctx)); got != (api.DiscoveryUnchanged{Kind: api.DiscoveryUnchangedKindUnchanged}) {
+	if got := memberOf(t, readFrom(t, ctx, reader)); got != (api.DiscoveryUnchanged{Kind: api.DiscoveryUnchangedKindUnchanged}) {
 		t.Fatalf("read %#v", got)
 	}
 
 	// A new document has a new tag, and is read.
 	document.serve(http.StatusOK, "application/json; charset=utf-8", written(t, map[string]any{"version": 1, "kbs": []any{}}), `"v2"`)
-	if got, want := memberOf(t, reader.Read(ctx)), managed(); !reflect.DeepEqual(got, want) {
+	if got, want := memberOf(t, readFrom(t, ctx, reader)), managed(); !reflect.DeepEqual(got, want) {
 		t.Errorf("read %#v, not %#v", got, want)
 	}
 	if reads := document.timesRead(); reads != 3 {
@@ -105,7 +105,7 @@ func TestWhatIsNotADocumentAtTheAddressIsAbsent(t *testing.T) {
 	ctx := context.Background()
 	absentAs := func(expected api.DiscoveryAbsentReason, why string) {
 		t.Helper()
-		if got, isAbsent := absentFor(t, reader.Read(ctx)); !isAbsent || got != expected {
+		if got, isAbsent := absentFor(t, readFrom(t, ctx, reader)); !isAbsent || got != expected {
 			t.Errorf("%s: not absent as %s", why, expected)
 		}
 	}
@@ -125,7 +125,7 @@ func TestWhatIsNotADocumentAtTheAddressIsAbsent(t *testing.T) {
 	absentAs(api.DiscoveryAbsentReasonNotJson, "the document that is not JSON again")
 
 	nowhere := discovery.HttpDiscovery("http://127.0.0.1:9"+discovery.DiscoveryURLPath, &http.Client{})
-	if got, isAbsent := absentFor(t, nowhere.Read(ctx)); !isAbsent || got != api.DiscoveryAbsentReasonUnreadable {
+	if got, isAbsent := absentFor(t, readFrom(t, ctx, nowhere)); !isAbsent || got != api.DiscoveryAbsentReasonUnreadable {
 		t.Errorf("a launcher that is not there read as %#v", got)
 	}
 }
@@ -144,7 +144,7 @@ func TestALaunchersDocumentThatIsNeverServedIsUnreadableAtTheDeadline(t *testing
 		reader := discovery.HttpDiscovery("http://launcher.test"+discovery.DiscoveryURLPath, &http.Client{Transport: neverAnswers{}})
 		started := time.Now()
 
-		read := reader.Read(context.Background())
+		read := readFrom(t, context.Background(), reader)
 
 		deadline := xynolog.DefaultTransportTiming().HttpRequestTimeout
 		if took := time.Since(started); took < deadline || took >= deadline+2*time.Second {

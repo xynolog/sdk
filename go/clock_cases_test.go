@@ -772,11 +772,11 @@ type launcherDocument struct {
 	first, after api.DiscoveryRead
 }
 
-func (d *launcherDocument) Read(context.Context) api.DiscoveryRead {
+func (d *launcherDocument) Read(context.Context) (api.DiscoveryRead, error) {
 	if d.reads.Add(1) == 1 {
-		return d.first
+		return d.first, nil
 	}
-	return d.after
+	return d.after, nil
 }
 
 func discoverySubject(t *testing.T, _ clockGiven) clockSubject {
@@ -790,7 +790,11 @@ func discoverySubject(t *testing.T, _ clockGiven) clockSubject {
 		t.Fatal(err)
 	}
 	background(t, func(ctx context.Context) {
-		for range discovery.SubscribeDiscovery(ctx, document, discovery.DiscoveryInterval) {
+		for _, err := range discovery.SubscribeDiscovery(ctx, document, discovery.DiscoveryInterval) {
+			if err != nil {
+				t.Error(err)
+				return
+			}
 		}
 	})
 	return clockSubject{counted: func() int { return int(document.reads.Load()) }}

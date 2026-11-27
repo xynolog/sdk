@@ -187,7 +187,7 @@ and in_place st ~what ~tag (i : T.inline) =
   in
   match i.form with
   | form when is_class form -> declared i.composition i.description
-  | T.Enum { base = Some (T.Text _); values }
+  | T.Enum { base = Some (T.Text _); values; _ }
     when List.length values <> 1 && not tag ->
       declared None
         (if i.composition = None then i.description else i.node_description)
@@ -200,9 +200,17 @@ and spelled st ~what ~owner (form : T.form) =
   | T.Union u -> union (List.map (member st ~what:owner) u.branches)
   | T.Enum { values; _ } -> literals values
   | T.Empty _ -> sub "dict" [ name "str"; json ]
-  | T.Map { value; _ } -> sub "dict" [ name "str"; placed st ~what value ]
+  | T.Map { key; value } -> map_of st ~what key value
   | T.Alias ty -> placed st ~what ty
   | T.Record _ | T.Identifier _ | T.Json -> json
+
+(* A dict whose keys are each a [key], where it says. *)
+and map_of st ~what key value =
+  sub "dict"
+    [
+      (match key with Some key -> placed st ~what key | None -> name "str");
+      placed st ~what value;
+    ]
 
 (* What an array holds; a union it holds is named. *)
 and item st ~what items =
@@ -217,7 +225,7 @@ and item st ~what items =
 
 (* [name] for [t], with its description, and the property the union [t] is
    told apart by. *)
-and typed_alias name ~description ?union t =
+and typed_alias name ~description ?union ?doc t =
   let keywords =
     (match description with
       | Some d -> [ P.keyword "description" (Str d) ]
@@ -228,7 +236,7 @@ and typed_alias name ~description ?union t =
         [ P.keyword "discriminator" (Str (python_name property)) ]
     | _ -> []
   in
-  P.alias name
+  P.alias ?doc name
     (if keywords = [] then t else sub "Annotated" [ t; P.call "Field" keywords ])
 
 (* One member of the union [what]: a class declared by its name in the
@@ -313,7 +321,7 @@ and object_class st name (form : T.form) ~doc =
 and declaration st name (form : T.form) (composition : T.composition option)
     description : P.stmt =
   let doc = docstring description in
-  let alias ?union t = typed_alias name ~description ?union t in
+  let alias ?union ?doc t = typed_alias name ~description ?union ?doc t in
   match (form, composition) with
   | form, Some c -> inherited st name form c ~doc
   | T.Union u, None ->
@@ -323,14 +331,24 @@ and declaration st name (form : T.form) (composition : T.composition option)
   | T.Empty _, None when T.holds_none form -> object_class st name form ~doc
   | T.Alias (T.List items), None ->
       alias (sub "list" [ item st ~what:name items ])
-  | T.Enum { values; _ }, None -> alias (literals values)
-  | T.Map { key; value }, None ->
+  | T.Enum { values; docs }, None ->
+      (* What each value means, a paragraph each, under the alias. *)
+      let meaning value docs =
+        let word =
+          match value with
+          | Schema.String_literal word -> word
+          | value -> Yojson.Safe.to_string (Schema.literal_json value)
+        in
+        Printf.sprintf "`%s`: %s" word docs
+      in
       alias
-        (sub "dict"
-           [
-             P.Name (Option.value key ~default:"str");
-             placed st ~what:name value;
-           ])
+        ?doc:
+          (Option.map
+             (fun docs ->
+               P.As_is (String.concat "\n\n" (List.map2 meaning values docs)))
+             docs)
+        (literals values)
+  | T.Map { key; value }, None -> alias (map_of st ~what:name key value)
   | (T.Empty _ | T.Alias _ | T.Identifier _ | T.Json), None ->
       alias (spelled st ~what:name ~owner:name form)
 

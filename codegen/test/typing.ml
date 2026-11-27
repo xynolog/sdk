@@ -10,7 +10,8 @@ let union members =
 
 let typed schemas =
   let typing =
-    Typing.make (definitions schemas) ~roots:[ "U" ] ~identifiers:[] ~keys:[]
+    Typing.make (definitions schemas) ~roots:[ "U" ] ~identifiers:[]
+      ~value_docs:[]
   in
   ignore (typing.find "U");
   ""
@@ -28,7 +29,8 @@ let check what expected actual = Alcotest.(check bool) what expected actual
 
 let apart_by_pattern_only schemas =
   let typing =
-    Typing.make (definitions schemas) ~roots:[ "U" ] ~identifiers:[] ~keys:[]
+    Typing.make (definitions schemas) ~roots:[ "U" ] ~identifiers:[]
+      ~value_docs:[]
   in
   match (typing.find "U").form with
   | Typing.Union u -> Typing.apart_by_pattern_only u

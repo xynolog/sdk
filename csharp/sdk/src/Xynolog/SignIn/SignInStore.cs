@@ -71,12 +71,14 @@ public sealed partial class SignInStore
 
     private string Now() => clock.GetUtcNow().ToString("yyyy-MM-dd'T'HH:mm:ss'Z'", CultureInfo.InvariantCulture);
     private static string? Expires(string access) => Tokens.TokenExpiry(access) is double exp ? DateTimeOffset.UnixEpoch.AddSeconds(exp).ToString("yyyy-MM-dd'T'HH:mm:ss'Z'", CultureInfo.InvariantCulture) : null;
-    private static global::Xynolog.Types.SignIn? ReadSignIn(JsonNode? node)
-    {
-        if (node is null) return null;
-        try { return node.Deserialize<global::Xynolog.Types.SignIn>(); }
-        catch (JsonException) { return null; }
-    }
+    /// <summary>A member of the document as a sign-in: null for one with a fault as the table holds a sign-in to (an
+    /// empty token, a member it lacks).</summary>
+    private static global::Xynolog.Types.SignIn? ReadSignIn(JsonNode? node) =>
+        node is not null
+        && global::Xynolog.Serialization.Required.TryRead<global::Xynolog.Types.SignIn>(
+            JsonSerializer.SerializeToElement(node), out var signIn, out _)
+            ? signIn
+            : null;
 
     private sealed class EntryKept(SignInStore store, string key) : ISignInKept
     {

@@ -368,10 +368,7 @@ and in_place st what (i : T.inline) =
   | (T.Empty _ as form), None when T.holds_none form -> empty st
   | T.Empty _, None ->
       R.named ~args:[ string_ty; R.named "serde_json::Value" ] "serde_json::Map"
-  | T.Map { value; _ }, None ->
-      R.named
-        ~args:[ string_ty; type_of st what value ]
-        "std::collections::BTreeMap"
+  | T.Map { key; value }, None -> map_of st what key value
   | (T.Enum { base = None; _ } | T.Alias _ | T.Identifier _ | T.Json), None ->
       shape what
 
@@ -379,21 +376,22 @@ and declaration st name (form : T.form) doc =
   let alias ty = [ R.Type_alias { doc; vis = Pub; name; ty } ] in
   match form with
   | T.Union u -> union_declaration st name u doc
-  | T.Enum { base = Some (T.Text _); values } ->
+  | T.Enum { base = Some (T.Text _); values; docs } ->
       enumeration name
         (List.map
            (function
              | Schema.String_literal v -> v
              | _ -> refuse "%s: an enum value is not a string" name)
            values)
-        doc
+        docs doc
   | T.Enum
       {
         base = Some (T.Integer { minimum; maximum });
         values = [ Schema.Int_literal n ];
+        _;
       } ->
       constant name (integer ~minimum ~maximum) (R.Int n) doc
-  | T.Enum { base = Some T.Boolean; values = [ Schema.Bool_literal b ] } ->
+  | T.Enum { base = Some T.Boolean; values = [ Schema.Bool_literal b ]; _ } ->
       constant name "bool" (R.Bool b) doc
   | T.Enum _ ->
       refuse
@@ -402,15 +400,23 @@ and declaration st name (form : T.form) doc =
         name
   | T.Identifier { pattern } -> identifier name pattern doc
   | T.Alias ((T.Scalar _ | T.List _) as held) -> alias (type_of st name held)
-  | T.Map { key; value } ->
-      let key = match key with Some key -> named st key | None -> string_ty in
-      alias
-        (R.named
-           ~args:[ key; type_of st name value ]
-           "std::collections::BTreeMap")
+  | T.Map { key; value } -> alias (map_of st name key value)
   | T.Record { members; rest } -> structure st name members rest doc
   | T.Empty { rest; _ } -> structure st name [] rest doc
   | T.Alias _ | T.Json -> shape name
+
+(* A map, each of its keys a [key] (text, where it says none), of what
+   [value] admits. *)
+and map_of st what key value =
+  R.named
+    ~args:
+      [
+        (match key with
+        | Some key -> type_of st (what ^ ".key") key
+        | None -> string_ty);
+        type_of st what value;
+      ]
+    "std::collections::BTreeMap"
 
 (* A schema of one integer or boolean: a type of no value of its own, which
    types.rs's [constant!] writes as that one and reads from it alone. *)
@@ -441,7 +447,7 @@ and constant name kind value doc =
     R.Macro_item ("constant", [ R.p name; R.p kind; value ]);
   ]
 
-and enumeration name values doc =
+and enumeration name values docs doc =
   let variants = List.map (fun v -> (v, Naming.variant v)) values in
   List.iteri
     (fun i (_, variant) ->
@@ -476,9 +482,13 @@ and enumeration name values doc =
           vis = Pub;
           name;
           variants =
-            List.map
-              (fun (value, variant) ->
+            List.mapi
+              (fun i (value, variant) ->
                 R.variant
+                  ~doc:
+                    (match docs with
+                    | Some docs -> doc_of (Some (List.nth docs i))
+                    | None -> [])
                   ~attrs:[ serde [ R.Name_value ("rename", R.Str value) ] ]
                   variant)
               variants;
@@ -964,7 +974,7 @@ and discriminator_accessor st name property tags variants =
     if not (st.typing.defined vocabulary) then none ()
     else
       match (st.typing.find vocabulary).form with
-      | T.Enum { base = Some (T.Text _); values } -> values
+      | T.Enum { base = Some (T.Text _); values; _ } -> values
       | _ -> none ()
   in
   let returned = named st vocabulary in

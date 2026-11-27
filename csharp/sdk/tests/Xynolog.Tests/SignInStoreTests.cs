@@ -115,6 +115,33 @@ public sealed class SignInStoreTests
     }
 
     [Fact]
+    public async Task AnEntryWhoseAccessTokenIsEmptyIsNoSignIn()
+    {
+        var directory = Path.Combine(Path.GetTempPath(), "xynolog store " + Guid.NewGuid());
+        try
+        {
+            var store = new SignInStore(directory);
+            static JsonObject Stored(string token) => new()
+            {
+                ["token"] = token,
+                ["refreshToken"] = "refresh-1",
+                ["obtainedAt"] = "2026-01-01T00:00:00Z",
+                ["issuer"] = "https://issuer.example",
+                ["tokenEndpoint"] = "https://issuer.example/token",
+            };
+            await store.ChangeAsync(document =>
+            {
+                document["empty"] = Stored("");
+                document["held"] = Stored("access-1");
+                return true;
+            });
+            Assert.Null(await store.Entry("empty").HeldAsync());
+            Assert.Equal("access-1", (await store.Entry("held").HeldAsync())?.Access);
+        }
+        finally { if (Directory.Exists(directory)) Directory.Delete(directory, recursive: true); }
+    }
+
+    [Fact]
     public async Task ContendingWriterCanCancelWithoutChangingTheStore()
     {
         var directory = Path.Combine(Path.GetTempPath(), "xynolog store " + Guid.NewGuid());

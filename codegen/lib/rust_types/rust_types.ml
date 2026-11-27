@@ -195,7 +195,7 @@ let sign_in (spec : Spec.t) =
         (Generate.items
            (Typing.make
               (Definitions.alone ~ids:spec.ids ~name:"SignIn" schema)
-              ~roots:[ "SignIn" ] ~identifiers:[] ~keys:[])
+              ~roots:[ "SignIn" ] ~identifiers:[] ~value_docs:[])
            ~accessors:[]);
   }
 

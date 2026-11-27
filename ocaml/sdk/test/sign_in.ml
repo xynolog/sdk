@@ -184,6 +184,48 @@ let store () =
         Yojson.Safe.from_file path
         = `Assoc [ ("future", `Assoc [ ("newField", `Bool true) ]) ]))
 
+(* An entry whose access token is empty is no sign-in: its token is an
+   AccessToken, whose least length is one. The same entry with a token is
+   one. *)
+let empty_token () =
+  Eio_main.run @@ fun env ->
+  let directory = Filename.temp_file "xynolog-sign-in" "" in
+  Unix.unlink directory;
+  Unix.mkdir directory 0o700;
+  Fun.protect
+    ~finally:(fun () ->
+      Array.iter
+        (fun name -> Unix.unlink (Filename.concat directory name))
+        (Sys.readdir directory);
+      Unix.rmdir directory)
+    (fun () ->
+      let clock =
+        Clock.make ~wall:(Eio.Stdenv.clock env)
+          ~monotonic:(Eio.Stdenv.mono_clock env)
+          ~jitter:(Random.State.make [| 1 |])
+      in
+      let stored token =
+        `Assoc
+          [
+            ("token", `String token);
+            ("refreshToken", `String "refresh-1");
+            ("obtainedAt", `String "2026-01-01T00:00:00Z");
+            ("issuer", `String "https://issuer.example");
+            ("tokenEndpoint", `String "https://issuer.example/token");
+          ]
+      in
+      let path = Filename.concat directory "tokens.json" in
+      Out_channel.with_open_gen [ Open_wronly; Open_creat ] 0o600 path
+        (fun channel ->
+          output_string channel
+            (Yojson.Safe.to_string
+               (`Assoc [ ("empty", stored ""); ("held", stored "access-1") ])));
+      let store = Store.make ~clock ~directory in
+      assert (Store.find store ~key:"empty" = None);
+      assert (
+        Option.map Store.access_token (Store.find store ~key:"held")
+        = Some "access-1"))
+
 let field = Yojson.Safe.Util.member
 let optional = function `String value -> Some value | _ -> None
 let get_text name value = Option.get (optional (field name value))
@@ -604,5 +646,7 @@ let () =
           Alcotest.test_case "permissions, concurrent update and sign-out"
             `Quick store;
           Alcotest.test_case "a sign-in is the schema's" `Quick sign_in_census;
+          Alcotest.test_case "an empty access token is no sign-in" `Quick
+            empty_token;
         ] );
     ]

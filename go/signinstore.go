@@ -27,6 +27,7 @@ import (
 
 	"github.com/xynolog/sdk/go/api"
 	"github.com/xynolog/sdk/go/internal/optional"
+	"github.com/xynolog/sdk/go/internal/required"
 )
 
 // SignInStore is the store in the file at a path: SignInFile in StateDir,
@@ -65,19 +66,12 @@ func (s *SignInStore) read() (map[string]json.RawMessage, error) {
 }
 
 // signInOf is a member of the document as a sign-in; false for one that is
-// not: a later release's member, or an entry that lacks what a sign-in states.
+// not: a later release's member, or an entry with a fault in it as the table
+// holds a sign-in to (an empty token, a member it lacks).
 func signInOf(member json.RawMessage) (SignIn, bool) {
-	var stated map[string]json.RawMessage
-	if json.Unmarshal(member, &stated) != nil {
-		return SignIn{}, false
-	}
-	for _, name := range signInRequired {
-		if _, ok := stated[name]; !ok {
-			return SignIn{}, false
-		}
-	}
+	read, _, faulty := required.ReadNamed(member, signInSchema)
 	var signIn SignIn
-	if json.Unmarshal(member, &signIn) != nil {
+	if faulty || json.Unmarshal(read, &signIn) != nil {
 		return SignIn{}, false
 	}
 	return signIn, true

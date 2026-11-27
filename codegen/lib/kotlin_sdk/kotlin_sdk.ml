@@ -29,7 +29,7 @@ let spec_of (spec : Spec.t) : (Types.spec, string) result =
         Typing.of_spec spec ~tables:(Service_tables.tables spec);
         Typing.make
           (Definitions.alone ~ids:spec.ids ~name:"SignIn" sign_in)
-          ~roots:[ "SignIn" ] ~identifiers:[] ~keys:[];
+          ~roots:[ "SignIn" ] ~identifiers:[] ~value_docs:[];
       ]
   with
   | types -> Ok types

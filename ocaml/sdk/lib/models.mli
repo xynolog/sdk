@@ -1,4 +1,4 @@
-(* Generated from every schema Protocol roots (codegen/lib/roots.ml), each record its tables state, each client type every SDK generates, and protocol/specs/src/client/discovery-absent.json, through codegen/lib/required/shape.ml. Do not edit.
+(* Generated from every schema Protocol roots (codegen/lib/roots.ml), each record its tables state, each client type every SDK generates, the sign-in store's entry (protocol/specs/src/sign-in-store/SignIn.json), and protocol/specs/src/client/discovery-absent.json, through codegen/lib/required/shape.ml. Do not edit.
    Regenerate: make generate (codegen/lib/required/ocaml.ml) *)
 
 type 'schema t
@@ -503,6 +503,7 @@ val settings_path_result : [ `SettingsPathResult ] descriptor
 val settings_set_params : [ `SettingsSetParams ] descriptor
 val settings_theme_changed_event : [ `SettingsThemeChangedEvent ] descriptor
 val settings_unset_params : [ `SettingsUnsetParams ] descriptor
+val sign_in : [ `SignIn ] descriptor
 val sign_in_outcome : [ `SignInOutcome ] descriptor
 val sign_in_store_owner_only : [ `SignInStoreOwnerOnly ] descriptor
 val signed_in : [ `SignedIn ] descriptor

@@ -46,7 +46,7 @@ public sealed class BusOperation<TRequest, TResult, TFailure>
 
 /// <summary>What a transport delivers on a channel, one after another: a frame (<see cref="ReceivedBusFrame"/>), or, in
 /// the place of a frame BusFrame does not allow that names its channel's readers, the frame's refusal
-/// (<see cref="FrameRefusal"/>).</summary>
+/// (<see cref="RefusedBusFrame"/>).</summary>
 public closed record Carried
 {
     /// <summary>The channel it was delivered on.</summary>
@@ -74,19 +74,14 @@ public sealed record ReceivedBusFrame(BusFrame Frame, ActivityContext Trace) : C
         Identifiers.UserId.TryParse(value.GetString(), out var user) ? user : null;
 }
 
-/// <summary>A frame refused, in its place: BusFrame does not allow it, or its payload is not its channel's.
-/// <paramref name="Member"/> is the way from the frame to the member its first fault is at, the names of the members it
-/// is within and its own joined by dots (<c>payload.resourceId</c> is within its payload, and <c>payload</c> is the
-/// payload itself); <paramref name="Reason"/> is why. <paramref name="Payload"/> is its payload as it came, the gateway's
-/// stamps and all, and null when it carried none. <paramref name="CorrelationId"/> is the frame's, when it carries one
-/// BusFrame allows: a request awaiting the reply it names fails with the refusal at once.</summary>
-public sealed record FrameRefusal(string Channel, string Member, FrameRefusalReason Reason, JsonElement? Payload,
-    string? CorrelationId, ResourceId? Scope) : Carried
+/// <summary>A frame refused, in its place: BusFrame does not allow it, or its payload is not its channel's.</summary>
+/// <param name="Refusal">Why the frame was refused.</param>
+public sealed record RefusedBusFrame(FrameRefusal Refusal) : Carried
 {
     /// <inheritdoc/>
-    public override string Channel { get; } = Channel;
+    public override string Channel => Refusal.Channel;
     /// <inheritdoc/>
-    public override string? CorrelationId { get; } = CorrelationId;
+    public override string? CorrelationId => Refusal.CorrelationId;
 }
 
 /// <summary>What a typed read gives for each frame: the frame, its payload decoded (<see cref="Delivered"/>), or, in its
@@ -164,18 +159,25 @@ public sealed class Bus
     /// one whose payload is not its channel's; and a frame the transport refused, its refusal as it came.</summary>
     internal static Heard<T> HeardOf<T>(Carried carried) where T : class => carried switch
     {
-        FrameRefusal refusal => new Heard<T>.Refused(refusal),
+        RefusedBusFrame refused => new Heard<T>.Refused(refused.Refusal),
         ReceivedBusFrame received => TryDecode<T>(received.Frame.Payload, out var payload, out var fault)
             ? new Heard<T>.Delivered(received, payload)
-            : new Heard<T>.Refused(new FrameRefusal(received.Channel, InPayload(fault.Member), fault.Reason,
-                received.Frame.Payload, received.CorrelationId, received.Frame.Scope)),
+            : new Heard<T>.Refused(new FrameRefusal
+            {
+                Channel = received.Channel,
+                Member = InPayload(fault.Member),
+                Reason = fault.Reason,
+                Payload = received.Frame.Payload,
+                Scope = received.Frame.Scope,
+                CorrelationId = received.CorrelationId,
+            }),
     };
 
     /// <summary>The resource whose scope <paramref name="carried"/> was delivered on.</summary>
     internal static ResourceId? ScopeOf(Carried carried) => carried switch
     {
         ReceivedBusFrame received => received.Frame.Scope,
-        FrameRefusal refusal => refusal.Scope,
+        RefusedBusFrame refused => refused.Refusal.Scope,
     };
 
     /// <summary>A payload on <paramref name="channel"/>, as <typeparamref name="T"/>. Throws

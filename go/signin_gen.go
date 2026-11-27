@@ -47,6 +47,6 @@ type SignIn struct {
 	RevocationEndpoint string `json:"revocationEndpoint,omitempty"`
 }
 
-// signInRequired: the properties every SignIn states. A member of the
-// document that lacks one is not a SignIn.
-var signInRequired = []string{"token", "obtainedAt", "issuer", "tokenEndpoint"}
+// signInSchema: the name package required holds a SignIn to by. A member of
+// the document with a fault in it is not one.
+const signInSchema = "SignIn"
