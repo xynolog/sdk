@@ -59,9 +59,13 @@ let args_payload name args =
       `Assoc
         [
           ( "path",
-            Option.value (member "dirPath" (fields args)) ~default:(text ".") );
+            Option.value
+              (member "dirPath" (fields args))
+              ~default:(text Option_defaults.browse_files_dir_path) );
           ( "sort",
-            Option.value (member "sort" (fields args)) ~default:(text "name") );
+            Option.value
+              (member "sort" (fields args))
+              ~default:(text Option_defaults.browse_files_sort) );
         ]
   | "mark.annotation" ->
       let input = field "input" args in
@@ -88,14 +92,20 @@ let args_payload name args =
         (( "options",
            defaults options
              [
-               ("depth", `Int 2);
-               ("maxResources", `Int 10);
-               ("includeContent", `Bool true);
-               ("includeSummary", `Bool false);
+               ("depth", `Int Option_defaults.gather_resource_depth);
+               ( "maxResources",
+                 `Int Option_defaults.gather_resource_max_resources );
+               ( "includeContent",
+                 `Bool Option_defaults.gather_resource_include_content );
+               ( "includeSummary",
+                 `Bool Option_defaults.gather_resource_include_summary );
              ] )
         :: List.remove_assoc "options" (fields args))
   | "match.search" ->
-      let options = defaults (field "options" args) [ ("limit", `Int 10) ] in
+      let options =
+        defaults (field "options" args)
+          [ ("limit", `Int Option_defaults.match_search_limit) ]
+      in
       `Assoc (fields options @ List.remove_assoc "options" (fields args))
   | _ -> (
       match member "input" (fields args) with

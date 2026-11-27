@@ -6,6 +6,7 @@ use crate::cache::Cache;
 use crate::cached::{Cached, Keyed};
 use crate::channels::{MatchResourcesRequested, MatchSearchRequested};
 use crate::client::Links;
+use crate::option_defaults::MATCH_SEARCH_LIMIT;
 use crate::running::Running;
 use crate::state_unit::StateUnit;
 use crate::transport::Envelope;
@@ -13,11 +14,6 @@ use crate::types::{
     AnnotationId, GatheredContext, MatchResourcesRequest, MatchResourcesResponse,
     MatchSearchOptions, MatchSearchRequest, MatchSearchResult, ResourceId, ResourceSearchFilters,
 };
-
-/// How many candidates a search gives when its caller states no limit.
-/// Every SDK asks for as many: the cases of protocol/specs/src/client/surface.json
-/// hold each to it.
-const LIMIT: u16 = 10;
 
 /// A search for resources: the text, and which resources it is among.
 pub(super) type ResourceSearch = (String, ResourceSearchFilters);
@@ -80,7 +76,7 @@ impl MatchNamespace {
     }
 
     /// Candidates for a reference, given its gathered context. A search
-    /// that states no limit asks for ten, and one that does not say how it
+    /// that states no limit asks for `MATCH_SEARCH_LIMIT`, and one that does not say how it
     /// is scored is scored as the service decides.
     pub fn search(
         &self,
@@ -94,7 +90,7 @@ impl MatchNamespace {
             resource_id: resource_id.clone(),
             reference_id: reference_id.clone(),
             context,
-            limit: Some(options.limit.unwrap_or(LIMIT)),
+            limit: Some(options.limit.unwrap_or(MATCH_SEARCH_LIMIT)),
             use_semantic_scoring: options.use_semantic_scoring,
         };
         Running::new(|_| async move { links.request::<MatchSearchRequested>(&request).await })

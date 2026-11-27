@@ -8,6 +8,8 @@ the coming release's, and gathers its changes as they land.
 
 ### Added
 
+- `Option_defaults`, what an option the client decides is when its caller
+  leaves it out, generated from Protocol's `client/option-defaults.json`.
 - `Client_timing.client` and `Client_timing.transport`, the records of what a
   caller may override of the timing a client and its transport keep, with the
   protocol's values of them, `client_defaults` and `transport_defaults`.
@@ -70,6 +72,8 @@ the coming release's, and gathers its changes as they land.
 
 ### Changed
 
+- What gathering a resource's context takes for an option left out is
+  `Option_defaults`. The values are as they were.
 - A schema a `$ref` names at a place within a file is one record, named
   where that place is stated, wherever it is referred to: every error
   vocabulary of `Errors_codes` whose codes state only their docs is

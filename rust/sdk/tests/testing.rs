@@ -191,13 +191,7 @@ async fn a_test_session_is_ready_at_once_and_signed_in_as_nobody() {
     assert_eq!(*test.session.user().borrow(), None);
     assert_eq!(
         *test.session.kb(),
-        KbTarget::http(
-            "test-kb",
-            "Test KB",
-            "localhost",
-            4000,
-            HttpEndpointProtocol::Http,
-        )
+        xynolog::option_defaults::testing_create_test_session_kb()
     );
     // Its client is the one that came back, over the transport that did.
     assert!(Arc::ptr_eq(test.session.client(), &test.client));

@@ -1,6 +1,7 @@
 using Xynolog.Errors;
 using Xynolog.Http;
 using Xynolog.Identifiers;
+using Xynolog.Protocol;
 using Xynolog.Types;
 
 namespace Xynolog.Namespaces;
@@ -84,7 +85,7 @@ public sealed class BrowseNamespace
             cancellation: cancellation).ConfigureAwait(Spawning.Captures)).Response;
 
     /// <summary>Lists a directory of the knowledge base's working tree, in the order asked for.</summary>
-    public async Task<BrowseDirectoryResultResponse> FilesAsync(string dirPath = ".", BrowseDirectoryRequestSort sort = BrowseDirectoryRequestSort.Name,
+    public async Task<BrowseDirectoryResultResponse> FilesAsync(string dirPath = OptionDefaults.BrowseFilesDirPath, BrowseDirectoryRequestSort sort = OptionDefaults.BrowseFilesSort,
         CancellationToken cancellation = default) =>
         (await wire.RequestAsync(BusOperations.BrowseDirectoryRequested, new BrowseDirectoryRequest { Path = dirPath, Sort = sort },
             cancellation: cancellation).ConfigureAwait(Spawning.Captures)).Response;

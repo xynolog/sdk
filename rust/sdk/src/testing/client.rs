@@ -9,10 +9,11 @@
 use super::{FaultyTransport, InMemoryContent};
 use crate::channels::BRIDGED_CHANNELS;
 use crate::client::{ClientOptions, XynologClient};
+use crate::option_defaults::testing_create_test_session_kb;
 use crate::session::{XynologSession, XynologSessionConfig, kept_in};
 use crate::storage::InMemorySessionStorage;
 use crate::transport::GatewayOperations;
-use crate::types::{HttpEndpointProtocol, KbTarget};
+use crate::types::KbTarget;
 use std::sync::Arc;
 use tokio::sync::watch;
 
@@ -62,7 +63,7 @@ pub fn create_test_client(options: TestClientOptions) -> TestClient {
 #[derive(Default)]
 pub struct TestSessionOptions {
     pub client: TestClientOptions,
-    /// Absent, the knowledge base `test-kb` at `http://localhost:4000`.
+    /// Absent, `option_defaults::testing_create_test_session_kb()`.
     pub kb: Option<KbTarget>,
     /// Where the session keeps its tokens. A session stored in it under
     /// the knowledge base's id is the session's at its start. Absent, one
@@ -94,15 +95,7 @@ pub fn create_test_session(options: TestSessionOptions) -> TestSession {
     } = create_test_client(options.client);
     let storage = options.storage.unwrap_or_default();
     let token = watch::channel(None).0;
-    let kb = options.kb.unwrap_or_else(|| {
-        KbTarget::http(
-            "test-kb",
-            "Test KB",
-            "localhost",
-            4000,
-            HttpEndpointProtocol::Http,
-        )
-    });
+    let kb = options.kb.unwrap_or_else(testing_create_test_session_kb);
     let session = XynologSession::new(XynologSessionConfig {
         kept: kept_in(storage.clone(), &kb.id),
         kb,

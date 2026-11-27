@@ -1,4 +1,5 @@
 using Xynolog.Identifiers;
+using Xynolog.Protocol;
 using Xynolog.Types;
 
 namespace Xynolog.Namespaces;
@@ -43,10 +44,10 @@ public sealed class GatherNamespace
             ResourceId = resourceId,
             Options = new GatherResourceRequestOptions
             {
-                Depth = options?.Depth ?? 2,
-                MaxResources = options?.MaxResources ?? 10,
-                IncludeContent = options?.IncludeContent ?? true,
-                IncludeSummary = options?.IncludeSummary ?? false,
+                Depth = options?.Depth ?? OptionDefaults.GatherResourceDepth,
+                MaxResources = options?.MaxResources ?? OptionDefaults.GatherResourceMaxResources,
+                IncludeContent = options?.IncludeContent ?? OptionDefaults.GatherResourceIncludeContent,
+                IncludeSummary = options?.IncludeSummary ?? OptionDefaults.GatherResourceIncludeSummary,
                 ExcludeEntityTypes = options?.ExcludeEntityTypes is { Count: > 0 } excluded ? excluded : null,
             },
         };

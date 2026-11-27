@@ -52,6 +52,10 @@ the coming release's, and gathers its changes as they land.
 
 ### Changed
 
+- What `files`, gathering a resource's context, searching for a match, a
+  session opened over a kept sign-in and a test session take for an option
+  left out is generated from Protocol's `client/option-defaults.json`. The
+  values are as they were.
 - A value's first fault is read as `xynolog.types.Fault`, the type of
   Protocol's `client/types/Fault.json`, where the SDK held a copy of its own;
   what it says of a fault is unchanged.

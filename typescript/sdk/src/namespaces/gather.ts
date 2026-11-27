@@ -13,6 +13,12 @@ import { CacheObservable, StreamObservable } from '../awaitable';
 import { Bus, DEFAULT_CLIENT_TIMING } from '@xynolog/core';
 import { createCache, type Cache } from '../cache';
 import { CacheRefresher, ScopedSources } from '../cache-refresh';
+import {
+  GATHER_RESOURCE_DEPTH,
+  GATHER_RESOURCE_INCLUDE_CONTENT,
+  GATHER_RESOURCE_INCLUDE_SUMMARY,
+  GATHER_RESOURCE_MAX_RESOURCES,
+} from '../option-defaults';
 import type {
   GatherNamespace as IGatherNamespace,
   GatherAnnotationComplete,
@@ -154,8 +160,8 @@ export class GatherNamespace implements IGatherNamespace {
    * `gather:resource-requested` → `gather:resource-complete`/`-failed`, shaped
    * as a `Promise` rather than the `StreamObservable` `annotation()` returns. Resolves to the unified `GatheredContext` (focus.kind:
    * 'resource') the gateway assembled — the resource focus plus the shared
-   * knowledge graph; rejects with a `BusRequestError` on failure. Defaults mirror
-   * the CLI `gather` command (depth 2, maxResources 10, content in, summary out).
+   * knowledge graph; rejects with a `BusRequestError` on failure. An option left out
+   * is its default of `option-defaults.ts`.
    */
   resource(
     resourceId: ResourceId,
@@ -164,10 +170,12 @@ export class GatherNamespace implements IGatherNamespace {
     return this.wire.request('gather:resource-requested', {
       resourceId,
       options: {
-        depth: options?.depth ?? 2,
-        maxResources: options?.maxResources ?? 10,
-        includeContent: options?.includeContent ?? true,
-        includeSummary: options?.includeSummary ?? false,
+        depth: options?.depth ?? GATHER_RESOURCE_DEPTH,
+        maxResources: options?.maxResources ?? GATHER_RESOURCE_MAX_RESOURCES,
+        includeContent:
+          options?.includeContent ?? GATHER_RESOURCE_INCLUDE_CONTENT,
+        includeSummary:
+          options?.includeSummary ?? GATHER_RESOURCE_INCLUDE_SUMMARY,
         ...(options?.excludeEntityTypes?.length
           ? { excludeEntityTypes: options.excludeEntityTypes }
           : {}),

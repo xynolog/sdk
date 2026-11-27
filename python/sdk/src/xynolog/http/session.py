@@ -32,6 +32,7 @@ from typing import Final, final, override
 
 import httpx
 
+from xynolog._option_defaults import KEPT_SIGN_IN_SESSION_FROM_KEPT_VALIDATE
 from xynolog._shared_task import answer, heard
 from xynolog.bus import reply_channels_for
 from xynolog.channels import BRIDGED_CHANNELS
@@ -423,7 +424,7 @@ async def session_from_kept(
     kb: KbTarget,
     *,
     kept: SignInKept,
-    validate: bool = True,
+    validate: bool = KEPT_SIGN_IN_SESSION_FROM_KEPT_VALIDATE,
     channels: Sequence[str],
     storage: SessionStorage | None = None,
     on_auth_failed: Callable[[SessionEndReason], None] | None = None,

@@ -135,13 +135,14 @@ func (n *BrowseNamespace) AnnotationHistory(ctx context.Context, resourceID api.
 }
 
 // Files is a directory of the knowledge base's working tree, its entries in
-// sort's order: the root, by name, when dirPath and sort are empty.
+// sort's order: an empty dirPath or sort is its default of
+// option_defaults_gen.go.
 func (n *BrowseNamespace) Files(ctx context.Context, dirPath string, sort api.BrowseDirectoryRequestSort) (api.BrowseDirectoryResultResponse, error) {
 	if dirPath == "" {
-		dirPath = "."
+		dirPath = browseFilesDirPath
 	}
 	if sort == "" {
-		sort = api.BrowseDirectoryRequestSortName
+		sort = browseFilesSort
 	}
 	answer, err := ask(ctx, n.links, bus.BrowseDirectoryRequested, api.BrowseDirectoryRequest{Path: dirPath, Sort: &sort})
 	return answer.Response, err

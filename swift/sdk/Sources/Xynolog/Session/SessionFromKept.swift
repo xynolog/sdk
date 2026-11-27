@@ -33,7 +33,8 @@ actor SessionGate {
 /// nothing the client was writing lands after the session's own forgetting of it. Its client keeps
 /// `clientTiming`, and its transport `transportTiming`.
 public func sessionFromKept(
-  kb: KbTarget, kept: any SignInKept, httpClient: HTTPClient, validate: Bool = true,
+  kb: KbTarget, kept: any SignInKept, httpClient: HTTPClient,
+  validate: Bool = OptionDefaults.keptSignInSessionFromKeptValidate,
   onAuthFailed: (@Sendable (SessionEndReason) -> Void)? = nil,
   storage: (any SessionStorage)? = nil, clientTiming: ClientTiming = ClientTiming(),
   transportTiming: TransportTiming = TransportTiming(),

@@ -10,10 +10,6 @@ import (
 	"github.com/xynolog/sdk/go/bus"
 )
 
-// What a caller that states nothing is given. Every SDK sends the same: the
-// cases of protocol/specs/src/client/surface.json hold each to it.
-const matchCandidates = 10
-
 // MatchNamespace is searching: for what a reference could refer to, and for
 // resources by text.
 type MatchNamespace struct {
@@ -21,11 +17,11 @@ type MatchNamespace struct {
 	live  *live
 }
 
-// Search is the candidates for a reference, given its gathered context: ten
-// when Limit is nil, scored as the Librarian scores unasked when
+// Search is the candidates for a reference, given its gathered context:
+// matchSearchLimit of them when Limit is nil, scored as the Librarian scores unasked when
 // UseSemanticScoring is nil.
 func (n *MatchNamespace) Search(resourceID api.ResourceId, referenceID api.AnnotationId, gathered api.GatheredContext, options api.MatchSearchOptions) *Running[api.MatchSearchResult] {
-	limit := matchCandidates
+	limit := matchSearchLimit
 	if options.Limit != nil {
 		limit = *options.Limit
 	}

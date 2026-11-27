@@ -3,32 +3,28 @@ package xynolog.testing
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
+import xynolog.OptionDefaults
 import xynolog.XynologClient
 import xynolog.session.XynologSession
 import xynolog.signin.MemorySignIn
 import xynolog.signin.SignInKept
 import xynolog.telemetry.futureOf
-import xynolog.types.HttpEndpoint
-import xynolog.types.HttpEndpointProtocol
 import xynolog.types.KbTarget
 import java.util.concurrent.CompletableFuture
 import kotlin.coroutines.CoroutineContext
 import kotlin.random.Random
 
-/** The knowledge base a test session is with, unless a test says another: `test-kb` at `http://localhost:4000`. */
-private fun testKb(): KbTarget = KbTarget(id = "test-kb", label = "Test KB", endpoint = HttpEndpoint(host = "localhost", port = 4000, protocol = HttpEndpointProtocol.Http))
-
 /**
  * What a test session is built over. What a test leaves out is made: a
- * `TestClient` of doubles that answer nothing, `test-kb` at
- * `http://localhost:4000`, a `MemorySignIn` that holds none, and the system's
+ * `TestClient` of doubles that answer nothing,
+ * `OptionDefaults.TESTING_CREATE_TEST_SESSION_KB`, a `MemorySignIn` that holds none, and the system's
  * random source. The session keeps its client's context and clock.
  */
 public class TestSessionOptions @JvmOverloads constructor(
     /** The test client the session is over. */
     public val client: TestClient = TestClient(),
     /** The knowledge base the session is with. */
-    public val kb: KbTarget = testKb(),
+    public val kb: KbTarget = OptionDefaults.TESTING_CREATE_TEST_SESSION_KB,
     /** Where the session's sign-in is kept: a sign-in kept there is the session's at its start. */
     public val kept: SignInKept = MemorySignIn(),
     /** What the session's jitter is drawn from. */

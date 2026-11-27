@@ -22,9 +22,10 @@ public struct GatherNamespace: Sendable {
   {
     let excluded = options?.excludeEntityTypes.flatMap { $0.isEmpty ? nil : $0 }
     let options = GatherResourceRequestOptions(
-      depth: options?.depth ?? 2, maxResources: options?.maxResources ?? 10,
-      includeContent: options?.includeContent ?? true,
-      includeSummary: options?.includeSummary ?? false,
+      depth: options?.depth ?? OptionDefaults.gatherResourceDepth,
+      maxResources: options?.maxResources ?? OptionDefaults.gatherResourceMaxResources,
+      includeContent: options?.includeContent ?? OptionDefaults.gatherResourceIncludeContent,
+      includeSummary: options?.includeSummary ?? OptionDefaults.gatherResourceIncludeSummary,
       excludeEntityTypes: excluded)
     return try await wire.request(
       Operations.gatherResourceRequested,

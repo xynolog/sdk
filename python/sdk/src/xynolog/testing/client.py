@@ -7,8 +7,9 @@ resource, and an operation of the gateway nobody scripted fails naming it.
 """
 
 from dataclasses import dataclass
-from typing import ClassVar, Final, TypedDict, Unpack, final
+from typing import ClassVar, TypedDict, Unpack, final
 
+from xynolog._option_defaults import TESTING_CREATE_TEST_SESSION_KB
 from xynolog.channels import BRIDGED_CHANNELS
 from xynolog.client import CachePersistence, XynologClient
 from xynolog.session import MemorySignIn, SignInKept, XynologSession
@@ -16,13 +17,10 @@ from xynolog.testing.content import InMemoryContent
 from xynolog.testing.gateway import StubGateway
 from xynolog.testing.transport import FaultyTransport
 from xynolog.timing import ClientTiming
-from xynolog.types import HttpEndpoint, KbTarget
+from xynolog.types import KbTarget
 from xynolog.watched import Variable
 
 __all__ = ["TestClient", "TestSession", "TestSessionOptions", "create_test_client", "create_test_session"]
-
-_TEST_KB: Final = KbTarget(id="test-kb", label="Test KB", endpoint=HttpEndpoint(kind="http", host="localhost", port=4000, protocol="http"))
-"""The knowledge base a test session is with, unless a test says another."""
 
 
 @final
@@ -68,7 +66,7 @@ class TestSessionOptions(TypedDict, total=False):
     client: TestClient
     """The test client the session is over. Left out, `create_test_client()`'s."""
     kb: KbTarget
-    """The knowledge base the session is with. Left out, `test-kb` at `http://localhost:4000`."""
+    """The knowledge base the session is with. Left out, `TESTING_CREATE_TEST_SESSION_KB`."""
     kept: SignInKept
     """Where the session's sign-in is kept: a sign-in kept there is the session's at its start.
 
@@ -110,7 +108,7 @@ def create_test_session(**options: Unpack[TestSessionOptions]) -> TestSession:
     kept = options.get("kept")
     held = MemorySignIn() if kept is None else kept
     token = Variable[str | None](None)
-    session = XynologSession(kb=_TEST_KB if kb is None else kb, client=made.client, token=token, kept=held)
+    session = XynologSession(kb=TESTING_CREATE_TEST_SESSION_KB if kb is None else kb, client=made.client, token=token, kept=held)
     return TestSession(
         session=session, client=made.client, transport=made.transport, content=made.content, gateway=made.gateway, kept=held, token=token
     )

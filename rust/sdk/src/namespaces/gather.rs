@@ -7,6 +7,10 @@ use crate::cached::{Cached, Keyed};
 use crate::channels::{GatherReferencedByRequested, GatherRequested, GatherResourceRequested};
 use crate::client::Links;
 use crate::errors::XynologError;
+use crate::option_defaults::{
+    GATHER_RESOURCE_DEPTH, GATHER_RESOURCE_INCLUDE_CONTENT, GATHER_RESOURCE_INCLUDE_SUMMARY,
+    GATHER_RESOURCE_MAX_RESOURCES,
+};
 use crate::running::Running;
 use crate::state_unit::StateUnit;
 use crate::types::{AnnotationId, ResourceId};
@@ -18,15 +22,6 @@ use crate::types::{
 
 /// An annotation elsewhere that refers to a resource.
 pub(super) type ReferencedBy = GetReferencedByResponseReferencedByItem;
-
-/// What a resource's context takes when its caller states nothing: two hops
-/// of the graph, ten resources, their content, and no summary. Every SDK
-/// sends the same: the cases of protocol/specs/src/client/surface.json hold
-/// each to it.
-const DEPTH: u16 = 2;
-const MAX_RESOURCES: u16 = 10;
-const INCLUDE_CONTENT: bool = true;
-const INCLUDE_SUMMARY: bool = false;
 
 pub struct GatherNamespace {
     links: Links,
@@ -96,8 +91,9 @@ impl GatherNamespace {
         Running::new(|_| async move { links.request::<GatherRequested>(&request).await })
     }
 
-    /// The context around a whole resource. An empty exclusion excludes
-    /// nothing, and is not sent.
+    /// The context around a whole resource. An option left out is its
+    /// default of `option_defaults`. An empty exclusion excludes nothing,
+    /// and is not sent.
     pub async fn resource(
         &self,
         resource_id: &ResourceId,
@@ -115,10 +111,10 @@ impl GatherNamespace {
             .request::<GatherResourceRequested>(&GatherResourceRequest {
                 resource_id: resource_id.clone(),
                 options: GatherResourceRequestOptions {
-                    depth: depth.unwrap_or(DEPTH),
-                    max_resources: max_resources.unwrap_or(MAX_RESOURCES),
-                    include_content: include_content.unwrap_or(INCLUDE_CONTENT),
-                    include_summary: include_summary.unwrap_or(INCLUDE_SUMMARY),
+                    depth: depth.unwrap_or(GATHER_RESOURCE_DEPTH),
+                    max_resources: max_resources.unwrap_or(GATHER_RESOURCE_MAX_RESOURCES),
+                    include_content: include_content.unwrap_or(GATHER_RESOURCE_INCLUDE_CONTENT),
+                    include_summary: include_summary.unwrap_or(GATHER_RESOURCE_INCLUDE_SUMMARY),
                     exclude_entity_types: exclude_entity_types.filter(|types| !types.is_empty()),
                 },
             })

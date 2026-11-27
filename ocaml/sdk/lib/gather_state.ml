@@ -115,8 +115,10 @@ let gather_annotation t ?context_window ?include_source_context
           ]
          @ if options = [] then [] else [ ("options", `Assoc options) ])))
 
-let gather_resource t ?(depth = 2) ?(max_resources = 10)
-    ?(include_content = true) ?(include_summary = false)
+let gather_resource t ?(depth = Option_defaults.gather_resource_depth)
+    ?(max_resources = Option_defaults.gather_resource_max_resources)
+    ?(include_content = Option_defaults.gather_resource_include_content)
+    ?(include_summary = Option_defaults.gather_resource_include_summary)
     ?(exclude_entity_types = []) resource =
   let options =
     `Assoc

@@ -42,7 +42,7 @@ import type {
   ResourceRepresentation,
   ResourceRepresentationStream,
 } from '@xynolog/core';
-import { httpKb } from './session/knowledge-base';
+import { TESTING_CREATE_TEST_SESSION_KB } from './option-defaults';
 import { keptIn } from './session/storage';
 import { InMemorySessionStorage } from './session/session-storage';
 
@@ -208,7 +208,7 @@ export function createTestClient(options: TestClientOptions = {}): {
 }
 
 export interface TestSessionOptions extends TestClientOptions {
-  /** Override the default test KB target (id 'test-kb'). */
+  /** The knowledge base the session is with. Left out, `TESTING_CREATE_TEST_SESSION_KB`. */
   kb?: KbTarget;
 }
 
@@ -231,15 +231,7 @@ export function createTestSession(options: TestSessionOptions = {}): {
   const { client, transport } = createTestClient(options);
   const storage = new InMemorySessionStorage();
   const token$ = new BehaviorSubject<AccessToken | null>(null);
-  const kb =
-    options.kb ??
-    httpKb({
-      id: 'test-kb',
-      label: 'Test KB',
-      host: 'localhost',
-      port: 4000,
-      protocol: 'http',
-    });
+  const kb = options.kb ?? TESTING_CREATE_TEST_SESSION_KB;
   const session = new XynologSession({
     kb,
     kept: keptIn(storage, kb.id),

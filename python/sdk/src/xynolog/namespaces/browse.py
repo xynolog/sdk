@@ -10,6 +10,7 @@ import asyncio
 from collections.abc import AsyncIterator, Callable, Hashable
 from typing import Final, Self, final, override
 
+from xynolog._option_defaults import BROWSE_FILES_DIR_PATH, BROWSE_FILES_SORT
 from xynolog.cache import Cache, CacheState, Ready
 from xynolog.cached import Cached, Keyed, Source, itself, shown
 from xynolog.channels import BROWSE_CLICK, BROWSE_RESOURCE_OPEN, BROWSE_RESOURCE_VIEWED
@@ -261,8 +262,10 @@ class BrowseNamespace:
         return (await self._links.request(BROWSE_ANNOTATION_HISTORY_REQUESTED, request)).response
 
     async def files(self, dir_path: str | None = None, sort: BrowseDirectoryRequestSort | None = None) -> BrowseDirectoryResultResponse:
-        """The entries of a directory of the knowledge base's tree: its root when no path is stated, by name when no order is."""
-        request = BrowseDirectoryRequest(path="." if dir_path is None else dir_path, sort="name" if sort is None else sort)
+        """The entries of a directory of the knowledge base's tree; a path or an order left out is its default of `_option_defaults`."""
+        request = BrowseDirectoryRequest(
+            path=BROWSE_FILES_DIR_PATH if dir_path is None else dir_path, sort=BROWSE_FILES_SORT if sort is None else sort
+        )
         return (await self._links.request(BROWSE_DIRECTORY_REQUESTED, request)).response
 
     async def kb(self) -> KbDescription:

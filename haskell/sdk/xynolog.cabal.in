@@ -212,6 +212,7 @@ library internal
     Xynolog.Internal.Digest
     Xynolog.Internal.Generated.HeldJob
     Xynolog.Internal.Generated.WorkerChannels
+    Xynolog.Internal.Generated.OptionDefaults
 @MODEL_MODULES@
   autogen-modules: Paths_xynolog
 

@@ -58,6 +58,11 @@ the coming release's, and gathers its changes as they land.
 
 ### Changed
 
+- What browsing files, gathering a resource's context and searching for a
+  match take for an option left out, and the knowledge base
+  `xynologtest.NewTestSession` is with when its config names none, are
+  generated from Protocol's `client/option-defaults.json`. The values are
+  as they were.
 - A schema a `$ref` names at a place within a file is one type, named where
   that place is stated, wherever it is referred to: the Archivist layout's
   trees are all `ArchivistLayoutEventStreamTree`, every error vocabulary

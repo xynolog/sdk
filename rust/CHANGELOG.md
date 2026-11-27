@@ -8,6 +8,8 @@ the coming release's, and gathers its changes as they land.
 
 ### Added
 
+- `option_defaults`, what an option the client decides is when its caller
+  leaves it out, generated from Protocol's `client/option-defaults.json`.
 - A type for ten of Protocol's tables that no service keeps, each typed by
   the table's own schema: `ClientDiscoveryAbsent`, `ClientRefresh`,
   `ClientTesting`, `ControlCli`, `ErrorsCodes`, `IdentifiersKinds`,
@@ -72,6 +74,9 @@ the coming release's, and gathers its changes as they land.
 
 ### Changed
 
+- What browsing files, gathering a resource's context, searching for a match
+  and a test session take for an option left out is generated from
+  Protocol's `client/option-defaults.json`. The values are as they were.
 - A frame's refusal is `types::FrameRefusal`, the type of Protocol's
   `client/types/FrameRefusal.json`, where it was `transport::FrameRefusal`.
   It says itself as before, and is `FrameRefusal::of` a frame as before.

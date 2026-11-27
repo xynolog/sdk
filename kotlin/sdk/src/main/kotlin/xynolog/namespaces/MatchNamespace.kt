@@ -2,6 +2,7 @@
 
 package xynolog.namespaces
 
+import xynolog.OptionDefaults
 import xynolog.Running
 import xynolog.bus.Operations
 import xynolog.cache.Cached
@@ -16,12 +17,9 @@ import xynolog.types.MatchSearchRequest
 import xynolog.types.MatchSearchResult
 import xynolog.types.ResourceSearchFilters
 
-/** How many candidates a search for a reference gives when none is stated. */
-internal const val SEARCH_LIMIT: Long = 10
-
 /** Searching: for what a reference could refer to, and for resources by text. */
 public class MatchNamespace internal constructor(private val links: Links, private val live: Live) {
-    /** Candidates for a reference, given its gathered context: ten when `options` states no limit, scored as the service decides when it does not say how. */
+    /** Candidates for a reference, given its gathered context: `OptionDefaults.MATCH_SEARCH_LIMIT` when `options` states no limit, scored as the service decides when it does not say how. */
     @JvmOverloads
     @JvmExposeBoxed
     public fun search(
@@ -34,7 +32,7 @@ public class MatchNamespace internal constructor(private val links: Links, priva
             resourceId = resourceId,
             referenceId = referenceId,
             context = context,
-            limit = options.limit ?: SEARCH_LIMIT,
+            limit = options.limit ?: OptionDefaults.MATCH_SEARCH_LIMIT,
             useSemanticScoring = options.useSemanticScoring,
         )
         return Running(links.scope) { links.request(Operations.MATCH_SEARCH_REQUESTED, request) }

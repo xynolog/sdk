@@ -54,6 +54,7 @@ pub mod job_storage;
 mod kept_for_first_reader;
 pub mod media_types;
 pub mod namespaces;
+pub mod option_defaults;
 pub mod refresh;
 mod required;
 pub mod resources;

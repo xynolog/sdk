@@ -575,6 +575,7 @@
     "generated/Xynolog/Internal/Generated/OAuth.hs": "d465af47d90148c06df0f2c76fed0818e7a1159cd2f51267d181d0676a285467",
     "generated/Xynolog/Internal/Generated/OperationFailure.hs": "fc77af245bb9ab64745c8c7d75819dea350d374381f8b048a22c6cba90e512c4",
     "generated/Xynolog/Internal/Generated/OperationReports.hs": "d4ce6a1cb6ae92bb6dcd29140ce7a3e2f5ac9f0adc51dab299bef339cb72742b",
+    "generated/Xynolog/Internal/Generated/OptionDefaults.hs": "9481897486bf3e560d6514aacdec13c24cd14141cc56904e4589a0f30461a272",
     "generated/Xynolog/Internal/Generated/PendingAnnotation.hs": "92d649918dbb3c601b8ecb95ad0f690d1d19f8bebb505734c6730bbdef89e830",
     "generated/Xynolog/Internal/Generated/Principals.hs": "02fd2fd7b956e96bcda03bb7685472bf1a029666bf21fe32c1ff3e0ab217ceb9",
     "generated/Xynolog/Internal/Generated/Required.hs": "9de9c09bb652111e9b66ce815ff9684399f71528d080e36b7f8b9167744ab569",
@@ -597,7 +598,7 @@
     "internal/Xynolog/Internal/Annotations/Pdf.hs": "5072e39c92ed275d86fb6fe41ec610006b65a8f21364aa50bd42ef09b73fb8b6",
     "internal/Xynolog/Internal/Annotations/Spans.hs": "554d49dbde1e6be8b8556a021e528562d7017e28066e939ffa16b99122417bc6",
     "internal/Xynolog/Internal/Broadcast.hs": "336246ac6d68e996f3a618dc295e2ca88445c7c04c6aa189b8271a763bc19ee8",
-    "internal/Xynolog/Internal/Browse.hs": "fccdb09240c5d3bbf29f1e44c87701f0de38104a21f053cb059eb83330c132a2",
+    "internal/Xynolog/Internal/Browse.hs": "681525298fc92c2391e184bc709465209170538253c2530cabc1a6625e3105d7",
     "internal/Xynolog/Internal/Bus.hs": "167e2c50dd43e0813b1f3f9f204714b63e91489cd9f69018e5a17e671396f3b9",
     "internal/Xynolog/Internal/BusLog.hs": "0ad7baef1b416579ad51a626ce85cbdbc9989418bb74303207b1419833bba32e",
     "internal/Xynolog/Internal/Cache.hs": "f9eb43602f5f0e44ab7879412e41d0012fb170cbb17e0c58f64495b6652120b3",
@@ -609,7 +610,7 @@
     "internal/Xynolog/Internal/Delegation.hs": "d09f75e9aa9a1f57101c573ac81d5f6aa2b07a8382f3b11f3e96477f05bdb888",
     "internal/Xynolog/Internal/Delivery.hs": "513e7827c6db1b297a160d80cace95e1768aa15db56a9e27e9c515130308b539",
     "internal/Xynolog/Internal/Digest.hs": "3a15236d56a7f9d7522cd60566ba1673653fd541da28f09b879c6df7e104d77f",
-    "internal/Xynolog/Internal/Gather.hs": "c448d4f4c711877a33a11078b81ab6d9d83b4a8d4d03e0bfe26e26ceefd94803",
+    "internal/Xynolog/Internal/Gather.hs": "3a6b6e33665f3097daea3321d28274aaaa599065be2e6a0d101168c1eeb6638f",
     "internal/Xynolog/Internal/Http.hs": "c22304e03c93e61a2b16d17a127fccd3016a2b2f910c72d1206f75add9582de8",
     "internal/Xynolog/Internal/HttpActor.hs": "c5832b25b5bb62074daff7df5480f27c7072eea9198f5fb8e13a1b04391571b5",
     "internal/Xynolog/Internal/HttpContent.hs": "b1954a0f85bb847d815f4c8da9d20da1d3b56d862baab3d727634ef9c82e2257",
@@ -618,7 +619,7 @@
     "internal/Xynolog/Internal/Lifetime.hs": "7683169b7799ad3119f1c2ea849238dddc0dd832dffeacc87b9be86049eba585",
     "internal/Xynolog/Internal/Local.hs": "a5b2aeab4a2f7517fd4d33f367c6d53ee1c4d046f5cd1181aea97e4f81ba6b3d",
     "internal/Xynolog/Internal/Mark.hs": "18a971dc571685beba0c414c14e0ca2a645974fb993f72a12820dfbc48db24af",
-    "internal/Xynolog/Internal/Match.hs": "fc078230a3f56e2da6e3481ea0f3ec1ece7d95f70771a0e49bb893e9b3293e08",
+    "internal/Xynolog/Internal/Match.hs": "5d6daaf445a2f70162a30c79c766704fd5e084476909755e74fac216ebfe4e30",
     "internal/Xynolog/Internal/NativeStore.c": "4ef2a050d0f6eafd0b87fd949a7fe350aff420148a2df755e4d62852b357d832",
     "internal/Xynolog/Internal/NativeStore.hs": "19177c65653f87b44a48d9c9c7e40de2a2c7993f6a30b0ed99eb4b537df7a9e3",
     "internal/Xynolog/Internal/Persistence.hs": "bc27367144eefc9f8ac182080e0b1dc0f31b4e81d569c69982f21e8e49e23bad",
@@ -715,7 +716,7 @@
     "src/Xynolog/Types.hs": "0f192d1e2eafc6e222e19117a2dc2e8834965a2f698f494988a1fda68a034b37",
     "src/Xynolog/Worker.hs": "83992d20c0ca8a05de8780b7c43090236bd7c8196e5c1a85592466353b8bd660",
     "src/Xynolog/Yield.hs": "591b83ed53bf6af381c539738b2d4993d196912f4131bd26d4d7b0624354a562",
-    "xynolog.cabal.in": "fbd753dd3cc8854009b87b62c5cbd43840009a862d704f6dc0cc42a1cf0c6f12"
+    "xynolog.cabal.in": "a8cd2d1eb96a196d3c64074fa091df8bfe6bcc6862c70eff4539df1ba2bacd57"
   },
   "modules": {
     "Xynolog.Annotations": {

@@ -10,18 +10,15 @@ import (
 	"github.com/xynolog/sdk/go/bus"
 )
 
-// What a caller that states nothing is given. Every SDK sends the same: the
-// cases of protocol/specs/src/client/surface.json hold each to it.
-const (
-	gatherDepth        = 2
-	gatherMaxResources = 10
-)
-
 // GatherResourceDefaults is what Gather.Resource is given when nothing else
-// is stated: two hops of the graph, ten resources, their content, and no
-// summary.
+// is stated: each option's default of option_defaults_gen.go.
 func GatherResourceDefaults() api.GatherResourceRequestOptions {
-	return api.GatherResourceRequestOptions{Depth: gatherDepth, MaxResources: gatherMaxResources, IncludeContent: true, IncludeSummary: false}
+	return api.GatherResourceRequestOptions{
+		Depth:          gatherResourceDepth,
+		MaxResources:   gatherResourceMaxResources,
+		IncludeContent: gatherResourceIncludeContent,
+		IncludeSummary: gatherResourceIncludeSummary,
+	}
 }
 
 // GatherNamespace is assembling the context a model is given, and what

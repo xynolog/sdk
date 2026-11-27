@@ -61,6 +61,9 @@ the coming release's, and gathers its changes as they land.
 
 ### Changed
 
+- What browsing files, gathering a resource's context and searching for a
+  match take for an option left out is generated from Protocol's
+  `client/option-defaults.json`. The values are as they were.
 - A held job keeps the `HeldJobRecord` its claim handed it, and `jobId`,
   `jobType`, `resourceId`, `params`, `completedUnits`, `unitCursors`,
   `retryCount` and `maxRetries` are read from it through

@@ -58,6 +58,7 @@ import {
   type KeptKey,
   type WholeKey,
 } from '../cache-persister';
+import { BROWSE_FILES_DIR_PATH, BROWSE_FILES_SORT } from '../option-defaults';
 import type {
   BrowseNamespace as IBrowseNamespace,
   AnnotationHistoryResponse,
@@ -609,7 +610,10 @@ export class BrowseNamespace implements IBrowseNamespace {
   ): Promise<components['schemas']['BrowseFilesResponse']> {
     return this.wire.request(
       'browse:directory-requested',
-      { path: dirPath ?? '.', sort: sort ?? 'name' },
+      {
+        path: dirPath ?? BROWSE_FILES_DIR_PATH,
+        sort: sort ?? BROWSE_FILES_SORT,
+      },
       this.busRequestTimeoutMs,
     );
   }
