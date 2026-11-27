@@ -29,7 +29,7 @@ import xynolog.transport.Carried
 import xynolog.transport.Delivered
 import xynolog.transport.Events
 import xynolog.transport.Frame
-import xynolog.transport.FrameRefusal
+import xynolog.transport.Refused
 import xynolog.transport.Transport
 import xynolog.transport.Variable
 import xynolog.types.ClaimOptions
@@ -241,7 +241,7 @@ public class Claims internal constructor(
                     val wakes = when (carried) {
                         is Frame -> filters.any { jobMatchesFilter(it, carried.payload) }
                         // No filter can be compared with what cannot be read: a refused announcement counts as one that matches.
-                        is FrameRefusal -> true
+                        is Refused -> true
                     }
                     if (wakes) pull()
                 }
@@ -253,7 +253,7 @@ public class Claims internal constructor(
                     val cancellation = when (val read = heard(Channels.JOB_CANCEL_REQUESTED, carried)) {
                         is Delivered -> read.payload
                         // A refused frame names no job to cancel.
-                        is FrameRefusal -> return@collect
+                        is Refused -> return@collect
                     }
                     // A cancellation is the held job's only when it names it, and one that arrives after the settle signals nothing.
                     val (holding, signal) = synchronized(lock) { held to cancelling }

@@ -24,8 +24,8 @@ import xynolog.identifiers.ResourceId
 import xynolog.registry.WHOLE_KEY
 import xynolog.transport.Carried
 import xynolog.transport.Frame
-import xynolog.transport.FrameRefusal
 import xynolog.transport.Place
+import xynolog.transport.Refused
 import xynolog.types.Annotation
 import xynolog.types.ConnectionState
 import xynolog.types.wireJson
@@ -188,7 +188,7 @@ internal class Refresher(private val links: Links, private val live: Live, priva
         CACHE_REFRESH_CHANNELS[carried.channel]?.let { channel ->
             val subject = when (carried) {
                 is Frame -> subjectOf(channel, carried.payload)
-                is FrameRefusal -> null
+                is Refused -> null
             }
             if (subject == null) refresh(CacheRefreshTrigger.Unreadable, Subject()) else refresh(channel.trigger, subject)
         }

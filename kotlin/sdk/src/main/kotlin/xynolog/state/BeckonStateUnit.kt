@@ -10,7 +10,7 @@ import xynolog.identifiers.AnnotationId
 import xynolog.identifiers.ResourceId
 import xynolog.transport.Carried
 import xynolog.transport.Delivered
-import xynolog.transport.FrameRefusal
+import xynolog.transport.Refused
 import xynolog.transport.Variable
 import xynolog.transport.Watched
 import xynolog.types.BeckonFocusEvent
@@ -52,14 +52,14 @@ public class BeckonStateUnit @JvmExposeBoxed constructor(private val client: Xyn
         if (carried.channel == Channels.BECKON_HOVER.name) {
             val annotationId = when (val hover = heard(Channels.BECKON_HOVER, carried)) {
                 is Delivered -> hover.payload.annotationId
-                is FrameRefusal -> return
+                is Refused -> return
             }
             hovered.set(annotationId)
             if (annotationId != null) client.bus.publish(Channels.BECKON_SPARKLE, BeckonSparkleEvent(annotationId = annotationId), null, null)
         } else {
             when (val click = heard(Channels.BROWSE_CLICK, carried)) {
                 is Delivered -> focus(click.payload.annotationId)
-                is FrameRefusal -> Unit
+                is Refused -> Unit
             }
         }
     }
