@@ -23,11 +23,11 @@ import xynolog.JobProgressed
 import xynolog.JobRefused
 import xynolog.RefusedFrame
 import xynolog.Running
-import xynolog.bus.Fault
 import xynolog.bus.Operations
 import xynolog.bus.UNDECODED
 import xynolog.bus.faultOf
 import xynolog.bus.heard
+import xynolog.bus.said
 import xynolog.channels.Channel
 import xynolog.channels.Channels
 import xynolog.errors.BusRequestError
@@ -42,8 +42,10 @@ import xynolog.identifiers.ResourceId
 import xynolog.telemetry.callersTrace
 import xynolog.transport.Carried
 import xynolog.transport.Delivered
-import xynolog.transport.FrameRefusal
 import xynolog.transport.Heard
+import xynolog.transport.Refused
+import xynolog.types.Fault
+import xynolog.types.FrameRefusal
 import xynolog.types.JobCancelRequest
 import xynolog.types.JobCompleteCommand
 import xynolog.types.JobCreateCommand
@@ -180,7 +182,7 @@ private class Follower<C : JobCompleteCommand>(
                         val carried = woke.carried ?: throw BusRequestError(BusRequestErrorCode.Closed, "The client closed while it was following a job")
                         val said: Any = when (val read = heardIn(carried)) {
                             is Delivered -> read.payload
-                            is FrameRefusal -> read
+                            is Refused -> read.refusal
                         }
                         if (jobId == null) held += said else heard += said
                     }
@@ -286,7 +288,7 @@ private class Follower<C : JobCompleteCommand>(
             JobType.Yield -> wireJson.encodeToJsonElement(YieldJobCompleteCommand.serializer(), YieldJobCompleteCommand(resourceId = resourceId, jobId = status.jobId))
         }.jsonObject
         fun notCompleted(fault: Fault) =
-            TransportError(TransportErrorCode.Error, "The status of job ${status.jobId.value} is not a completed ${create.delegated} job's: $fault")
+            TransportError(TransportErrorCode.Error, "The status of job ${status.jobId.value} is not a completed ${create.delegated} job's: ${fault.said}")
         // A job completed without a result is stored with an empty one: an object that holds nothing.
         val payload = status.result?.takeUnless { it == JobStoredResult.Empty }
             ?.let { JsonObject(stated + ("result" to wireJson.encodeToJsonElement(JobStoredResult.serializer(), it))) }

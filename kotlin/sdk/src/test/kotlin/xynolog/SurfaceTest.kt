@@ -31,7 +31,7 @@ import xynolog.identifiers.AnnotationId
 import xynolog.identifiers.JobId
 import xynolog.identifiers.ResourceId
 import xynolog.transport.Delivered
-import xynolog.transport.FrameRefusal
+import xynolog.transport.Refused
 import xynolog.types.AnchorRect
 import xynolog.types.AnnotationSelector
 import xynolog.types.BindBodyOperation
@@ -238,7 +238,7 @@ class SurfaceTest {
                     client.bus.emit(name, sends, null, null)
                     val delivered = when (val heard = withTimeout(5_000) { reading.first() }) {
                         is Delivered<*> -> heard
-                        is FrameRefusal -> throw AssertionError("a payload on ${heard.channel} was refused: its `${heard.member}` ${heard.reason.value}")
+                        is Refused -> throw AssertionError("a payload on ${heard.channel} was refused: its `${heard.refusal.member}` ${heard.refusal.reason.value}")
                     }
                     // What the reader handed over is what the case's payload is as its channel's type.
                     assertEquals(decoded(channelNamed(name), sends), delivered.payload)

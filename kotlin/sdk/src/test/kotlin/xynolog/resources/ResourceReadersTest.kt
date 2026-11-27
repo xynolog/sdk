@@ -15,12 +15,13 @@ import org.junit.jupiter.api.DynamicTest
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestFactory
 import xynolog.Spec
-import xynolog.bus.Fault
 import xynolog.bus.Operations
 import xynolog.bus.decoded
 import xynolog.bus.faultOf
+import xynolog.bus.said
 import xynolog.errors.TransportError
 import xynolog.sameJson
+import xynolog.types.Fault
 import xynolog.types.FrameRefusalReason
 import xynolog.types.Representation
 import xynolog.types.ResourceDescriptor
@@ -88,7 +89,7 @@ class ResourceReadersTest {
             }
             val refusal = assertThrows(TransportError::class.java) { decoded(result, reply) }
             val within = listOf("response.resource", member).filter { it.isNotEmpty() }.joinToString(".")
-            assertEquals("a payload on ${result.name} is not that channel's: ${Fault(within, reason)}", refusal.message)
+            assertEquals("a payload on ${result.name} is not that channel's: ${Fault(within, reason).said}", refusal.message)
             // A member it lacks is one its type cannot be made without, so the decoder alone refuses that too. A size
             // or a form is the table's to refuse, and the decoder does not hold it.
             if (reason == FrameRefusalReason.Lacks) assertThrows(SerializationException::class.java) { resource(case) }

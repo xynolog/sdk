@@ -44,6 +44,11 @@ the coming release's, and gathers its changes as they land.
 
 ### Changed
 
+- A frame's refusal is Protocol's `xynolog.types.FrameRefusal`, where the SDK
+  wrote its own `xynolog.transport.FrameRefusal`. A transport and a typed read
+  carry it as `Refused`, the `Carried` and `Heard` beside `Frame` and
+  `Delivered`, which holds it as `refusal`. Java reads its member as
+  `refused.getRefusal().getMember()`.
 - A map whose schema names its keys by a schema of their own is keyed by that
   schema's type: `InferenceSpec.providers` is a
   `Map<InferenceProvider, Provider>`, and `ServiceTelemetryTelemetry.sdk` is

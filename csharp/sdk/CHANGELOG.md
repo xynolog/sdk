@@ -48,6 +48,11 @@ the coming release's, and gathers its changes as they land.
 
 ### Changed
 
+- A frame's refusal is Protocol's `Xynolog.Types.FrameRefusal`, where the SDK
+  wrote its own `Xynolog.FrameRefusal`. A transport carries it as a
+  `RefusedBusFrame`, the `Carried` beside `ReceivedBusFrame`, and a typed read
+  gives it as `Heard<T>.Refused`. A refusal is made with its members named
+  (`new FrameRefusal { Channel = …, Member = …, Reason = … }`).
 - A map whose schema names its keys by a schema of their own is keyed by that
   schema's type: `InferenceSpec.Providers` is an
   `IReadOnlyDictionary<InferenceProvider, Provider>`, and

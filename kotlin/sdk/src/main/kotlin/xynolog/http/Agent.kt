@@ -19,6 +19,7 @@ import kotlinx.coroutines.withTimeoutOrNull
 import xynolog.Timings
 import xynolog.bus.UNDECODED
 import xynolog.bus.faultIn
+import xynolog.bus.said
 import xynolog.errors.SignInError
 import xynolog.errors.SignInErrorCode
 import xynolog.errors.TransportError
@@ -345,7 +346,7 @@ public class AgentToken @JvmOverloads constructor(
             UNDECODED
         }
         // Its first fault, and none of what it holds.
-        throw TransportError(TransportErrorCode.Error, "$url did not answer who the agent is: $fault", status)
+        throw TransportError(TransportErrorCode.Error, "$url did not answer who the agent is: ${fault.said}", status)
     }
 
     /**

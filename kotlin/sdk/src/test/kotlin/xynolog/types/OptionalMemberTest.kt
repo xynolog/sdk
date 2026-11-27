@@ -4,8 +4,8 @@ import kotlinx.serialization.json.JsonElement
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Test
-import xynolog.bus.Fault
 import xynolog.bus.faultOfSchema
+import xynolog.types.Fault
 
 /** A member the spec says is optional, and not nullable, is absent or a value, each written as it was read; a null for it is refused. */
 class OptionalMemberTest {

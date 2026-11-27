@@ -11,6 +11,7 @@ import kotlinx.serialization.SerializationException
 import xynolog.Timings
 import xynolog.bus.UNDECODED
 import xynolog.bus.faultIn
+import xynolog.bus.said
 import xynolog.errors.LIMIT_REFUSAL_TRANSPORT_CODES
 import xynolog.errors.TransportError
 import xynolog.errors.TransportErrorCode
@@ -248,6 +249,6 @@ internal class Exchange(
         } catch (_: IllegalArgumentException) {
             UNDECODED
         }
-        throw failed(TransportError(TransportErrorCode.Error, "$method $path answered what is not its declared body: $fault"))
+        throw failed(TransportError(TransportErrorCode.Error, "$method $path answered what is not its declared body: ${fault.said}"))
     }
 }

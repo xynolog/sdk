@@ -16,6 +16,7 @@ import xynolog.annotations.BY_CODE_POINT
 import xynolog.annotations.codePointsOf
 import xynolog.channels.Response
 import xynolog.types.EmptyObject
+import xynolog.types.Fault
 import xynolog.types.FrameRefusalReason
 import xynolog.types.wireJson
 import java.util.concurrent.ConcurrentHashMap
@@ -88,19 +89,13 @@ internal object TermSerializer : JsonContentPolymorphicSerializer<Term>(Term::cl
 @Serializable
 internal data class Discriminator(val property: String, val mapping: Map<String, Int>)
 
-/**
- * The first thing wrong with a value: the way to the member it is at (the
- * names of the members it is within, and its own, joined by dots; empty for
- * the value itself), and why.
- */
-internal data class Fault(val member: String, val reason: FrameRefusalReason) {
-    /** What every SDK says of the fault. */
-    override fun toString(): String = when {
+/** What every SDK says of the fault. */
+internal val Fault.said: String
+    get() = when {
         reason == FrameRefusalReason.Lacks -> "it has no `$member`"
         member.isEmpty() -> "it is malformed"
         else -> "its `$member` is malformed"
     }
-}
 
 /** The fault of a value its decoder refuses that has no fault the table states: the value itself is malformed. */
 internal val UNDECODED: Fault = Fault("", FrameRefusalReason.Malformed)

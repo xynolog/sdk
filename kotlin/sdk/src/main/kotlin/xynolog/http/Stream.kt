@@ -20,11 +20,11 @@ import kotlinx.serialization.json.jsonPrimitive
 import xynolog.Timings
 import xynolog.TransportTiming
 import xynolog.bus.BusLog
-import xynolog.bus.Fault
 import xynolog.bus.Logged
 import xynolog.bus.UNDECODED
 import xynolog.bus.faultOf
 import xynolog.bus.readOf
+import xynolog.bus.said
 import xynolog.channels.RESOURCE_SCOPED_CHANNELS
 import xynolog.channels.TRACE_FIELD
 import xynolog.errors.TransportError
@@ -39,9 +39,9 @@ import xynolog.transport.Broadcast
 import xynolog.transport.Carried
 import xynolog.transport.Events
 import xynolog.transport.Frame
-import xynolog.transport.FrameRefusal
 import xynolog.transport.FrameSink
 import xynolog.transport.Place
+import xynolog.transport.Refused
 import xynolog.transport.ReplyRouter
 import xynolog.transport.mayBecome
 import xynolog.transport.scope
@@ -50,6 +50,8 @@ import xynolog.types.BusFrame
 import xynolog.types.BusSubscribeRequest
 import xynolog.types.BusSubscribeRequestScopedItem
 import xynolog.types.ConnectionState
+import xynolog.types.Fault
+import xynolog.types.FrameRefusal
 import xynolog.types.TraceCarrier
 import xynolog.types.wireJson
 import java.io.IOException
@@ -99,7 +101,7 @@ private fun unscoped(carried: Carried, place: Place?): Carried = if (carried.sco
 } else {
     when (carried) {
         is Frame -> carried.unscoped(place)
-        is FrameRefusal -> carried.copy(scope = null)
+        is Refused -> carried.copy(refusal = carried.refusal.copy(scope = null))
     }
 }
 
@@ -396,12 +398,14 @@ internal class Stream(
         val read = when (val line = lineOf(data)) {
             is Line.Allowed -> line.frame
             is Line.Refused -> {
-                router.route(line.refusal)
-                hub.deliver(line.refusal, null)
+                // This class's own Refused, a report, is not the transport's.
+                val refused = xynolog.transport.Refused(line.refusal)
+                router.route(refused)
+                hub.deliver(refused, null)
                 return
             }
             is Line.Unaddressed -> {
-                failures.deliver(TransportError(TransportErrorCode.Error, "the stream carried what is not a frame: ${line.fault}"))
+                failures.deliver(TransportError(TransportErrorCode.Error, "the stream carried what is not a frame: ${line.fault.said}"))
                 return
             }
         }
@@ -615,7 +619,16 @@ internal fun lineOf(data: String): Line {
         null -> null
         else -> (held as? JsonPrimitive)?.takeIf { it.isString }?.let { ResourceId.parse(it.content) } ?: return Line.Unaddressed(fault)
     }
-    return Line.Refused(FrameRefusal(channel, fault.member, fault.reason, stated[BUS_FRAME_PAYLOAD], correlationIdOf(channel, stated[BUS_FRAME_CORRELATION_ID]), scope))
+    return Line.Refused(
+        FrameRefusal(
+            channel = channel,
+            member = fault.member,
+            reason = fault.reason,
+            payload = stated[BUS_FRAME_PAYLOAD],
+            scope = scope,
+            correlationId = correlationIdOf(channel, stated[BUS_FRAME_CORRELATION_ID]),
+        ),
+    )
 }
 
 /** The correlation id a frame on `channel` carries as `held`, when BusFrame allows it, whatever the frame's other faults. */

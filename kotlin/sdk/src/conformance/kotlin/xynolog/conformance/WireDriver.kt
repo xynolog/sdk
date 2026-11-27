@@ -24,7 +24,7 @@ import xynolog.identifiers.AnnotationId
 import xynolog.identifiers.JobId
 import xynolog.identifiers.ResourceId
 import xynolog.transport.Frame
-import xynolog.transport.FrameRefusal
+import xynolog.transport.Refused
 import xynolog.transport.ResourceHold
 import xynolog.types.ConnectionState
 import xynolog.types.PutBinaryRequest
@@ -141,8 +141,8 @@ private class WireDriver(private val abandon: (Long) -> Boolean) : Driver {
                     is Frame -> carried
                     // The suite's backend sends only frames BusFrame allows, and its lines have none for a
                     // refusal: a frame the transport refused is its bug, which ends the driver.
-                    is FrameRefusal -> {
-                        System.err.println("the transport refused a frame on $channel: ${carried.reason.value}, at its `${carried.member}`")
+                    is Refused -> {
+                        System.err.println("the transport refused a frame on $channel: ${carried.refusal.reason.value}, at its `${carried.refusal.member}`")
                         exitProcess(1)
                     }
                 }
