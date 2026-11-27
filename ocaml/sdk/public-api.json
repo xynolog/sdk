@@ -182,8 +182,8 @@
     "lib/media_facts.ml": "462bb526a754d71c947d838d618ffdc3ad255ab8b61307ac3aa05ddc498fcf2a",
     "lib/media_types.ml": "627feecc23b4f887709476ee12e6fe99099303c19e06be88240ac8bf1905413d",
     "lib/media_types.mli": "2d65a7872184f4fedba7fb88e5ab2069b0031e9ac924fb0a093978e31ad0c7cc",
-    "lib/models.ml": "24a4afee8264b6c31b4f274fe542daaa575b148bc52c9891f7c5bea13565b1a0",
-    "lib/models.mli": "7d57557991c3cebecf9f6f61c4e582493d2475b287e4abc8fe75d00c1b98b6a3",
+    "lib/models.ml": "5f824077be42f50607e9645c741c20569860708b2a8fcfe7188a8e643267ebaf",
+    "lib/models.mli": "9517568403e77e5ff45dd0d011ae388d053208014157ce48c84803e61e4068c1",
     "lib/namespace_methods.ml": "37178853cd16d5975132820d07bf0ee703039b946557167dd39560f0b5025147",
     "lib/oauth.ml": "d908e2497f7a14f92a98e35cd9be8b92f717faaa2e20480e703efd6fb8ef09a0",
     "lib/oauth.mli": "b535175120377dd42d5d60ce71dbf893b51839f4fe61db06135f6f525728543d",
@@ -206,7 +206,7 @@
     "lib/running.mli": "74bef29c19b9b132888e875f77ea4fec64855a7bb7c6e119e0fb8346a47176f9",
     "lib/schema_codec.ml": "1a446ac9da40c767de40d10e730552081bb9c3a8d405140d0c9d6fa9dde5e793",
     "lib/schema_shape.ml": "d81d5e9313ecb2bb7cb3613072538c36290c95c879c9cfe168d6f2b7e97b74ee",
-    "lib/schema_shapes.ml": "add64e48ab7edf10eb7c9abb4ef6d426a83c4e2945e7e53872c77b086860521e",
+    "lib/schema_shapes.ml": "a52a4badc1944509e0a3d438a1d4803e4053592aead1f4bd4c979d0f14d0867e",
     "lib/search_pipeline.ml": "c686787cea18854164219082e02d586aa34f7a0801c876cb011648bd72222ba0",
     "lib/search_pipeline.mli": "8569d48ac54fb0e5b0165613f479fce0d4dcd897d89dae4699c8d25f6d5db0d3",
     "lib/selector.ml": "f631bad7d16a82910665c02614d271aa21ec4e8f8262848c82b360f95072e07a",
@@ -227,7 +227,7 @@
     "lib/session_signals.mli": "75d9e803669a38f99e84aa96938790d283100139f1dc35ae9a28d642fe21db5b",
     "lib/session_state.ml": "e37d27a40b24138dba753797521206e02b8c3f7c24c45aa485167ca38d7b999b",
     "lib/session_state.mli": "0c8500f016d8e498c20ccd34471a3707fd26415781b8c4aba9c7aea1e6b7abf5",
-    "lib/sign_in_store.ml": "f5463e9e0ed8fb0a2b8f3d06b6a72077df513c3658a41ca690f1eafbf0a1d24f",
+    "lib/sign_in_store.ml": "e46730fb8ee54c112ae9dc58e5f48a1211f520afc5c92695ddb1795037fd25d1",
     "lib/sign_in_store.mli": "5850fcc03ed8a5ffc5f0c3100112396f859ff8743d599cb39284a4533fcfcd38",
     "lib/sign_in_store_names.ml": "3339dba3b41d74a767840d9afeb9e41390c025c28a5e98659e518cd9b25ae514",
     "lib/smelter_messages.ml": "b8e465e5674f6aa99f3689a6a470d6aa1d3f483ae7be948ee970e9c5f9fd8ca0",
@@ -6173,6 +6173,11 @@
       "kind": "value",
       "path": "Xynolog.Models.settings_unset_params",
       "declaration": "val settings_unset_params : [ `SettingsUnsetParams ] descriptor"
+    },
+    {
+      "kind": "value",
+      "path": "Xynolog.Models.sign_in",
+      "declaration": "val sign_in : [ `SignIn ] descriptor"
     },
     {
       "kind": "value",

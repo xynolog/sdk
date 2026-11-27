@@ -344,7 +344,10 @@ class SignInStore:
 
 
 def _sign_in_of(entry: JsonValue) -> SignIn | None:
-    """A member of the document as a sign-in. One with a fault as the table holds a sign-in to (an empty token, a member it lacks) is none."""
+    """A member of the document as a sign-in; none for one with a fault as the table holds a sign-in to.
+
+    An empty token is such a fault, as is a member it lacks.
+    """
     read = as_read(SignIn, entry)
     if isinstance(read, Fault):
         return None
