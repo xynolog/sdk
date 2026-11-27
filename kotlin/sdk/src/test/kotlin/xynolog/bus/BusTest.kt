@@ -46,6 +46,7 @@ import xynolog.types.BrowseProfilesRequest
 import xynolog.types.BusPingMessage
 import xynolog.types.ConnectionState
 import xynolog.types.EmptyObject
+import xynolog.types.Fault
 import xynolog.types.FrameAddEntityTypeCommand
 import xynolog.types.FrameRefusalReason
 import xynolog.types.GatherAnnotationOptions

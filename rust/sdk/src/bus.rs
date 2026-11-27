@@ -48,9 +48,11 @@ use crate::channels::{
 use crate::errors::{
     BusRequestError, BusRequestErrorCode, TransportError, TransportErrorCode, XynologError,
 };
-use crate::required::{Fault, fault_of};
-use crate::transport::{Envelope, Frame, FrameRefusal, Frames, Lagged, ResourceHold, Transport};
+use crate::required::fault_of;
+use crate::transport::{Envelope, Frame, Frames, Lagged, ResourceHold, Transport};
 use crate::types::ConnectionState;
+use crate::types::Fault;
+use crate::types::FrameRefusal;
 use crate::types::{CommandError, ResourceId, TraceCarrier};
 use futures_core::Stream;
 use serde::Serialize;

@@ -11,6 +11,7 @@ import org.junit.jupiter.api.DynamicTest
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestFactory
 import xynolog.Spec
+import xynolog.types.Fault
 import xynolog.types.FrameRefusalReason
 import xynolog.types.wireJson
 

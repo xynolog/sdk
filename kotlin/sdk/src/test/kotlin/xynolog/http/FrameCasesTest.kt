@@ -26,8 +26,8 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestFactory
 import xynolog.Spec
 import xynolog.bus.Bus
-import xynolog.bus.Fault
 import xynolog.bus.UNDECODED
+import xynolog.bus.said
 import xynolog.channels.Channel
 import xynolog.channels.Channels
 import xynolog.errors.TransportError
@@ -41,6 +41,7 @@ import xynolog.transport.Frame
 import xynolog.transport.FrameRefusal
 import xynolog.transport.Heard
 import xynolog.types.BeckonFocusEvent
+import xynolog.types.Fault
 import xynolog.types.FrameRefusalReason
 import xynolog.types.wireJson
 
@@ -67,7 +68,7 @@ private fun isAfter(heard: Heard<BeckonFocusEvent>): Boolean = heard is Delivere
 private fun isTheFrameAfter(carried: Carried): Boolean = carried is Frame && carried.payload["resourceId"] == JsonPrimitive("after")
 
 /** What the failure report is told of a line with `fault`. */
-private fun told(fault: Fault) = Triple(TransportErrorCode.Error, null, "the stream carried what is not a frame: $fault")
+private fun told(fault: Fault) = Triple(TransportErrorCode.Error, null, "the stream carried what is not a frame: ${fault.said()}")
 
 /** What `failure` says, as `told` states it. */
 private fun said(failure: XynologError) = assertInstanceOf(TransportError::class.java, failure).let { Triple(it.reason, it.status, it.message) }

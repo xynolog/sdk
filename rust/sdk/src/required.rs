@@ -7,8 +7,8 @@
 //! does not state is a fault of the value itself, and nothing of serde's own
 //! account is said: it shows what it was given.
 
-use crate::types::FrameRefusalReason;
 use crate::types::Schema;
+use crate::types::{Fault, FrameRefusalReason};
 use serde::de::DeserializeOwned;
 use serde_json::{Map, Value};
 use std::fmt;
@@ -158,15 +158,6 @@ pub(crate) const fn of(kinds: &'static [Kind]) -> Shape {
 }
 
 include!("generated/required.rs");
-
-/// The first thing wrong with a value: the way to the member it is at (the
-/// names of the members it is within, and its own, joined by dots; empty for
-/// the value itself), and why.
-#[derive(Debug, PartialEq, Eq)]
-pub(crate) struct Fault {
-    pub(crate) member: String,
-    pub(crate) reason: FrameRefusalReason,
-}
 
 impl Fault {
     /// The fault of a value serde refuses that has no fault the table
@@ -571,9 +562,9 @@ fn member_of(shape: &'static Shape, name: &str) -> Option<&'static Shape> {
 
 #[cfg(test)]
 mod tests {
-    use super::{Fault, Group, Kind, NONE, Shape, Step, Term, fault_of, fault_said, of, schema};
-    use crate::types::FrameRefusalReason;
+    use super::{Group, Kind, NONE, Shape, Step, Term, fault_of, fault_said, of, schema};
     use crate::types::UserResponse;
+    use crate::types::{Fault, FrameRefusalReason};
     use serde_json::json;
 
     /// The step of the one code point `point`.

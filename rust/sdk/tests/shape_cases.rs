@@ -6,7 +6,7 @@
 
 use serde_json::Value;
 use xynolog::testing::schema_fault;
-use xynolog::types::FrameRefusalReason;
+use xynolog::types::{Fault, FrameRefusalReason};
 
 #[test]
 fn shape_cases() {
@@ -22,7 +22,10 @@ fn shape_cases() {
                 .expect("a refused case states its member");
             let reason: FrameRefusalReason = serde_json::from_value(case["reason"].clone())
                 .expect("a refused case states its reason");
-            (member.to_owned(), reason)
+            Fault {
+                member: member.to_owned(),
+                reason,
+            }
         });
         let mut value = case["value"].clone();
         assert_eq!(

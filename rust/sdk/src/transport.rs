@@ -22,14 +22,14 @@ use crate::errors::{BusRequestError, BusRequestErrorCode, TransportError};
 use crate::event_bus::EventBus;
 use crate::kept_for_first_reader::KeptForFirstReader;
 use crate::locked;
-use crate::required::{Fault, fault_of, schema};
+use crate::required::{fault_of, schema};
 use crate::types::ConnectionState;
 use crate::types::{
     AnchoredTextAnswer, CreateResourceResponse, GetAnnotationsResponse, GetResourceResponse,
     HealthResponse, MediaTokenResponse, ProtectedResourceMetadata, PutBinaryRequest,
     ResourceRepresentation, StatusResponse, UploadProgress, UploadProgressFinished, UserResponse,
 };
-use crate::types::{BusFrame, FrameRefusalReason, ResourceId, Schema, TraceCarrier};
+use crate::types::{BusFrame, Fault, FrameRefusal, ResourceId, Schema, TraceCarrier};
 use bytes::Bytes;
 use futures_core::Stream;
 use serde_json::{Map, Value};
@@ -88,25 +88,7 @@ pub struct Frame {
     pub stream_id: Option<StreamId>,
 }
 
-/// What a transport delivers in place of a frame BusFrame does not allow,
-/// to the readers it names: those of its channel, in its scope. It names the
-/// frame's first fault by its way from the frame (`member`: `payload`,
-/// `correlationId`, or a member BusFrame does not name), and carries the
-/// frame's payload as it came, when it carried one, and its correlation id,
-/// when it carried one BusFrame allows. A typed read gives one, too, for a
-/// frame whose payload is not its channel's.
-///
 /// Said as "a frame on" the channel " is not that channel's: " and the fault.
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub struct FrameRefusal {
-    pub channel: String,
-    pub member: String,
-    pub reason: FrameRefusalReason,
-    pub payload: Option<Value>,
-    pub scope: Option<ResourceId>,
-    pub correlation_id: Option<String>,
-}
-
 impl fmt::Display for FrameRefusal {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let fault = Fault {
@@ -700,6 +682,7 @@ pub trait GatewayOperations: Send + Sync + 'static {
 mod tests {
     use super::*;
     use crate::timing::ERRORS_KEPT_FOR_FIRST_READER_COUNT;
+    use crate::types::FrameRefusalReason;
 
     #[test]
     fn the_first_listener_is_told_what_was_reported_before_it_and_each_what_comes_after() {

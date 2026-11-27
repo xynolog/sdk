@@ -46,13 +46,8 @@ where
 }
 
 /// The first fault `value` has as the component schema `name`, as every SDK
-/// finds it: its way (the names of the members it is within, and its own,
-/// joined by dots; empty for the value itself) and why. Nothing when it has
-/// none. A name that is no component schema of the spec panics.
-pub fn schema_fault(
-    name: &str,
-    value: &mut serde_json::Value,
-) -> Option<(String, crate::types::FrameRefusalReason)> {
+/// finds it. Nothing when it has none. A name that is no component schema of
+/// the spec panics.
+pub fn schema_fault(name: &str, value: &mut serde_json::Value) -> Option<crate::types::Fault> {
     crate::required::fault_of(crate::required::schema(name), value)
-        .map(|crate::required::Fault { member, reason }| (member, reason))
 }

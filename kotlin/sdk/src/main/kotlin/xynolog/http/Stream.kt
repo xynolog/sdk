@@ -20,11 +20,11 @@ import kotlinx.serialization.json.jsonPrimitive
 import xynolog.Timings
 import xynolog.TransportTiming
 import xynolog.bus.BusLog
-import xynolog.bus.Fault
 import xynolog.bus.Logged
 import xynolog.bus.UNDECODED
 import xynolog.bus.faultOf
 import xynolog.bus.readOf
+import xynolog.bus.said
 import xynolog.channels.RESOURCE_SCOPED_CHANNELS
 import xynolog.channels.TRACE_FIELD
 import xynolog.errors.TransportError
@@ -50,6 +50,7 @@ import xynolog.types.BusFrame
 import xynolog.types.BusSubscribeRequest
 import xynolog.types.BusSubscribeRequestScopedItem
 import xynolog.types.ConnectionState
+import xynolog.types.Fault
 import xynolog.types.TraceCarrier
 import xynolog.types.wireJson
 import java.io.IOException
@@ -401,7 +402,7 @@ internal class Stream(
                 return
             }
             is Line.Unaddressed -> {
-                failures.deliver(TransportError(TransportErrorCode.Error, "the stream carried what is not a frame: ${line.fault}"))
+                failures.deliver(TransportError(TransportErrorCode.Error, "the stream carried what is not a frame: ${line.fault.said()}"))
                 return
             }
         }
